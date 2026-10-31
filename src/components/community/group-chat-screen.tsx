@@ -10,13 +10,16 @@ import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useLocalSearchParams } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useAuth } from "@clerk/expo";
+import { useCommunity, useCommunityGroup } from "@/hooks/use-community";
+import { Pressable } from "@/components/feedback/pressable";
+import type { CommunityPostImageDraft, GroupMessage } from "@/types/community";
 import {
   ActivityIndicator,
-  ScrollView,
+  FlatList,
   StyleSheet,
   Text,
-  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -29,12 +32,19 @@ export function GroupChatScreen(): React.ReactElement {
   const displayName = useTeacherDisplayName();
   const chat = useGroupChat(groupId ?? "");
   const [isSending, setIsSending] = useState(false);
+  const { userId } = useAuth();
+  const community = useCommunity();
+  const detail = useCommunityGroup(groupId ?? "");
+  const isOwner = detail.group?.members.some(member => member.clerkId === userId && member.role === "owner");
+  const list = useRef<FlatList<GroupMessage>>(null);
+  const nearBottom = useRef(true);
+  const [actionError, setActionError] = useState<string | null>(null);
 
-  const handleSend = async (body: string, linkUrl?: string): Promise<void> => {
+  const handleSend = async (body: string, linkUrl?: string, images?: readonly CommunityPostImageDraft[], messageId?: string): Promise<void> => {
     setIsSending(true);
 
     try {
-      await chat.sendMessage({ body, linkUrl, displayName });
+      await chat.sendMessage({ body, linkUrl, displayName, images, messageId });
     } finally {
       setIsSending(false);
     }
@@ -48,27 +58,17 @@ export function GroupChatScreen(): React.ReactElement {
         behavior="padding"
         style={styles.flex}
       >
-        {chat.isLoading && chat.messages.length === 0 ? (
-          <View style={styles.loading}>
-            <ActivityIndicator color={colors.foreground} size="small" />
-          </View>
-        ) : null}
-
-        {chat.error ? (
-          <Text style={styles.error}>{chat.error}</Text>
-        ) : null}
-
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={styles.messages}
-          showsVerticalScrollIndicator={false}
-        >
-          {chat.messages.map((message) => (
-            <GroupChatBubble key={message.messageId} message={message} />
-          ))}
-        </ScrollView>
-
-        {chat.error ? null : <GroupChatComposer groupId={groupId ?? ""} isSending={isSending} onSend={handleSend} />}
+        {chat.error || actionError ? <Text selectable accessibilityRole="alert" style={styles.error}>{actionError ?? chat.error}</Text> : null}
+        <FlatList ref={list} data={chat.messages} keyExtractor={message => message.messageId}
+          keyboardShouldPersistTaps="handled" contentContainerStyle={styles.messages} contentInsetAdjustmentBehavior="automatic"
+          maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
+          onScroll={event => { const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent; nearBottom.current = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100; }}
+          onContentSizeChange={() => { if (nearBottom.current) list.current?.scrollToEnd({ animated: false }); }}
+          ListHeaderComponent={chat.hasMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44 }} onPress={() => { void chat.loadMore().catch(cause => setActionError(cause instanceof Error ? cause.message : 'Could not load messages.')); }}><Text style={{ color: colors.foreground }}>Load older messages</Text></Pressable> : null}
+          ListEmptyComponent={chat.isLoading ? <ActivityIndicator color={colors.foreground} /> : <Text style={{ color: colors.mutedForeground }}>{chat.error ? 'Messages could not be loaded.' : 'Start the conversation with your group.'}</Text>}
+          refreshing={chat.isLoading && chat.messages.length > 0} onRefresh={() => void chat.refresh()}
+          renderItem={({ item }) => <GroupChatBubble message={item} onDelete={item.authorClerkId === userId || isOwner ? async () => { await community.deleteMessage(groupId, item.messageId); await chat.refresh(); } : undefined} />} />
+        <GroupChatComposer groupId={groupId ?? ""} isSending={isSending} onSend={handleSend} />
       </KeyboardAvoidingView>
     </SafeAreaView>
   );

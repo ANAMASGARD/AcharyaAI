@@ -2,7 +2,8 @@ import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { usePreviewFeature } from "@/components/preview/preview-provider";
+import { createId } from "@/lib/id";
+import { useFlushDrafts, usePreviewFeature } from "@/components/preview/preview-provider";
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { useCommunityGroups } from "@/hooks/use-community-groups";
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
@@ -10,7 +11,7 @@ import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -27,28 +28,38 @@ export function CreateGroupScreen(): React.ReactElement {
   const router = useRouter();
   const displayName = useTeacherDisplayName();
   const { createGroup } = useCommunityGroups();
+  const flushDrafts = useFlushDrafts();
+  const [draftId, setDraftId] = usePreviewFeature("community-group-id", "");
   const [name, setName] = usePreviewFeature("community-group-name", "");
   const [description, setDescription] = usePreviewFeature("community-group-description", "");
   const [subjectTag, setSubjectTag] = usePreviewFeature("community-group-subject", "");
+  const submission = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleCreate = async (): Promise<void> => {
+    if (submission.current) return;
     if (!name.trim()) {
       setError("Group name is required.");
       return;
     }
 
+    submission.current = true;
     setIsSubmitting(true);
     setError(null);
 
     try {
+      const groupId = draftId || createId();
+      setDraftId(groupId);
+      await flushDrafts();
       const group = await createGroup({
+        groupId,
         name,
         description,
         subjectTag: subjectTag || null,
         displayName,
       });
+      setDraftId("");
       setName("");
       setDescription("");
       setSubjectTag("");
@@ -60,6 +71,7 @@ export function CreateGroupScreen(): React.ReactElement {
           : "Failed to create group",
       );
     } finally {
+      submission.current = false;
       setIsSubmitting(false);
     }
   };
@@ -69,9 +81,10 @@ export function CreateGroupScreen(): React.ReactElement {
       <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Create Group" />
       <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-        <Text style={styles.label}>Local preview · this group stays on this device.</Text>
+        <Text style={styles.label}>Invitation-only teacher group. Share the code with teachers you want to invite.</Text>
         <Text style={styles.label}>Group name</Text>
         <TextInput
+          editable={!isSubmitting}
           onChangeText={setName}
           placeholder="Class 6 Science Teachers"
           placeholderTextColor={colors.mutedForeground}
@@ -81,6 +94,7 @@ export function CreateGroupScreen(): React.ReactElement {
 
         <Text style={styles.label}>Description</Text>
         <TextInput
+          editable={!isSubmitting}
           multiline
           onChangeText={setDescription}
           placeholder="What is this group for?"
@@ -91,6 +105,7 @@ export function CreateGroupScreen(): React.ReactElement {
 
         <Text style={styles.label}>Subject (optional)</Text>
         <TextInput
+          editable={!isSubmitting}
           onChangeText={setSubjectTag}
           placeholder="Science"
           placeholderTextColor={colors.mutedForeground}
@@ -111,7 +126,7 @@ export function CreateGroupScreen(): React.ReactElement {
           {isSubmitting ? (
             <ActivityIndicator color={colors.onAccent} size="small" />
           ) : (
-            <Text style={[styles.buttonLabel, { color: colors.onAccent }]}>Save local group</Text>
+            <Text style={[styles.buttonLabel, { color: colors.onAccent }]}>Create private group</Text>
           )}
         </Pressable>
       </KeyboardAwareScrollView>

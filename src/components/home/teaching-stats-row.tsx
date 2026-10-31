@@ -48,7 +48,7 @@ export function TeachingStatsRow({
   }
 
   const classesValue = String(stats?.classesThisMonth ?? 0);
-  const notesValue = String(stats?.notesVerifiedCount ?? 0);
+  const notesValue = stats?.notesVerifiedCount == null ? "—" : String(stats.notesVerifiedCount);
   const scoreValue =
     stats?.averageScore !== null && stats?.averageScore !== undefined
       ? String(stats.averageScore)

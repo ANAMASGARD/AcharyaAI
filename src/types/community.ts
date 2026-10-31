@@ -11,6 +11,7 @@ export type CommunityPostImage = Readonly<{
 
 export type CommunityPostImageDraft = Readonly<{
   id?: string;
+  imageId?: string;
   uri: string;
   name: string;
   mimeType: string;
@@ -80,6 +81,7 @@ export type GroupMessage = Readonly<{
   authorClerkId: string;
   authorDisplayName: string;
   authorAvatarLetter: string;
+  images?: readonly CommunityPostImage[];
 }>;
 
 export type CreatePostInput = Readonly<{
@@ -111,15 +113,17 @@ export type CreateCommentInput = Readonly<{
 }>;
 
 export type CreateGroupMessageInput = Readonly<{
+  messageId?: string;
   body: string;
   linkUrl?: string | null;
   displayName: string;
+  images?: readonly CommunityPostImageDraft[];
 }>;
 
 export type DashboardStats = Readonly<{
   classesThisWeek: number;
   classesThisMonth: number;
-  notesVerifiedCount: number;
+  notesVerifiedCount: number | null;
   averageScore: number | null;
   streakDays: number;
 }>;
@@ -143,6 +147,8 @@ export type DashboardResponse = Readonly<{
 export type PostsFeedResponse = Readonly<{
   posts: readonly CommunityPost[];
   count: number;
+  nextCursor?: string | null;
+  hasMore?: boolean;
 }>;
 
 export type PostDetailResponse = Readonly<{
@@ -157,4 +163,17 @@ export type VoteResponse = Readonly<{
 
 export type SaveResponse = Readonly<{
   viewerSaved: boolean;
+}>;
+
+export type CommunityModerationReport = Readonly<{
+  reportId: string;
+  targetType: 'post' | 'comment' | 'message';
+  targetId: string;
+  reason: string;
+  status: string;
+  createdAt: string;
+  reporterClerkId?: string;
+  body?: string;
+  authorClerkId?: string;
+  images?: readonly CommunityPostImage[];
 }>;

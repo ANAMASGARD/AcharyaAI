@@ -11,8 +11,7 @@ import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityPost } from "@/types/community";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import * as Clipboard from "expo-clipboard";
-import { StyleSheet, Text, View } from "react-native";
+import { Share, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   post: CommunityPost;
@@ -39,9 +38,7 @@ export function CommunityPostCard({
   const styles = useThemeStyles(createStyles);
 
   const handleShare = async (): Promise<void> => {
-    await Clipboard.setStringAsync(
-      `acharyaapp://community/post/${post.postId}`,
-    );
+    await Share.share({ message: `${post.title}\nacharyaapp://community/post/${post.postId}` });
   };
 
   return (

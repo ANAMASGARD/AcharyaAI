@@ -1,3 +1,5 @@
+import { CommunityPostImages } from "./community-post-images";
+import { CommunitySafetyActions } from "./community-safety-actions";
 import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -9,9 +11,10 @@ import { Linking, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   message: GroupMessage;
+  onDelete?: () => Promise<void>;
 }>;
 
-export function GroupChatBubble({ message }: Props): React.ReactElement {
+export function GroupChatBubble({ message, onDelete }: Props): React.ReactElement {
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
@@ -33,6 +36,8 @@ export function GroupChatBubble({ message }: Props): React.ReactElement {
             <Text style={styles.link}>{message.linkUrl}</Text>
           </Pressable>
         ) : null}
+        <CommunityPostImages images={message.images ?? []} variant="detail" />
+        <CommunitySafetyActions targetType="message" targetId={message.messageId} authorClerkId={message.authorClerkId} onDelete={onDelete} />
         <Text style={styles.time}>{formatTimeAgo(message.createdAt)}</Text>
       </View>
     </View>

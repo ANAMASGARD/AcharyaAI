@@ -1,11 +1,15 @@
 import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
-import { usePreviewFeature } from "@/components/preview/preview-provider";
+import { createId } from "@/lib/id";
+import { useFlushDrafts, usePreviewFeature } from "@/components/preview/preview-provider";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { PostImagePicker } from "./post-image-picker";
+import { useCommunityPostImages, getCommunityPostImagesErrorMessage } from "@/hooks/use-community-post-images";
+import type { CommunityPostImageDraft } from "@/types/community";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -15,7 +19,7 @@ import {
 } from "react-native";
 
 type Props = Readonly<{
-  onSend: (body: string, linkUrl?: string) => Promise<void>;
+  onSend: (body: string, linkUrl?: string, images?: readonly CommunityPostImageDraft[], messageId?: string) => Promise<void>;
   isSending: boolean;
   groupId: string;
 }>;
@@ -28,28 +32,47 @@ export function GroupChatComposer({
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
+  const flushDrafts = useFlushDrafts();
+  const submission = useRef(false);
+  const [draftId, setDraftId] = usePreviewFeature(`group-message-id:${groupId}`, "");
   const [body, setBody] = usePreviewFeature(`group-message-body:${groupId}`, "");
   const [linkUrl, setLinkUrl] = usePreviewFeature(`group-message-link:${groupId}`, "");
   const [showLink, setShowLink] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const photos = useCommunityPostImages(`group-message-images:${groupId}`);
 
   const handleSend = async (): Promise<void> => {
     const trimmed = body.trim();
 
-    if (!trimmed || isSending) {
+    if (submission.current || (!trimmed && !linkUrl.trim() && photos.selectedImages.length === 0) || isSending) {
       return;
     }
 
-    await onSend(trimmed, linkUrl.trim() || undefined);
-    setBody("");
-    setLinkUrl("");
-    setShowLink(false);
+    submission.current = true;
+    setError(null);
+    try {
+      const messageId = draftId || createId();
+      setDraftId(messageId);
+      await flushDrafts();
+      await onSend(trimmed, linkUrl.trim() || undefined, photos.selectedImages, messageId);
+      setDraftId("");
+      setBody("");
+      setLinkUrl("");
+      setShowLink(false);
+      photos.clearImages();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : "Message could not be sent. Your draft is safe.");
+    } finally { submission.current = false; }
   };
 
   return (
     <View style={styles.wrap}>
-      <Text style={styles.hint}>Local preview · messages are saved on this device only.</Text>
+      <Text style={styles.hint}>Only members of this group can read messages.</Text>
+      {error ? <Text accessibilityRole="alert" style={[styles.hint, { color: colors.destructive }]}>{error}</Text> : null}
+      <PostImagePicker disabled={isSending} selectedImages={photos.selectedImages} isPicking={photos.isPicking || isSending} canAddMore={photos.canAddMore && !isSending} errorMessage={photos.error ? getCommunityPostImagesErrorMessage(photos.error) : null} onPickImages={() => void photos.pickImages()} onPickFromFiles={() => void photos.pickFromFiles()} onTakePhoto={() => void photos.takePhoto()} onRemoveImage={photos.removeImage} />
       {showLink ? (
         <TextInput
+          editable={!isSending}
           onChangeText={setLinkUrl}
           placeholder="Optional link URL"
           placeholderTextColor={colors.mutedForeground}
@@ -59,6 +82,7 @@ export function GroupChatComposer({
       ) : null}
       <View style={styles.row}>
         <Pressable
+          disabled={isSending}
           accessibilityLabel="Attach link"
           accessibilityRole="button"
           onPress={() => setShowLink((current) => !current)}
@@ -71,6 +95,7 @@ export function GroupChatComposer({
           />
         </Pressable>
         <TextInput
+          editable={!isSending}
           multiline
           onChangeText={setBody}
           placeholder="Message your group..."
@@ -79,9 +104,9 @@ export function GroupChatComposer({
           value={body}
         />
         <Pressable
-          accessibilityLabel="Save local message"
+          accessibilityLabel="Send message"
           accessibilityRole="button"
-          disabled={isSending || !body.trim()}
+          disabled={isSending || (!body.trim() && !linkUrl.trim() && photos.selectedImages.length === 0)}
           onPress={() => {
             void handleSend();
           }}
@@ -112,9 +137,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   },
   iconButton: {
     alignItems: "center",
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
   },
   input: {
     backgroundColor: colors.card,
@@ -153,9 +178,9 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderColor: colors.border,
     borderRadius: radii.md,
     borderWidth: borderWidths.thin,
-    height: 40,
+    height: 44,
     justifyContent: "center",
-    width: 40,
+    width: 44,
   },
   sendDisabled: {
     opacity: 0.6,

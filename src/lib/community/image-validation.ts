@@ -1,28 +1,5 @@
-export const ACCEPTED_COMMUNITY_IMAGE_EXTENSIONS = [
-  ".jpg",
-  ".jpeg",
-  ".png",
-  ".webp",
-  ".heic",
-  ".heif",
-  ".gif",
-  ".bmp",
-  ".tif",
-  ".tiff",
-  ".svg",
-] as const;
-
-export const ACCEPTED_COMMUNITY_IMAGE_MIMES = [
-  "image/jpeg",
-  "image/png",
-  "image/webp",
-  "image/heic",
-  "image/heif",
-  "image/gif",
-  "image/bmp",
-  "image/tiff",
-  "image/svg+xml",
-] as const;
+export const ACCEPTED_COMMUNITY_IMAGE_EXTENSIONS = [".jpg", ".jpeg", ".png", ".webp", ".gif"] as const;
+export const ACCEPTED_COMMUNITY_IMAGE_MIMES = ["image/jpeg", "image/png", "image/webp", "image/gif"] as const;
 
 export const COMMUNITY_POST_IMAGE_MAX_BYTES = 5_242_880;
 export const COMMUNITY_POST_IMAGE_MAX_COUNT = 4;
@@ -52,10 +29,6 @@ function matchesAcceptedMime(mimeType: string | null | undefined): boolean {
 
   const normalized = mimeType.toLowerCase();
 
-  if (normalized.startsWith("image/")) {
-    return true;
-  }
-
   return ACCEPTED_COMMUNITY_IMAGE_MIMES.some(
     (accepted) =>
       accepted === normalized || normalized.startsWith(`${accepted};`),
@@ -66,7 +39,7 @@ export function isAcceptedCommunityImage(
   name: string,
   mimeType?: string | null,
 ): boolean {
-  return matchesAcceptedExtension(name) || matchesAcceptedMime(mimeType);
+  return matchesAcceptedMime(mimeType) && matchesAcceptedExtension(name);
 }
 
 export function isWithinCommunityImageSizeLimit(

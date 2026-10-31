@@ -2,7 +2,10 @@ import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
-import { useCommunityPreview } from "@/hooks/use-community-preview";
+import { useCommunity, useCommunityGroup } from "@/hooks/use-community";
+import { useAuth } from "@clerk/expo";
+import { confirmAction } from "@/lib/confirm-action";
+import { useState } from "react";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import * as Clipboard from "expo-clipboard";
@@ -24,10 +27,17 @@ export function GroupDetailScreen(): React.ReactElement {
 
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const router = useRouter();
-  const community = useCommunityPreview();
-  const group = community.state.groups.find((item) => item.groupId === groupId) ?? null;
-  const isLoading = false;
-  const error = group ? null : 'Local group not found.';
+  const community = useCommunity();
+  const { userId } = useAuth();
+  const detail = useCommunityGroup(groupId ?? '');
+  const { group, isLoading, error } = detail;
+  const [actionError, setActionError] = useState<string | null>(null);
+  const isOwner = group?.members.some(member => member.clerkId === userId && member.role === 'owner');
+  const removeMember = async (clerkId: string): Promise<void> => {
+    if (!await confirmAction('Remove group member?', 'They will lose access to this group’s posts, photos, and chat.', 'Remove')) return;
+    try { await community.removeMember(groupId, clerkId); await detail.refresh(); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Could not remove member.'); }
+  };
 
   const copyJoinCode = async (): Promise<void> => {
     if (!group) {
@@ -37,7 +47,7 @@ export function GroupDetailScreen(): React.ReactElement {
     await Clipboard.setStringAsync(group.joinCode);
   };
 
-  if (isLoading) {
+  if (isLoading && !group) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <ActivityIndicator color={colors.foreground} size="large" />
@@ -45,7 +55,7 @@ export function GroupDetailScreen(): React.ReactElement {
     );
   }
 
-  if (error || !group) {
+  if (!group) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <CommunityScreenHeader title="Group" />
@@ -59,6 +69,9 @@ export function GroupDetailScreen(): React.ReactElement {
       <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title={group.name} />
       <ScrollView contentContainerStyle={styles.content}>
+        {actionError || error ? <Text selectable accessibilityRole="alert" style={styles.error}>{actionError ?? error}</Text> : null}
+        <Pressable accessibilityRole="button" style={styles.chatButton} onPress={() => router.push({ pathname: "/community/feed", params: { groupId } })}><Text style={[styles.chatButtonLabel, { color: colors.onAccent }]}>View group posts</Text></Pressable>
+        <Pressable accessibilityRole="button" style={styles.chatButton} onPress={() => router.push({ pathname: "/community/create-post", params: { groupId } })}><Text style={[styles.chatButtonLabel, { color: colors.onAccent }]}>Post to this group</Text></Pressable>
         <Text style={styles.description}>
           {group.description || "Teacher discussion group"}
         </Text>
@@ -76,7 +89,7 @@ export function GroupDetailScreen(): React.ReactElement {
         </Pressable>
 
         <Text style={styles.sectionTitle}>
-          Members ({group.memberCount}) · local preview
+          Members ({group.memberCount})
         </Text>
         {group.members.map((member) => (
           <View key={member.clerkId} style={styles.memberRow}>
@@ -87,6 +100,7 @@ export function GroupDetailScreen(): React.ReactElement {
               <Text style={styles.memberName}>{member.displayName}</Text>
               <Text style={styles.memberRole}>{member.role}</Text>
             </View>
+            {isOwner && member.clerkId !== userId ? <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${member.displayName}`} style={{ minHeight: 44, justifyContent: "center", marginLeft: "auto" }} onPress={() => void removeMember(member.clerkId)}><Text style={{ color: colors.destructive }}>Remove</Text></Pressable> : null}
           </View>
         ))}
 

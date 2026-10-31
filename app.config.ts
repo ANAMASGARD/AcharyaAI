@@ -10,6 +10,15 @@ if (process.env.EAS_BUILD_PROFILE === 'production' || process.env.EXPO_PUBLIC_AP
   }
 }
 
+if (process.env.EAS_BUILD_PROFILE || process.env.EXPO_PUBLIC_APP_VARIANT === 'production') {
+  let configured = false;
+  try {
+    const endpoint = new URL(process.env.EXPO_PUBLIC_NEON_FUNCTION_URL ?? '');
+    configured = endpoint.protocol === 'https:' && !endpoint.username && !endpoint.password && !endpoint.search && !endpoint.hash;
+  } catch { /* Fail before packaging an app without a usable backend. */ }
+  if (!configured) throw new Error('Builds require EXPO_PUBLIC_NEON_FUNCTION_URL pointing to the matching Clerk community backend.');
+}
+
 /**
  * Same branding as /home/linux/Downloads/acharya-app (production-hardening).
  * Icon paths are explicit so Expo Go picks up Acharya art, not the Expo template.

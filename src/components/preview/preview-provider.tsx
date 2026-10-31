@@ -163,6 +163,16 @@ export function usePreviewAttachments() {
   }), [owner, session]);
 }
 
+/** Wait for queued draft writes before an idempotent remote publication starts. */
+export function useFlushDrafts(): () => Promise<void> {
+  const { owner, session, store } = usePreviewContext();
+  return useCallback(async () => {
+    // Queue.flush intentionally absorbs earlier background errors. An explicit
+    // publication must await a fresh write and propagate failure to its form.
+    await session.run(() => previewStorage.writeDrafts(owner, store.getState().features));
+  }, [owner, session, store]);
+}
+
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
   loading: { flex: 1, backgroundColor: colors.cream, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   label: { fontFamily: fontFamilies.sansBold, color: colors.foreground, fontSize: 16 },

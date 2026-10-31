@@ -1,3 +1,4 @@
+import { CommunityTools } from "./community-tools";
 import { Pressable } from '@/components/feedback/pressable';
 import { useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -37,6 +38,7 @@ export function CommunitySection(): React.ReactElement {
   return (
     <View style={styles.section}>
       <Text style={styles.heading}>Community Feed</Text>
+      <CommunityTools />
       <CreatePostBanner
         onPress={() => router.push("/community/create-post")}
       />
@@ -81,6 +83,7 @@ export function CommunitySection(): React.ReactElement {
       {segment === "feed" ? (
         <>
           <CommunityFeedList
+            onRefresh={feed.refresh}
             error={feed.error}
             isLoading={feed.isLoading}
             onDeletePost={feed.deletePost}

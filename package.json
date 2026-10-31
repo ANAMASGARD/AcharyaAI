@@ -7,6 +7,7 @@
     "@clerk/expo": "^4.10.1",
     "@expo/ui": "~57.0.23",
     "@expo/vector-icons": "^15.0.2",
+    "@imagekit/nodejs": "^7.13.0",
     "@neondatabase/serverless": "^1.2.0",
     "@react-native-community/netinfo": "^12.0.1",
     "drizzle-orm": "^0.45.4",
@@ -74,7 +75,7 @@
     "db:generate:pg": "drizzle-kit generate --config drizzle.config.pg.ts",
     "db:migrate:pg": "drizzle-kit migrate --config drizzle.config.pg.ts",
     "db:generate:expo": "drizzle-kit generate --config drizzle.config.expo.ts",
-    "check": "npm run typecheck && npm run lint && npm test && expo export --platform all",
+    "check": "npm run typecheck && npm run lint && npm test && expo export --platform all --clear",
     "postinstall": "patch-package --error-on-fail",
     "native:gate:prepare": "node scripts/native-gate/prepare.cjs"
   },

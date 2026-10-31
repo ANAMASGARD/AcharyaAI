@@ -4,12 +4,18 @@ import { neon } from '@neondatabase/serverless';
 import { requireClerkUserId } from '../../../src/server/db/auth';
 import { readRecordingBody } from '../../../src/server/recording/request-body';
 import { validateSyncedReport } from '../../../src/lib/reports/sync-contract';
+import { handleCommunityRequest, deleteCommunityAccount } from '../../../src/server/community';
+import { handleCommunityCleanup, handleCommunityScheduledCleanup } from '../../../src/server/community/cleanup';
+import { mobileCors } from '../../../src/server/http/mobile-cors';
 
 /** Neon Functions entry. No provider secrets or database credentials are shipped to Expo. */
-export default { async fetch(request: Request): Promise<Response> {
+async function handleMobileRequest(request: Request): Promise<Response> {
+  const path = new URL(request.url).pathname;
+  if (path === '/internal/community-cleanup-trigger') return handleCommunityScheduledCleanup(request);
+  if (path === '/internal/community-cleanup') return handleCommunityCleanup(request);
   const auth = await requireClerkUserId(request);
   if (!auth.ok) return auth.response;
-  const path = new URL(request.url).pathname;
+  if (path === '/community' || path.startsWith('/community/')) return handleCommunityRequest(request, auth.clerkUserId);
   const reply = (body: unknown, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store' } });
   // Budget is zero. No flag can enable developer-funded calls in this release.
   if (path.endsWith('/ai') || path.includes('/billing') || path.includes('/promo')) return reply({ error: 'DISABLED' }, 403);
@@ -43,6 +49,7 @@ export default { async fetch(request: Request): Promise<Response> {
     if (action === 'delete') {
       // Tombstone commits first. A lost response/retry cannot restore deleted data.
       // Retrying DELETE is allowed even while normal reads/writes are blocked.
+      await deleteCommunityAccount(auth.clerkUserId);
       await createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY }).users.deleteUser(auth.clerkUserId);
     }
     return reply(result[2][0].result);
@@ -54,4 +61,12 @@ export default { async fetch(request: Request): Promise<Response> {
       : message.includes('INVALID_CURSOR') ? 'INVALID_CURSOR' : 'RETRY_LATER';
     return reply({ error: code }, code === 'ACCOUNT_DELETED' ? 403 : code === 'RATE_LIMIT' ? 429 : code === 'REPORT_CONFLICT' ? 409 : code === 'INVALID_CURSOR' ? 400 : 503);
   }
+}
+
+export default { async fetch(request: Request): Promise<Response> {
+  const cors = mobileCors(request);
+  if (cors instanceof Response) return cors;
+  const response = await handleMobileRequest(request);
+  cors.forEach((value, key) => response.headers.set(key, value));
+  return response;
 } };

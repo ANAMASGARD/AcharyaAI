@@ -13,7 +13,9 @@
       "env": {
         "EXPO_PUBLIC_APP_VARIANT": "development",
         "ACHARYA_UPDATE_CHANNEL": "development",
-        "EXPO_NO_DOTENV": "1"
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVzb2x2ZWQtcXVldHphbC0zNy5jbGVyay5hY2NvdW50cy5kZXYk",
+        "EXPO_PUBLIC_NEON_FUNCTION_URL": "https://br-steep-recipe-b3ujia3w-acharya.compute.c-4.ap-southeast-1.aws.neon.tech"
       },
       "channel": "development",
       "environment": "development"
@@ -26,7 +28,9 @@
       "env": {
         "EXPO_PUBLIC_APP_VARIANT": "preview",
         "ACHARYA_UPDATE_CHANNEL": "preview",
-        "EXPO_NO_DOTENV": "1"
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_test_cmVzb2x2ZWQtcXVldHphbC0zNy5jbGVyay5hY2NvdW50cy5kZXYk",
+        "EXPO_PUBLIC_NEON_FUNCTION_URL": "https://br-steep-recipe-b3ujia3w-acharya.compute.c-4.ap-southeast-1.aws.neon.tech"
       },
       "channel": "preview",
       "environment": "preview"
@@ -39,7 +43,9 @@
       "env": {
         "EXPO_PUBLIC_APP_VARIANT": "production",
         "ACHARYA_UPDATE_CHANNEL": "production",
-        "EXPO_NO_DOTENV": "1"
+        "EXPO_NO_DOTENV": "1",
+        "EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY": "pk_live_Y2xlcmsuc3VwZXJhY2hhcnlhLmNvbSQ",
+        "EXPO_PUBLIC_NEON_FUNCTION_URL": "https://br-icy-resonance-b3camzf0-acharya.compute.c-4.ap-southeast-1.aws.neon.tech"
       },
       "channel": "production",
       "environment": "production"

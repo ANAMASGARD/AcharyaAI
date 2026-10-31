@@ -5,9 +5,9 @@ import { CommunityScreenHeader } from "@/components/community/community-screen-h
 import { useCommunityFeed } from "@/hooks/use-community-feed";
 import { spacing } from "@/theme/tokens";
 import { communityPostPath } from "@/lib/community/post-route";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { ScrollView, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function CommunityFeedScreen(): React.ReactElement {
@@ -15,17 +15,18 @@ export function CommunityFeedScreen(): React.ReactElement {
   const styles = useThemeStyles(createStyles);
 
   const router = useRouter();
-  const feed = useCommunityFeed({ limit: 20, autoFetch: true });
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>();
+  const feed = useCommunityFeed({ limit: 20, autoFetch: true, groupId });
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Community Feed" />
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-      >
         <CommunityFeedList
+          virtualized
+          onRefresh={feed.refresh}
+          onLoadMore={feed.loadMore}
+          hasMore={feed.hasMore}
           error={feed.error}
           isLoading={feed.isLoading}
           onDeletePost={feed.deletePost}
@@ -37,7 +38,6 @@ export function CommunityFeedScreen(): React.ReactElement {
           onVote={feed.votePost}
           posts={feed.posts}
         />
-      </ScrollView>
     </SafeAreaView>
   );
 }

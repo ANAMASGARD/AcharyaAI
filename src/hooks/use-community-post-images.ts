@@ -33,7 +33,7 @@ type UseCommunityPostImagesResult = Readonly<{
 function getErrorMessage(error: CommunityPostImageError): string {
   switch (error) {
     case "unsupported_type":
-      return "Please choose a supported image format (JPG, PNG, WEBP, HEIC, GIF, and more).";
+      return "Choose a JPEG, PNG, WebP, or GIF photo. HEIC and other formats need conversion first.";
     case "too_large":
       return "One or more images are too large. Try smaller photos.";
     case "max_count":
@@ -73,8 +73,8 @@ function validateAndNormalize(input: {
   };
 }
 
-export function useCommunityPostImages(): UseCommunityPostImagesResult {
-  const [selectedImages, setSelectedImages] = usePreviewFeature<CommunityPostImageDraft[]>("community-images", []);
+export function useCommunityPostImages(draftKey = "community-images"): UseCommunityPostImagesResult {
+  const [selectedImages, setSelectedImages] = usePreviewFeature<CommunityPostImageDraft[]>(draftKey, []);
   const { saveAttachment, removeAttachment } = usePreviewAttachments();
   const [isPicking, setIsPicking] = useState(false);
   const [error, setError] = useState<CommunityPostImageError | null>(null);

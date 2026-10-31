@@ -1,152 +1,59 @@
-import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
-import type { ThemeColors } from '@/theme/colors';
-import { CommunityPostCard } from "@/components/community/community-post-card";
-import { confirmDeletePost } from "@/lib/community/delete-post-alert";
-import { spacing } from "@/theme/tokens";
-import { fontFamilies } from "@/theme/typography";
-import type { CommunityPost, VoteValue } from "@/types/community";
-import { useAuth } from "@clerk/expo";
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { Pressable } from '@/components/feedback/pressable';
+import { CommunityPostCard } from './community-post-card';
+import { confirmDeletePost } from '@/lib/community/delete-post-alert';
+import { useThemeColors } from '@/theme/use-theme';
+import type { CommunityPost, VoteValue } from '@/types/community';
+import { useAuth } from '@clerk/expo';
+import { useState } from 'react';
+import { ActivityIndicator, FlatList, Text, View } from 'react-native';
 
 type Props = Readonly<{
   posts: readonly CommunityPost[];
   isLoading: boolean;
   error: string | null;
   onPostPress: (postId: string) => void;
-  onVote: (postId: string, value: VoteValue) => void;
-  onRemoveVote: (postId: string) => void;
-  onToggleSave: (postId: string, save: boolean) => void;
+  onVote: (postId: string, value: VoteValue) => void | Promise<void>;
+  onRemoveVote: (postId: string) => void | Promise<void>;
+  onToggleSave: (postId: string, save: boolean) => void | Promise<void>;
   onDeletePost?: (postId: string) => Promise<void>;
+  virtualized?: boolean;
+  onRefresh?: () => Promise<void>;
+  onLoadMore?: () => Promise<void>;
+  hasMore?: boolean;
 }>;
 
-function canDeletePost(
-  post: CommunityPost,
-  userId: string | null | undefined,
-): boolean {
-  return (
-    post.demoSeed ||
-    (userId !== null && userId !== undefined && post.authorClerkId === userId)
-  );
-}
-
-export function CommunityFeedList({
-  posts,
-  isLoading,
-  error,
-  onPostPress,
-  onVote,
-  onRemoveVote,
-  onToggleSave,
-  onDeletePost,
-}: Props): React.ReactElement {
+/** Home renders two cards; the full feed owns a virtualized scroll container. */
+export function CommunityFeedList({ posts, isLoading, error, onPostPress, onVote, onRemoveVote, onToggleSave, onDeletePost, virtualized, onRefresh, onLoadMore, hasMore }: Props): React.ReactElement {
   const colors = useThemeColors();
-  const styles = useThemeStyles(createStyles);
-
   const { userId } = useAuth();
-
-  if (isLoading && posts.length === 0) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator color={colors.foreground} size="small" />
-      </View>
-    );
-  }
-
-  if (error && posts.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.errorText}>{error}</Text>
-      </View>
-    );
-  }
-
-  if (posts.length === 0) {
-    return (
-      <View style={styles.center}>
-        <Text style={styles.emptyTitle}>No posts yet</Text>
-        <Text style={styles.emptyBody}>
-          Save a local post to preview your community feed.
-        </Text>
-      </View>
-    );
-  }
-
-  return (
-    <View style={styles.list}>
-      <Text style={styles.emptyBody}>Local preview · these posts are saved only on this device.</Text>
-      {posts.map((post) => {
-        const deletable = canDeletePost(post, userId);
-
-        return (
-          <CommunityPostCard
-            key={post.postId}
-            canDelete={deletable}
-            onDelete={
-              deletable && onDeletePost
-                ? () => {
-                    confirmDeletePost({
-                      isWelcomePost: post.demoWelcome,
-                      onConfirm: () => {
-                        void onDeletePost(post.postId);
-                      },
-                    });
-                  }
-                : undefined
-            }
-            onDownvote={() => {
-              if (post.viewerVote === -1) {
-                void onRemoveVote(post.postId);
-              } else {
-                void onVote(post.postId, -1);
-              }
-            }}
-            onPress={() => onPostPress(post.postId)}
-            onToggleSave={() => {
-              void onToggleSave(post.postId, !post.viewerSaved);
-            }}
-            onUpvote={() => {
-              if (post.viewerVote === 1) {
-                void onRemoveVote(post.postId);
-              } else {
-                void onVote(post.postId, 1);
-              }
-            }}
-            post={post}
-          />
-        );
-      })}
-    </View>
-  );
+  const [actionError, setActionError] = useState<string | null>(null);
+  const run = (action: () => void | Promise<void>): void => {
+    setActionError(null);
+    void Promise.resolve().then(action).catch(cause => setActionError(cause instanceof Error ? cause.message : 'Please try again.'));
+  };
+  const renderPost = (post: CommunityPost) => {
+    const canDelete = post.authorClerkId === userId;
+    return <CommunityPostCard key={post.postId} post={post} canDelete={canDelete}
+      onPress={() => onPostPress(post.postId)}
+      onUpvote={() => run(() => post.viewerVote === 1 ? onRemoveVote(post.postId) : onVote(post.postId, 1))}
+      onDownvote={() => run(() => post.viewerVote === -1 ? onRemoveVote(post.postId) : onVote(post.postId, -1))}
+      onToggleSave={() => run(() => onToggleSave(post.postId, !post.viewerSaved))}
+      onDelete={canDelete && onDeletePost ? () => confirmDeletePost({ isWelcomePost: false, onConfirm: () => run(() => onDeletePost(post.postId)) }) : undefined} />;
+  };
+  const errors = error || actionError ? <View style={{ gap: 8, paddingVertical: 12 }}>
+    <Text selectable accessibilityRole="alert" style={{ color: colors.destructive }}>{actionError ?? error}</Text>
+    {onRefresh ? <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => run(onRefresh)}><Text style={{ color: colors.foreground }}>Retry</Text></Pressable> : null}
+  </View> : null;
+  const empty = <View style={{ padding: 24, gap: 8, alignItems: 'center' }}>
+    {isLoading ? <ActivityIndicator color={colors.foreground} /> : !error ? <>
+      <Text style={{ color: colors.foreground, fontWeight: '700' }}>No posts yet</Text>
+      <Text style={{ color: colors.mutedForeground }}>Share a teaching idea, question, link, or photo.</Text>
+    </> : null}
+  </View>;
+  if (virtualized) return <FlatList data={posts} keyExtractor={post => post.postId} renderItem={({ item }) => renderPost(item)}
+    contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 20, gap: 16, flexGrow: 1 }} keyboardShouldPersistTaps="handled"
+    ListHeaderComponent={errors} ListEmptyComponent={empty} refreshing={isLoading && posts.length > 0}
+    onRefresh={onRefresh ? () => run(onRefresh) : undefined}
+    ListFooterComponent={hasMore && onLoadMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => run(onLoadMore)}><Text style={{ color: colors.foreground }}>Load more posts</Text></Pressable> : null} />;
+  return <View style={{ gap: 16 }}>{errors}{posts.length ? posts.map(renderPost) : empty}</View>;
 }
-
-const createStyles = (colors: ThemeColors) => StyleSheet.create({
-  center: {
-    alignItems: "center",
-    paddingVertical: spacing.lg,
-  },
-  emptyBody: {
-    color: colors.mutedForeground,
-    fontFamily: fontFamilies.sans,
-    fontSize: 14,
-    lineHeight: 20,
-    marginTop: spacing.xs,
-    textAlign: "center",
-  },
-  emptyTitle: {
-    color: colors.foreground,
-    fontFamily: fontFamilies.sansMedium,
-    fontSize: 15,
-    lineHeight: 20,
-    textAlign: "center",
-  },
-  errorText: {
-    color: colors.destructive,
-    fontFamily: fontFamilies.sans,
-    fontSize: 14,
-    lineHeight: 20,
-    textAlign: "center",
-  },
-  list: {
-    gap: spacing.md,
-  },
-});

@@ -59,14 +59,15 @@ export function JoinGroupScreen(): React.ReactElement {
       <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.label}>Enter join code</Text>
         <TextInput
-          autoCapitalize="characters"
+          autoCapitalize="none"
+          autoCorrect={false}
           onChangeText={setJoinCode}
-          placeholder="ABC123"
+          placeholder="Paste invitation code"
           placeholderTextColor={colors.mutedForeground}
           style={styles.input}
           value={joinCode}
         />
-        <Text style={styles.hint}>Local preview · enter a code from a group saved on this device. Online groups are not connected.</Text>
+        <Text style={styles.hint}>Ask a group member for an invitation code. Posts and chat are visible only to members.</Text>
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <Pressable
           accessibilityRole="button"

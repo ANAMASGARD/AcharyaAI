@@ -15,6 +15,7 @@ import {
 } from "react-native";
 
 type Props = Readonly<{
+  disabled?: boolean;
   selectedImages: readonly CommunityPostImageDraft[];
   isPicking: boolean;
   errorMessage: string | null;
@@ -26,6 +27,7 @@ type Props = Readonly<{
 }>;
 
 export function PostImagePicker({
+  disabled = false,
   selectedImages,
   isPicking,
   errorMessage,
@@ -45,7 +47,7 @@ export function PostImagePicker({
       <View style={styles.actionRow}>
         <Pressable
           accessibilityRole="button"
-          disabled={!canAddMore || isPicking}
+          disabled={disabled || !canAddMore || isPicking}
           onPress={onPickImages}
           style={({ pressed }) => [
             styles.actionChip,
@@ -64,7 +66,7 @@ export function PostImagePicker({
 
         <Pressable
           accessibilityRole="button"
-          disabled={!canAddMore || isPicking}
+          disabled={disabled || !canAddMore || isPicking}
           onPress={onTakePhoto}
           style={({ pressed }) => [
             styles.actionChip,
@@ -83,7 +85,7 @@ export function PostImagePicker({
 
         <Pressable
           accessibilityRole="button"
-          disabled={!canAddMore || isPicking}
+          disabled={disabled || !canAddMore || isPicking}
           onPress={onPickFromFiles}
           style={({ pressed }) => [
             styles.actionChip,
@@ -122,6 +124,7 @@ export function PostImagePicker({
                 style={styles.previewImage}
               /> : <View style={styles.previewImage}><Text style={styles.previewName}>File unavailable. Remove and choose again.</Text></View>}
               <Pressable
+                disabled={disabled}
                 accessibilityLabel={`Remove ${image.name}`}
                 hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}
                 onPress={() => onRemoveImage(image.id ?? image.uri)}

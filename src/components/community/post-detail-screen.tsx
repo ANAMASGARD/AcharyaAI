@@ -2,14 +2,17 @@ import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
-import { usePreviewFeature } from "@/components/preview/preview-provider";
+import { createId } from "@/lib/id";
+import { useFlushDrafts, usePreviewFeature } from "@/components/preview/preview-provider";
 import { CommunityPostBody } from "@/components/community/community-post-body";
 import { CommunityPostDetailHeader } from "@/components/community/community-post-detail-header";
 import { CommunityPostImages } from "@/components/community/community-post-images";
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { PostTopActions } from "@/components/community/post-top-actions";
 import { VoteBar } from "@/components/community/vote-bar";
-import { useCommunityPreview } from "@/hooks/use-community-preview";
+import { useCommunity, useCommunityPost } from "@/hooks/use-community";
+import { CommunitySafetyActions } from "./community-safety-actions";
+import { useAuth } from "@clerk/expo";
 import { confirmDeletePost } from "@/lib/community/delete-post-alert";
 import { formatTimeAgo } from "@/lib/community/time-ago";
 import { resolvePostIdParam } from "@/lib/community/post-route";
@@ -22,9 +25,10 @@ import type {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useMemo } from "react";
+import { useMemo, useRef, useState } from "react";
 import {
   ActivityIndicator,
+  Linking,
   StyleSheet,
   Text,
   TextInput,
@@ -40,27 +44,43 @@ export function PostDetailScreen(): React.ReactElement {
   const params = useLocalSearchParams<{ postId?: string | string[] }>();
   const postId = useMemo(() => resolvePostIdParam(params.postId), [params.postId]);
   const router = useRouter();
-  const community = useCommunityPreview();
+  const community = useCommunity();
+  const { userId } = useAuth();
+  const detail = useCommunityPost(postId ?? '');
   const displayName = useTeacherDisplayName();
-  const post = community.state.posts.find((item) => item.postId === postId) ?? null;
-  const comments = community.state.comments[postId ?? ''] ?? [];
-  const isLoading = false;
-  const isLoaded = true;
-  const error = post ? null : 'Local post not found.';
+  const { post, comments, isLoading } = detail;
+  const error = detail.error;
+  const flushDrafts = useFlushDrafts();
+  const [commentId, setCommentId] = usePreviewFeature(`post-comment-id:${postId ?? "missing"}`, "");
   const [commentBody, setCommentBody] = usePreviewFeature(`post-comment:${postId ?? "missing"}`, "");
-  const isSubmitting = false;
-  const isDeleting = false;
-  const canDeletePost = Boolean(post);
-  const handleVote = async (value: VoteValue) => { if (post) await community.votePost(post.postId, value); };
-  const handleRemoveVote = async () => { if (post) await community.removeVote(post.postId); };
-  const handleToggleSave = async () => { if (post) await community.toggleSave(post.postId, !post.viewerSaved); };
+  const submission = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+  const [actionError, setActionError] = useState<string | null>(null);
+  const canDeletePost = post?.authorClerkId === userId;
+  const run = async (action: () => Promise<unknown>): Promise<void> => {
+    setActionError(null);
+    try { await action(); await detail.refresh(); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Please try again.'); }
+  };
+  const handleVote = (value: VoteValue) => run(() => community.votePost(postId!, value));
+  const handleRemoveVote = () => run(() => community.removeVote(postId!));
+  const handleToggleSave = () => run(() => community.toggleSave(postId!, !post?.viewerSaved));
   const handleDelete = () => {
-    if (!post) return;
-    confirmDeletePost({ isWelcomePost: false, onConfirm: () => { void community.deletePost(post.postId).then(() => router.back()); } });
+    if (!post || isDeleting) return;
+    confirmDeletePost({ isWelcomePost: false, onConfirm: () => {
+      setIsDeleting(true);
+      void community.deletePost(post.postId).then(() => router.back()).catch(cause => setActionError(cause instanceof Error ? cause.message : 'Could not delete post.')).finally(() => setIsDeleting(false));
+    } });
   };
   const handleComment = async () => {
-    if (!post || !commentBody.trim()) return;
-    await community.addComment(post.postId, commentBody, displayName); setCommentBody('');
+    if (!post || !commentBody.trim() || submission.current) return;
+    submission.current = true;
+    setIsSubmitting(true);
+    setActionError(null);
+    try { const id = commentId || createId(); setCommentId(id); await flushDrafts(); await community.addComment(post.postId, commentBody, displayName, id); setCommentBody(''); setCommentId(''); await detail.refresh(); }
+    catch (cause) { setActionError(cause instanceof Error ? cause.message : 'Comment could not be sent. Your draft is safe.'); }
+    finally { submission.current = false; setIsSubmitting(false); }
   };
 
   const headerActions =
@@ -73,7 +93,7 @@ export function PostDetailScreen(): React.ReactElement {
       />
     ) : null;
 
-  if (!isLoaded || isLoading) {
+  if (isLoading && !post) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <CommunityScreenHeader rightActions={headerActions} title="Post" />
@@ -85,7 +105,7 @@ export function PostDetailScreen(): React.ReactElement {
     );
   }
 
-  if (error || !post) {
+  if (!post) {
     return (
       <SafeAreaView style={styles.safeArea}>
         <CommunityScreenHeader title="Post" />
@@ -113,13 +133,15 @@ export function PostDetailScreen(): React.ReactElement {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {error || actionError ? <Text selectable accessibilityRole="alert" style={styles.error}>{actionError ?? error}</Text> : null}
         <CommunityPostDetailHeader post={post} />
+        <CommunitySafetyActions targetType="post" targetId={post.postId} authorClerkId={post.authorClerkId} onChanged={() => router.back()} />
 
         <CommunityPostBody body={post.body} variant="full" />
         <CommunityPostImages images={post.images} variant="detail" />
 
         {post.linkUrl ? (
-          <Text style={styles.link}>{post.linkUrl}</Text>
+          <Text accessibilityRole="link" onPress={() => void Linking.openURL(post.linkUrl!)} style={styles.link}>{post.linkUrl}</Text>
         ) : null}
 
         <View style={styles.actionsRow}>
@@ -153,7 +175,7 @@ export function PostDetailScreen(): React.ReactElement {
 
         <View style={styles.commentsHeader}>
           <Text style={styles.commentsTitle}>
-            Comments ({post.commentCount}) · local preview
+            Comments ({post.commentCount})
           </Text>
         </View>
 
@@ -163,13 +185,16 @@ export function PostDetailScreen(): React.ReactElement {
               {comment.authorDisplayName}
             </Text>
             <Text style={styles.commentBody}>{comment.body}</Text>
+            <CommunitySafetyActions targetType="comment" targetId={comment.commentId} authorClerkId={comment.authorClerkId} onChanged={() => void detail.refresh()} />
             <Text style={styles.commentTime}>
               {formatTimeAgo(comment.createdAt)}
             </Text>
           </View>
         ))}
 
+        {detail.hasMore ? <Pressable accessibilityRole="button" onPress={() => void run(detail.loadMore)} style={styles.retryButton}><Text style={styles.retryLabel}>Load more comments</Text></Pressable> : null}
         <TextInput
+          editable={!isSubmitting}
           multiline
           onChangeText={setCommentBody}
           placeholder="Add a comment..."

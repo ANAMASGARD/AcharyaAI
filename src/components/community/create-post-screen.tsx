@@ -9,13 +9,15 @@ import {
   useCommunityPostImages,
 } from "@/hooks/use-community-post-images";
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
-import { useCommunityPreview } from "@/hooks/use-community-preview";
+import { useCommunity } from "@/hooks/use-community";
 import { useCommunityStore } from "@/store/community-store";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { useFlushDrafts } from "@/components/preview/preview-provider";
+import { createId } from "@/lib/id";
 import {
   ActivityIndicator,
   StyleSheet,
@@ -39,9 +41,11 @@ export function CreatePostScreen(): React.ReactElement {
   const styles = useThemeStyles(createStyles);
 
   const router = useRouter();
-  const community = useCommunityPreview();
+  const { groupId } = useLocalSearchParams<{ groupId?: string }>();
+  const community = useCommunity();
+  const flushDrafts = useFlushDrafts();
   const displayName = useTeacherDisplayName();
-  const { draftPost, setDraftPost, clearDraftPost } = useCommunityStore();
+  const { draftPost, setDraftPost, clearDraftPost } = useCommunityStore(groupId ? `community-post-draft:${groupId}` : undefined);
   const {
     selectedImages,
     isPicking,
@@ -52,21 +56,27 @@ export function CreatePostScreen(): React.ReactElement {
     takePhoto,
     removeImage,
     clearImages,
-  } = useCommunityPostImages();
+  } = useCommunityPostImages(groupId ? `community-images:${groupId}` : undefined);
+  const submission = useRef(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (): Promise<void> => {
-    if (!draftPost.title.trim() || !draftPost.body.trim()) {
-      setError("Title and body are required.");
+    if (submission.current) return;
+    if (!draftPost.title.trim() || (!draftPost.body.trim() && !draftPost.linkUrl.trim() && selectedImages.length === 0)) {
+      setError("Add a title and some text, a link, or a photo.");
       return;
     }
 
+    submission.current = true;
     setIsSubmitting(true);
     setError(null);
 
     try {
-      await community.createPost({ ...draftPost, displayName, images: selectedImages });
+      const postId = draftPost.postId || createId();
+      setDraftPost({ postId });
+      await flushDrafts();
+      await community.createPost({ ...draftPost, postId, groupId: groupId || draftPost.groupId || null, displayName, images: selectedImages });
 
       clearDraftPost();
       clearImages();
@@ -78,6 +88,7 @@ export function CreatePostScreen(): React.ReactElement {
           : "Failed to create post",
       );
     } finally {
+      submission.current = false;
       setIsSubmitting(false);
     }
   };
@@ -86,10 +97,11 @@ export function CreatePostScreen(): React.ReactElement {
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
       <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Create Post" />
-      <Text style={styles.label}>Local preview · this post will only be saved on this device.</Text>
+      <Text style={styles.label}>{groupId ? "Only members of this private group can see this post." : "All signed-in teachers can see this post."} Drafts stay on this device until you publish.</Text>
       <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
         <Text style={styles.label}>Title</Text>
         <TextInput
+          editable={!isSubmitting}
           onChangeText={(title) => setDraftPost({ title })}
           placeholder="What do you want to share?"
           placeholderTextColor={colors.mutedForeground}
@@ -99,6 +111,7 @@ export function CreatePostScreen(): React.ReactElement {
 
         <Text style={styles.label}>Body</Text>
         <TextInput
+          editable={!isSubmitting}
           multiline
           onChangeText={(body) => setDraftPost({ body })}
           placeholder="Share your teaching tip or question..."
@@ -113,6 +126,7 @@ export function CreatePostScreen(): React.ReactElement {
             <Pressable
               key={tag}
               accessibilityRole="button"
+              disabled={isSubmitting}
               onPress={() => setDraftPost({ subjectTag: tag })}
               style={[
                 styles.tagChip,
@@ -126,6 +140,7 @@ export function CreatePostScreen(): React.ReactElement {
 
         <Text style={styles.label}>Link (optional)</Text>
         <TextInput
+          editable={!isSubmitting}
           autoCapitalize="none"
           onChangeText={(linkUrl) => setDraftPost({ linkUrl })}
           placeholder="https://..."
@@ -135,6 +150,7 @@ export function CreatePostScreen(): React.ReactElement {
         />
 
         <PostImagePicker
+          disabled={isSubmitting}
           canAddMore={canAddMore}
           errorMessage={
             imageError ? getCommunityPostImagesErrorMessage(imageError) : null
@@ -166,7 +182,7 @@ export function CreatePostScreen(): React.ReactElement {
           {isSubmitting ? (
             <ActivityIndicator color={colors.onAccent} size="small" />
           ) : (
-            <Text style={[styles.submitLabel, { color: colors.onAccent }]}>Save local post</Text>
+            <Text style={[styles.submitLabel, { color: colors.onAccent }]}>Publish post</Text>
           )}
         </Pressable>
       </KeyboardAwareScrollView>
