@@ -4,14 +4,13 @@ import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { OnboardingScreen } from '@/components/onboarding/onboarding-screen';
-import { useOnboardingGate } from '@/hooks/use-onboarding-gate';
+import { SIGNED_IN_HOME } from '@/lib/routes';
 import { colors } from '@/theme/colors';
 
 export default function OnboardingRoute(): React.ReactElement {
   const { isLoaded, isSignedIn } = useAuth();
-  const { isReady, hasCompletedOnboarding } = useOnboardingGate();
 
-  if (!isLoaded || !isReady) {
+  if (!isLoaded) {
     return (
       <SafeAreaView style={styles.loading}>
         <ActivityIndicator color={colors.foreground} size="large" />
@@ -20,11 +19,7 @@ export default function OnboardingRoute(): React.ReactElement {
   }
 
   if (isSignedIn) {
-    return <Redirect href="/" />;
-  }
-
-  if (hasCompletedOnboarding) {
-    return <Redirect href="/sign-in" />;
+    return <Redirect href={SIGNED_IN_HOME} />;
   }
 
   return <OnboardingScreen />;

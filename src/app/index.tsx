@@ -3,14 +3,13 @@ import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { useOnboardingGate } from '@/hooks/use-onboarding-gate';
+import { SIGNED_IN_HOME, SIGNED_OUT_ENTRY } from '@/lib/routes';
 import { colors } from '@/theme/colors';
 
 export default function IndexGate(): React.ReactElement {
   const { isLoaded, isSignedIn } = useAuth();
-  const { isReady, hasCompletedOnboarding } = useOnboardingGate();
 
-  if (!isLoaded || !isReady) {
+  if (!isLoaded) {
     return (
       <SafeAreaView style={styles.loading}>
         <ActivityIndicator color={colors.foreground} size="large" />
@@ -19,14 +18,10 @@ export default function IndexGate(): React.ReactElement {
   }
 
   if (isSignedIn) {
-    return <Redirect href="/(tabs)" />;
+    return <Redirect href={SIGNED_IN_HOME} />;
   }
 
-  if (!hasCompletedOnboarding) {
-    return <Redirect href="/onboarding" />;
-  }
-
-  return <Redirect href="/sign-in" />;
+  return <Redirect href={SIGNED_OUT_ENTRY} />;
 }
 
 const styles = StyleSheet.create({

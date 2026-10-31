@@ -42,16 +42,19 @@ export function SyncProvider({ children }: SyncProviderProps) {
   }, [getToken, isSignedIn, userId]);
 
   useEffect(() => {
-    const previousUserId = lastUserIdRef.current;
-
-    if (!isSignedIn || !userId) {
-      if (previousUserId) {
-        void clearLocalUserData(previousUserId);
+    if (!isSignedIn) {
+      if (lastUserIdRef.current) {
+        void clearLocalUserData(lastUserIdRef.current);
         lastUserIdRef.current = null;
       }
       return;
     }
 
+    if (!userId) {
+      return;
+    }
+
+    const previousUserId = lastUserIdRef.current;
     if (previousUserId && previousUserId !== userId) {
       void clearLocalUserData(previousUserId);
     }

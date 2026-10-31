@@ -9,8 +9,7 @@ import { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DatabaseProvider } from '@/components/database/database-provider';
-import { SyncProvider } from '@/components/sync/sync-provider';
+import { PreviewAuthCleanup } from '@/components/preview/preview-auth-cleanup';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -71,14 +70,11 @@ export default function RootLayout() {
 
   return (
     <ClerkProvider publishableKey={clerkBootstrap.publishableKey} tokenCache={tokenCache}>
-      <DatabaseProvider>
-        <SyncProvider>
-          <ThemeProvider value={navigationTheme}>
-            <AnimatedSplashOverlay />
-            <Slot />
-          </ThemeProvider>
-        </SyncProvider>
-      </DatabaseProvider>
+      <ThemeProvider value={navigationTheme}>
+        <PreviewAuthCleanup />
+        <AnimatedSplashOverlay />
+        <Slot />
+      </ThemeProvider>
     </ClerkProvider>
   );
 }

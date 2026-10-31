@@ -3,6 +3,7 @@ import { SignUp } from '@clerk/expo/web';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
+import { SIGNED_IN_HOME } from '@/lib/routes';
 import { colors } from '@/theme/colors';
 
 export default function SignUpWebScreen(): React.ReactElement {
@@ -17,7 +18,7 @@ export default function SignUpWebScreen(): React.ReactElement {
   }
 
   if (isSignedIn) {
-    return <Redirect href="/" />;
+    return <Redirect href={SIGNED_IN_HOME} />;
   }
 
   return (

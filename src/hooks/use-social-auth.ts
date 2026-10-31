@@ -1,7 +1,9 @@
 import { useSSO } from '@clerk/expo';
 import type { OAuthStrategy } from '@clerk/shared/types';
 import * as AuthSession from 'expo-auth-session';
-import { type Href, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
+
+import { SIGNED_IN_HOME } from '@/lib/routes';
 import { useCallback, useState } from 'react';
 
 const REDIRECT_URL = AuthSession.makeRedirectUri({
@@ -51,7 +53,7 @@ export function useSocialAuth(): Readonly<{
                 return;
               }
 
-              router.replace(decorateUrl('/') as Href);
+              router.replace(SIGNED_IN_HOME);
             },
           });
           return;

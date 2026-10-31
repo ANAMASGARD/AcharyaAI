@@ -12,6 +12,12 @@ npm start
 Routes live in `src/app/`; shared components, hooks, and theme constants live
 outside the route directory. Use `npx expo install` for SDK-compatible packages.
 
+App branding and icons are configured in [`app.config.ts`](app.config.ts) (same
+`acharya-app` slug, EAS project, and icon assets as the production repo under
+`~/Downloads/acharya-app`). If Expo Go still shows an old blue icon, remove the
+stale **AcharyaApp** entry from Recent, clear Expo Go cache, and run
+`npx expo start --clear`.
+
 ## Design system
 
 Neo-brutalism tokens live in `src/theme/` (colors, typography, spacing, shadows).

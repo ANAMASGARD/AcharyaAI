@@ -1,7 +1,8 @@
 import { useAuth, useClerk, useUser } from '@clerk/expo';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
-import { Alert } from 'react-native';
+import { confirmAction } from '@/lib/confirm-action';
+import { clearUiPreviewAccount } from '@/lib/ui-preview/account';
 
 export function useAccountActions(): Readonly<{
   signOut: () => void;
@@ -12,7 +13,7 @@ export function useAccountActions(): Readonly<{
 }> {
   const router = useRouter();
   const { signOut: clerkSignOut } = useClerk();
-  const { isSignedIn } = useAuth();
+  const { isSignedIn, userId } = useAuth();
   const { user } = useUser();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -23,25 +24,22 @@ export function useAccountActions(): Readonly<{
     setIsSigningOut(true);
     try {
       await clerkSignOut();
-      router.replace('/sign-in');
+      try {
+        if (userId) await clearUiPreviewAccount(userId);
+      } finally {
+        // Authentication has ended even if the device refuses a local cleanup.
+        router.replace('/onboarding');
+      }
     } catch (error: unknown) {
       setActionError(error instanceof Error ? error.message : 'Sign-out failed.');
     } finally {
       setIsSigningOut(false);
     }
-  }, [clerkSignOut, router]);
+  }, [clerkSignOut, router, userId]);
 
   const signOut = useCallback((): void => {
-    Alert.alert('Sign out', 'Are you sure you want to sign out of Acharya?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Sign out',
-        style: 'destructive',
-        onPress: () => {
-          void performSignOut();
-        },
-      },
-    ]);
+    void confirmAction('Sign out', 'Sign out of Acharya and remove local drafts and copied files? Your preferences are kept for this account.', 'Sign out')
+      .then((confirmed) => { if (confirmed) void performSignOut(); });
   }, [performSignOut]);
 
   const performDeleteAccount = useCallback(async (): Promise<void> => {
@@ -53,8 +51,12 @@ export function useAccountActions(): Readonly<{
     setIsDeletingAccount(true);
     try {
       await user.delete();
-      await clerkSignOut();
-      router.replace('/sign-in');
+      try {
+        await clearUiPreviewAccount(user.id, true);
+      } finally {
+        await clerkSignOut();
+        router.replace('/onboarding');
+      }
     } catch (error: unknown) {
       const message =
         error instanceof Error
@@ -67,20 +69,8 @@ export function useAccountActions(): Readonly<{
   }, [clerkSignOut, isSignedIn, router, user]);
 
   const deleteAccount = useCallback((): void => {
-    Alert.alert(
-      'Delete account',
-      'This permanently removes your Acharya account and cannot be undone.',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: () => {
-            void performDeleteAccount();
-          },
-        },
-      ],
-    );
+    void confirmAction('Delete account', 'This permanently removes your Acharya account and its local drafts, files, and preferences. This cannot be undone.', 'Delete')
+      .then((confirmed) => { if (confirmed) void performDeleteAccount(); });
   }, [performDeleteAccount]);
 
   return {

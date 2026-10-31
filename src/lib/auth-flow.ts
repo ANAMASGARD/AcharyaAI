@@ -1,6 +1,7 @@
 import type { SignInSignalValue, SignUpSignalValue } from '@clerk/shared/types';
-import type { Href } from 'expo-router';
 import type { ImperativeRouter } from 'expo-router/build/imperative-api';
+
+import { SIGNED_IN_HOME } from '@/lib/routes';
 
 export type AuthFlowError = Readonly<{
   message: string;
@@ -62,7 +63,7 @@ export async function verifySignUpEmailOtp(
           return;
         }
 
-        router.replace(decorateUrl('/') as Href);
+        router.replace(SIGNED_IN_HOME);
       },
     });
     return null;
@@ -122,7 +123,7 @@ export async function verifySignInEmailOtp(
           return;
         }
 
-        router.replace(decorateUrl('/') as Href);
+        router.replace(SIGNED_IN_HOME);
       },
     });
     return null;

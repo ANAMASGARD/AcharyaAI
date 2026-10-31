@@ -22,6 +22,7 @@ import {
   startSignUpEmailOtp,
   verifySignUpEmailOtp,
 } from '@/lib/auth-flow';
+import { SIGNED_IN_HOME } from '@/lib/routes';
 
 export default function SignUpScreen(): React.ReactElement {
   useWarmUpBrowser();
@@ -108,7 +109,7 @@ export default function SignUpScreen(): React.ReactElement {
   };
 
   if (isSignedIn) {
-    return <Redirect href="/" />;
+    return <Redirect href={SIGNED_IN_HOME} />;
   }
 
   return (

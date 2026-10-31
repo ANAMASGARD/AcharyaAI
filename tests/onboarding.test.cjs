@@ -24,9 +24,18 @@ test('onboarding persistence module exports get and set', () => {
   assert.match(src, /acharya_onboarding_completed/);
 });
 
-test('index gate routes unsigned users through onboarding or sign-in', () => {
+test('index gate routes unsigned users to onboarding and signed-in users to tabs', () => {
   const indexSrc = fs.readFileSync(path.join(root, 'src/app/index.tsx'), 'utf8');
-  assert.match(indexSrc, /\/onboarding/);
-  assert.match(indexSrc, /\/sign-in/);
-  assert.match(indexSrc, /\/\(tabs\)/);
+  const routesSrc = fs.readFileSync(path.join(root, 'src/lib/routes.ts'), 'utf8');
+  assert.match(routesSrc, /SIGNED_OUT_ENTRY.*\/onboarding/);
+  assert.match(routesSrc, /SIGNED_IN_HOME.*\/\(tabs\)/);
+  assert.match(indexSrc, /SIGNED_OUT_ENTRY/);
+  assert.match(indexSrc, /SIGNED_IN_HOME/);
+  assert.doesNotMatch(indexSrc, /hasCompletedOnboarding/);
+});
+
+test('onboarding route skips slides only when signed in', () => {
+  const onboardingSrc = fs.readFileSync(path.join(root, 'src/app/onboarding.tsx'), 'utf8');
+  assert.match(onboardingSrc, /OnboardingScreen/);
+  assert.doesNotMatch(onboardingSrc, /hasCompletedOnboarding/);
 });

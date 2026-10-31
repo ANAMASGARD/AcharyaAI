@@ -17,7 +17,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { onboardingSlides, type OnboardingSlide } from '@/data/onboarding-slides';
-import { setOnboardingCompleted } from '@/lib/onboarding-persistence';
 import { colors } from '@/theme/colors';
 import { fontFamilies } from '@/theme/typography';
 import { borderWidths, radii, shadows, spacing } from '@/theme/tokens';
@@ -44,10 +43,7 @@ export function OnboardingScreen(): React.ReactElement {
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
 
     if (isLastPage) {
-      void (async () => {
-        await setOnboardingCompleted();
-        router.replace('/sign-up');
-      })();
+      router.replace('/sign-up');
       return;
     }
 

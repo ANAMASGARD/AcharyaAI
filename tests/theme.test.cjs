@@ -21,6 +21,7 @@ test('Acharya theme tokens define touch targets and hard shadows', () => {
 
 test('Brand assets and fonts are present', () => {
   const required = [
+    'assets/images/acharya-app-icon.png',
     'assets/images/icon.png',
     'assets/images/google-logo.png',
     'assets/images/mascot-auth.png',
