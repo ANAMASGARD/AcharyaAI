@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Platform, StyleSheet, Text, View } from "react-native";
@@ -50,6 +51,8 @@ export function CommunityPostBody({
   variant = "full",
   maxPreviewLines = 3,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const lines = body.split("\n").filter((line, index, all) => {
     if (line.trim().length > 0) {
       return true;
@@ -118,7 +121,7 @@ export function CommunityPostBody({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   asciiLine: {
     color: colors.foreground,
     fontFamily: monospace,

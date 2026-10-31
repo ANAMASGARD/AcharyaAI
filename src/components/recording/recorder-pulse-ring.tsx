@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths } from "@/theme/tokens";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
@@ -28,6 +29,8 @@ function PulseRing({
   size: number;
   delayMs: number;
 }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0);
 
@@ -91,6 +94,8 @@ function PulseRing({
 }
 
 export function RecorderPulseRing({ active, size }: Props): React.ReactElement | null {
+  const styles = useThemeStyles(createStyles);
+
   if (!active) {
     return null;
   }
@@ -112,7 +117,7 @@ export function RecorderPulseRing({ active, size }: Props): React.ReactElement |
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   ring: {
     borderColor: colors.destructive,
     borderWidth: borderWidths.thin,

@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { AccentContent, useThemeColors, useThemeStyles } from "@/theme/use-theme";
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, Text, View } from "react-native";
@@ -11,18 +12,22 @@ type Props = Readonly<{
 
 export function ProfileMenuCard({
   title,
-  backgroundColor = colors.card,
+  backgroundColor,
   children,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
+  const isAccent = backgroundColor !== undefined && [colors.mint, colors.lavender, colors.sky, colors.primary].includes(backgroundColor);
   return (
-    <View style={[styles.card, { backgroundColor }]}>
-      {title ? <Text style={styles.title}>{title}</Text> : null}
-      {children}
+    <View style={[styles.card, { backgroundColor: backgroundColor ?? colors.card }]}>
+      {title ? <Text style={[styles.title, isAccent && { color: colors.onAccent }]}>{title}</Text> : null}
+      <AccentContent active={isAccent}>{children}</AccentContent>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     borderColor: colors.border,
     borderRadius: radii.lg,

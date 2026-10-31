@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { usePreviewFeature } from "@/components/preview/preview-provider";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -24,6 +25,9 @@ export function GroupChatComposer({
   isSending,
   groupId,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [body, setBody] = usePreviewFeature(`group-message-body:${groupId}`, "");
   const [linkUrl, setLinkUrl] = usePreviewFeature(`group-message-link:${groupId}`, "");
   const [showLink, setShowLink] = useState(false);
@@ -84,10 +88,10 @@ export function GroupChatComposer({
           style={[styles.sendButton, isSending && styles.sendDisabled]}
         >
           {isSending ? (
-            <ActivityIndicator color={colors.foreground} size="small" />
+            <ActivityIndicator color={colors.onAccent} size="small" />
           ) : (
             <MaterialCommunityIcons
-              color={colors.foreground}
+              color={colors.onAccent}
               name="send"
               size={20}
             />
@@ -98,7 +102,7 @@ export function GroupChatComposer({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   hint: {
     color: colors.mutedForeground,
     fontFamily: fontFamilies.sans,

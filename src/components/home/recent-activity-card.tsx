@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ActivityEmptyState } from "@/components/home/activity-empty-state";
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { DashboardStats } from "@/types/community";
@@ -28,10 +29,13 @@ function StatChip({
   value,
   backgroundColor,
 }: StatChipProps): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
-    <View style={[styles.statChip, { backgroundColor }]}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
+    <View style={[styles.statChip, { backgroundColor: backgroundColor ?? colors.card }]}>
+      <Text style={[styles.statValue, { color: colors.onAccent }]}>{value}</Text>
+      <Text style={[styles.statLabel, { color: colors.onAccent }]}>{label}</Text>
     </View>
   );
 }
@@ -39,10 +43,13 @@ function StatChip({
 function ActivityAvatar({
   item,
 }: Readonly<{ item: RecentActivityItem }>): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (item.avatarKind === "letter") {
     return (
       <View style={[styles.avatar, styles.avatarLetter]}>
-        <Text style={styles.avatarLetterText}>
+        <Text style={[styles.avatarLetterText, { color: colors.onAccent }]}>
           {item.avatarLetter ?? item.title.charAt(0)}
         </Text>
       </View>
@@ -52,7 +59,7 @@ function ActivityAvatar({
   return (
     <View style={[styles.avatar, styles.avatarIcon]}>
       <MaterialCommunityIcons
-        color={colors.foreground}
+        color={colors.onAccent}
         name="file-document-outline"
         size={16}
       />
@@ -67,6 +74,9 @@ export function RecentActivityCard({
   onVerifyNotes,
   onStartClass,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
 
   const classesValue = String(stats?.classesThisMonth ?? 0);
@@ -161,7 +171,7 @@ export function RecentActivityCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   avatar: {
     alignItems: "center",
     borderColor: colors.border,

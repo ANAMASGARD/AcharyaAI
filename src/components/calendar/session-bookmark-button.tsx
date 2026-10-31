@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useCalendarStore } from "@/store/calendar-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
@@ -12,6 +13,9 @@ type Props = Readonly<{
 export function SessionBookmarkButton({
   sessionId,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const isBookmarked = useCalendarStore((state) =>
     state.bookmarkedSessionIds.includes(sessionId),
   );
@@ -45,7 +49,7 @@ export function SessionBookmarkButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: {
     alignItems: "center",
     borderColor: colors.border,

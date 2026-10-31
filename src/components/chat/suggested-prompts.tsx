@@ -1,5 +1,6 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { SUGGESTED_CHAT_PROMPTS } from "@/constants/chat-prompts";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -13,6 +14,8 @@ export function SuggestedPrompts({
   onSelect,
   disabled = false,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.wrap}>
       {SUGGESTED_CHAT_PROMPTS.map((prompt) => (
@@ -37,7 +40,7 @@ export function SuggestedPrompts({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderColor: colors.border,

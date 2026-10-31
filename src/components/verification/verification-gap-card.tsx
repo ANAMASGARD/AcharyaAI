@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
 import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
@@ -17,12 +19,15 @@ type Props = Readonly<{
 }>;
 
 export function VerificationGapCard({ gap }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View
       accessibilityLabel={`${gap.title}. ${gap.body}`}
       style={[
         styles.card,
-        { backgroundColor: VARIANT_BACKGROUNDS[gap.variant] },
+        { backgroundColor: gap.variant === "neutral" ? colors.card : VARIANT_BACKGROUNDS[gap.variant] },
       ]}
     >
       <Image
@@ -32,16 +37,16 @@ export function VerificationGapCard({ gap }: Props): React.ReactElement {
         style={styles.mascot}
       />
       <View style={styles.content}>
-        <Text style={styles.title}>{gap.title}</Text>
-        <Text style={styles.body}>{gap.body}</Text>
+        <Text style={[styles.title, gap.variant === "neutral" && { color: colors.foreground }]}>{gap.title}</Text>
+        <Text style={[styles.body, gap.variant === "neutral" && { color: colors.foreground }]}>{gap.body}</Text>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sans,
     fontSize: 14,
     lineHeight: 21,
@@ -65,7 +70,7 @@ const styles = StyleSheet.create({
     width: 40,
   },
   title: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sansBold,
     fontSize: 16,
     lineHeight: 22,

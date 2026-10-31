@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useProfileAccount } from "@/hooks/use-profile-account";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
@@ -11,6 +12,9 @@ type Props = Readonly<{
 export function ProfileAccountFallback({
   style,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { openAccountPortal, hasAccountPortal, isOpeningPortal, actionError } = useProfileAccount();
 
   return (
@@ -35,7 +39,7 @@ export function ProfileAccountFallback({
               pressed ? styles.pressed : null,
             ]}
           >
-            <Text style={styles.portalButtonText}>
+            <Text style={[styles.portalButtonText, { color: colors.onAccent }]}>
               {isOpeningPortal ? 'Opening account settings…' : 'Open account settings in browser'}
             </Text>
           </Pressable>
@@ -46,7 +50,7 @@ export function ProfileAccountFallback({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   fallback: {
     flex: 1,
     justifyContent: "center",

@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { RecorderNeoCard } from "@/components/recording/recorder-neo-card";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -18,6 +19,9 @@ export function RecorderTranscriptPanel({
   disabled = false,
   onSend,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const hasTranscript = Boolean(transcript?.trim());
   const sendDisabled = disabled || !hasTranscript || isTranscribing;
 
@@ -43,7 +47,7 @@ export function RecorderTranscriptPanel({
   return (
     <RecorderNeoCard style={styles.card}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Class Transcribe</Text>
+        <Text style={[styles.headerTitle, { color: colors.onAccent }]}>Class Transcribe</Text>
       </View>
 
       <ScrollView
@@ -72,13 +76,13 @@ export function RecorderTranscriptPanel({
           name="send"
           size={20}
         />
-        <Text style={styles.sendLabel}>Send</Text>
+        <Text style={[styles.sendLabel, { color: colors.onAccent }]}>Send</Text>
       </Pressable>
     </RecorderNeoCard>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     color: colors.foreground,
     fontFamily: fontFamilies.sans,

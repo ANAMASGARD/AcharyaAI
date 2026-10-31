@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoCard } from "@/components/ui/neo-card";
 import {
   addMonths,
@@ -7,7 +9,6 @@ import {
   toDateKey,
   WEEKDAY_LABELS,
 } from "@/lib/calendar/date-utils";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -25,6 +26,9 @@ export function TeachingCalendar({
   markedDateKeys,
   onSelectDate,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [visibleMonth, setVisibleMonth] = useState(
   () => new Date(selectedDate.getFullYear(), selectedDate.getMonth(), 1),
   );
@@ -129,7 +133,7 @@ export function TeachingCalendar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   dayCell: {
     alignItems: "center",
     flexBasis: "14.28%",
@@ -156,6 +160,7 @@ const styles = StyleSheet.create({
     lineHeight: 20,
   },
   dayTextSelected: {
+    color: colors.onAccent,
     fontFamily: fontFamilies.sansBold,
   },
   grid: {

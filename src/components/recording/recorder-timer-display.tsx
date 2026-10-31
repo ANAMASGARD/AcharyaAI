@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { fontFamilies } from "@/theme/typography";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -16,6 +17,8 @@ type Props = Readonly<{
 }>;
 
 function RecDot(): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const opacity = useSharedValue(1);
 
   useEffect(() => {
@@ -40,6 +43,8 @@ export function RecorderTimerDisplay({
   label,
   isRecording,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.wrap}>
       {isRecording ? (
@@ -55,7 +60,7 @@ export function RecorderTimerDisplay({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   recBadge: {
     alignItems: "center",
     backgroundColor: colors.destructive,

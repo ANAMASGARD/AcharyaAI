@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { RecorderPulseRing } from "@/components/recording/recorder-pulse-ring";
-import { colors } from "@/theme/colors";
 import { borderWidths, shadows } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet, View } from "react-native";
@@ -20,6 +21,9 @@ export function RecordingButton({
   disabled = false,
   onPress,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const isDisabled = disabled && !isRecording;
 
   return (
@@ -40,7 +44,7 @@ export function RecordingButton({
         ]}
       >
         <MaterialCommunityIcons
-          color={isRecording ? colors.destructiveForeground : colors.foreground}
+          color={isRecording ? colors.destructiveForeground : colors.onAccent}
           name={isRecording ? "close" : "play"}
           size={isRecording ? 40 : 36}
           style={!isRecording ? styles.playIcon : undefined}
@@ -50,7 +54,7 @@ export function RecordingButton({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: {
     alignItems: "center",
     borderColor: colors.border,

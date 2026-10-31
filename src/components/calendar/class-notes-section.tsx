@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -10,6 +11,9 @@ type Props = Readonly<{
 }>;
 
 export function ClassNotesSection({ notes }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const handleCopy = async (): Promise<void> => {
     if (!notes) {
       return;
@@ -54,7 +58,7 @@ export function ClassNotesSection({ notes }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     color: colors.foreground,
     fontFamily: fontFamilies.sans,

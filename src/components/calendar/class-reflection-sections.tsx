@@ -1,3 +1,5 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
@@ -59,6 +61,8 @@ export function ClassReflectionSections({
   report,
   showHeader = true,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.container}>
       {showHeader ? (
@@ -91,7 +95,7 @@ export function ClassReflectionSections({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   container: {
     gap: spacing.md,
   },

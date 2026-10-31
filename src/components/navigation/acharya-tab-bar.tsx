@@ -1,3 +1,5 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { TabBarItem } from "@/components/navigation/tab-bar-item";
 import {
   TAB_BAR_FLOAT_GAP,
@@ -8,7 +10,6 @@ import {
 } from "@/components/navigation/tab-bar-constants";
 import { tabBarGlass } from "@/components/navigation/tab-bar-glass";
 import { lottieAnimations } from "@/constants/lottie";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import type { NavigationHelpers, ParamListBase, TabNavigationState } from "expo-router/react-navigation";
 import type { MaterialTopTabNavigationEventMap } from "expo-router/js-top-tabs";
@@ -80,6 +81,8 @@ export type AcharyaTabBarProps = Readonly<{
 }>;
 
 export function AcharyaTabBar(props: AcharyaTabBarProps): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const { state, descriptors } = props;
   const insets = useSafeAreaInsets();
   const indicatorX = useSharedValue(0);
@@ -212,7 +215,7 @@ export function AcharyaTabBar(props: AcharyaTabBarProps): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   floatWrapper: {
     position: "absolute",
     left: 0,

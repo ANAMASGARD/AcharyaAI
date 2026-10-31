@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { ChatConversationSummary } from "@/types/chat";
@@ -31,6 +32,9 @@ export function ChatHistoryCard({
   onEdit,
   onDelete,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const messageLabel =
     conversation.messageCount === 1
       ? "1 msg"
@@ -50,15 +54,15 @@ export function ChatHistoryCard({
           >
             <View style={styles.titleRow}>
               <MaterialCommunityIcons
-                color={colors.foreground}
+                color={colors.onAccent}
                 name="message-text-outline"
                 size={18}
               />
-              <Text numberOfLines={2} style={styles.title}>
+              <Text numberOfLines={2} style={[styles.title, { color: colors.onAccent }]}>
                 {conversation.title}
               </Text>
             </View>
-            <Text style={styles.meta}>
+            <Text style={[styles.meta, { color: colors.onAccent }]}>
               {messageLabel} • {formatDate(conversation.createdAt)}
             </Text>
           </Pressable>
@@ -88,18 +92,18 @@ export function ChatHistoryCard({
           ]}
         >
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name="trash-can-outline"
             size={16}
           />
-          <Text style={styles.deleteLabel}>Delete</Text>
+          <Text style={[styles.deleteLabel, { color: colors.onAccent }]}>Delete</Text>
         </Pressable>
       </View>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.primary,
     borderColor: colors.border,

@@ -1,8 +1,9 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoButton } from "@/components/ui/neo-button";
 import { RECORDER_CLASS_LEVELS } from "@/data/recorder-options";
 import { formatTeachingClassesSummary } from "@/lib/teaching-classes";
 import { usePreferencesStore } from "@/store/preferences-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,6 +15,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function TeachingClassesScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const storedClassIds = usePreferencesStore((state) => state.teachingClassIds);
   const setTeachingClassIds = usePreferencesStore(
@@ -40,7 +45,7 @@ export function TeachingClassesScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <View style={styles.header}>
         <Pressable
@@ -69,8 +74,8 @@ export function TeachingClassesScreen(): React.ReactElement {
         </Text>
 
         <View style={styles.summaryCard}>
-          <Text style={styles.summaryLabel}>Selected</Text>
-          <Text style={styles.summaryValue}>{draftSummary}</Text>
+          <Text style={[styles.summaryLabel, { color: colors.onAccent }]}>Selected</Text>
+          <Text style={[styles.summaryValue, { color: colors.onAccent }]}>{draftSummary}</Text>
         </View>
 
         <View style={styles.list}>
@@ -91,7 +96,7 @@ export function TeachingClassesScreen(): React.ReactElement {
                   pressed ? styles.rowPressed : null,
                 ]}
               >
-                <Text style={styles.classLabel}>{classOption.label}</Text>
+                <Text style={[styles.classLabel, isSelected && { color: colors.onAccent }]}>{classOption.label}</Text>
                 <View
                   style={[
                     styles.checkBox,
@@ -100,7 +105,7 @@ export function TeachingClassesScreen(): React.ReactElement {
                 >
                   {isSelected ? (
                     <MaterialCommunityIcons
-                      color={colors.foreground}
+                      color={colors.onAccent}
                       name="check"
                       size={18}
                     />
@@ -126,7 +131,7 @@ export function TeachingClassesScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.card,

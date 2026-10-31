@@ -1,11 +1,14 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { colors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from '@/theme/tokens';
 import { fontFamilies } from '@/theme/typography';
 import type { GeneratedPaper } from '@/types/question-paper';
 
 export function GeneratedPaperResult({ paper }: { paper: GeneratedPaper }): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
           <View style={styles.paperCard}>
             <Text style={styles.paperTitle}>{paper.title}</Text>
@@ -28,7 +31,7 @@ export function GeneratedPaperResult({ paper }: { paper: GeneratedPaper }): Reac
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   paperCard: {
     backgroundColor: colors.card,
     borderColor: colors.border,

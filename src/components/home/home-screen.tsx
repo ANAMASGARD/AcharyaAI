@@ -1,10 +1,11 @@
+import { useThemeColors, useColorMode, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
 import { CommunitySection } from "@/components/community/community-section";
 import { HomeHeader } from "@/components/home/home-header";
 import { RecentActivityCard } from "@/components/home/recent-activity-card";
 import { useHomeDashboard } from "@/hooks/use-home-dashboard";
 import { useHomeGreeting } from "@/hooks/use-home-greeting";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
@@ -15,6 +16,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function HomeScreen(): React.ReactElement {
+  const colors = useThemeColors();
+  const colorMode = useColorMode();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const dockClearance = Math.max(TAB_BAR_CLEARANCE, getTabBarOverlayHeight(insets.bottom) + spacing.lg);
   const router = useRouter();
@@ -28,7 +33,7 @@ export function HomeScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: dockClearance }]}
         showsVerticalScrollIndicator={false}
@@ -49,7 +54,7 @@ export function HomeScreen(): React.ReactElement {
               }}
               style={styles.retryButton}
             >
-              <Text style={styles.retryLabel}>Retry</Text>
+              <Text style={[styles.retryLabel, { color: colors.onAccent }]}>Retry</Text>
             </Pressable>
           </View>
         ) : null}
@@ -72,7 +77,7 @@ export function HomeScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   cards: {
     paddingHorizontal: spacing.lg,
     paddingTop: spacing.md,

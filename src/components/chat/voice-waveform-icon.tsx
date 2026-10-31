@@ -1,3 +1,5 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { colors } from "@/theme/colors";
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
@@ -35,6 +37,8 @@ function WaveBar({
   width: number;
   delayMs: number;
 }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const barHeight = useSharedValue(minHeight);
 
   useEffect(() => {
@@ -82,6 +86,8 @@ export function VoiceWaveformIcon({
   gap = 2,
   height = 16,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={[styles.row, { gap, height }]}>
       {Array.from({ length: barCount }, (_, index) => {
@@ -104,7 +110,7 @@ export function VoiceWaveformIcon({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   bar: {
     borderRadius: 99,
   },

@@ -1,10 +1,11 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { CommunityPostAvatar } from "@/components/community/community-post-avatar";
 import { CommunityPostBody } from "@/components/community/community-post-body";
 import { CommunityPostImages } from "@/components/community/community-post-images";
 import { PostTopActions } from "@/components/community/post-top-actions";
 import { VoteBar } from "@/components/community/vote-bar";
 import { formatTimeAgo } from "@/lib/community/time-ago";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityPost } from "@/types/community";
@@ -33,6 +34,9 @@ export function CommunityPostCard({
   canDelete = false,
   compact = true,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const handleShare = async (): Promise<void> => {
     await Clipboard.setStringAsync(
       `acharyaapp://community/post/${post.postId}`,
@@ -70,7 +74,7 @@ export function CommunityPostCard({
           <View style={styles.meta}>
             <View style={styles.tagRow}>
               <View style={styles.tag}>
-                <Text style={styles.tagText}>{post.subjectTag}</Text>
+                <Text style={[styles.tagText, { color: colors.onAccent }]}>{post.subjectTag}</Text>
               </View>
               <Text style={styles.time}>{formatTimeAgo(post.createdAt)}</Text>
             </View>
@@ -78,7 +82,7 @@ export function CommunityPostCard({
               <Text style={styles.author}>{post.authorDisplayName}</Text>
               {post.demoWelcome ? (
                 <View style={styles.acharyaBadge}>
-                  <Text style={styles.acharyaBadgeText}>Official</Text>
+                  <Text style={[styles.acharyaBadgeText, { color: colors.onAccent }]}>Official</Text>
                 </View>
               ) : null}
             </View>
@@ -138,7 +142,7 @@ export function CommunityPostCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   acharyaBadge: {
     backgroundColor: colors.primary,
     borderColor: colors.border,

@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useKeyboardState } from "react-native-keyboard-controller";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -56,6 +57,9 @@ function ChatTitleForm({
   onCancel,
   onSave,
 }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const { width, height } = useWindowDimensions();
   const keyboardHeight = useKeyboardState((state) => visible ? state.height : 0);
@@ -157,9 +161,9 @@ function ChatTitleForm({
             ]}
           >
             {isSaving ? (
-              <ActivityIndicator color={colors.foreground} size="small" />
+              <ActivityIndicator color={colors.onAccent} size="small" />
             ) : (
-              <Text style={styles.saveLabel}>Save</Text>
+              <Text style={[styles.saveLabel, { color: colors.onAccent }]}>Save</Text>
             )}
           </Pressable>
         </View>
@@ -168,7 +172,7 @@ function ChatTitleForm({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: spacing.sm,

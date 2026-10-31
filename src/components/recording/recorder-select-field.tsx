@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import type { RecorderOption } from "@/data/recorder-options";
 import { getRecorderOptionLabel } from "@/data/recorder-options";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -28,6 +29,9 @@ export function RecorderSelectField({
   placeholder,
   disabled = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [open, setOpen] = useState(false);
   const selectedLabel = getRecorderOptionLabel(options, value);
 
@@ -89,10 +93,10 @@ export function RecorderSelectField({
                       pressed && styles.optionPressed,
                     ]}
                   >
-                    <Text style={styles.optionText}>{item.label}</Text>
+                    <Text style={[styles.optionText, isSelected && { color: colors.onAccent }]}>{item.label}</Text>
                     {isSelected ? (
                       <MaterialCommunityIcons
-                        color={colors.foreground}
+                        color={colors.onAccent}
                         name="check"
                         size={20}
                       />
@@ -109,7 +113,7 @@ export function RecorderSelectField({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backdrop: {
     backgroundColor: "rgba(0, 0, 0, 0.45)",
     flex: 1,

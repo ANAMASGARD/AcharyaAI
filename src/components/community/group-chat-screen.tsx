@@ -1,10 +1,11 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { GroupChatBubble } from "@/components/community/group-chat-bubble";
 import { GroupChatComposer } from "@/components/community/group-chat-composer";
 import { useGroupChat } from "@/hooks/use-group-chat";
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useLocalSearchParams } from "expo-router";
@@ -20,6 +21,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function GroupChatScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const displayName = useTeacherDisplayName();
   const chat = useGroupChat(groupId ?? "");
@@ -37,7 +42,7 @@ export function GroupChatScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Group Chat" />
       <KeyboardAvoidingView
         behavior="padding"
@@ -69,7 +74,7 @@ export function GroupChatScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   error: {
     color: colors.destructive,
     fontFamily: fontFamilies.sans,

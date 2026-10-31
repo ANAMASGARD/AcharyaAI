@@ -1,5 +1,6 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ChatLoadingIndicator } from "@/components/chat/chat-loading-indicator";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, Text, View } from "react-native";
@@ -16,6 +17,8 @@ export function ChatBubble({
   isStreaming = false,
   replyPhase = "sent",
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const isUser = message.role === "user";
   const showStreamingLoader =
     !isUser && isStreaming && message.content.trim().length === 0;
@@ -36,7 +39,7 @@ export function ChatBubble({
           isUser ? styles.userBubble : styles.assistantBubble,
         ]}
       >
-        <Text style={styles.content}>
+        <Text style={[styles.content, isUser && styles.userContent]}>
           {message.content}
           {!isUser && isStreaming ? " ▍" : ""}
         </Text>
@@ -45,7 +48,7 @@ export function ChatBubble({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   assistantBubble: {
     backgroundColor: colors.card,
   },
@@ -75,6 +78,7 @@ const styles = StyleSheet.create({
   rowUser: {
     alignItems: "flex-end",
   },
+  userContent: { color: colors.onAccent },
   userBubble: {
     backgroundColor: colors.primary,
   },

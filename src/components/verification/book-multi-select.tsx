@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CurriculumBookSummary } from "@/types/question-paper";
@@ -20,6 +21,9 @@ export function BookMultiSelect({
   error,
   onToggleBook,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (isLoading) {
     return (
       <View style={styles.loadingWrap}>
@@ -63,11 +67,11 @@ export function BookMultiSelect({
               ]}
             >
               <MaterialCommunityIcons
-                color={colors.foreground}
+                color={selected ? colors.onAccent : colors.foreground}
                 name={selected ? "checkbox-marked" : "checkbox-blank-outline"}
                 size={18}
               />
-              <Text style={styles.chipText}>
+              <Text style={[styles.chipText, selected && { color: colors.onAccent }]}>
                 {book.title}
                 {book.isPreloaded ? " · Ready" : ""}
               </Text>
@@ -79,7 +83,7 @@ export function BookMultiSelect({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   chip: {
     alignItems: "center",
     backgroundColor: colors.card,

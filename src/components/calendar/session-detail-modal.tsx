@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ClassNotesSection } from "@/components/calendar/class-notes-section";
 import { ClassReflectionSections } from "@/components/calendar/class-reflection-sections";
 import {
@@ -16,7 +18,6 @@ import {
   getSubjectBadgeColors,
   getSubjectDisplayLabel,
 } from "@/lib/calendar/session-display";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { SessionDetail } from "@/types/calendar";
@@ -69,6 +70,9 @@ export function SessionDetailModal({
   error,
   onClose,
 }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [activeView, setActiveView] = useState<SessionDetailView>("reflection");
   const [mounted, setMounted] = useState(visible);
   const session = detail?.session;
@@ -177,7 +181,7 @@ export function SessionDetailModal({
             <>
               <View style={styles.yellowHeader}>
                 <View style={styles.headerTopRow}>
-                  <Text numberOfLines={2} style={styles.title}>
+                  <Text numberOfLines={2} style={[styles.title, { color: colors.onAccent }]}>
                     {session.topic}
                   </Text>
                   <Pressable
@@ -204,7 +208,7 @@ export function SessionDetailModal({
                       },
                     ]}
                   >
-                    <Text style={styles.tagText}>
+                    <Text style={[styles.tagText, { color: colors.onAccent }]}>
                       {getSubjectDisplayLabel(session.subject)}
                     </Text>
                   </View>
@@ -216,7 +220,7 @@ export function SessionDetailModal({
                       },
                     ]}
                   >
-                    <Text style={styles.tagText}>
+                    <Text style={[styles.tagText, { color: colors.onAccent }]}>
                       {getClassDisplayLabel(session.classLevel)}
                     </Text>
                   </View>
@@ -299,7 +303,7 @@ export function SessionDetailModal({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backdropPressable: {
     ...StyleSheet.absoluteFill,
   },

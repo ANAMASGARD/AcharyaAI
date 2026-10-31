@@ -1,9 +1,10 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoButton } from "@/components/ui/neo-button";
 import {
   formatFileSize,
   getNotesUploadErrorMessage,
 } from "@/lib/notes-file-validation";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { NotesUploadError, NotesUploadFile } from "@/types/notes-verification";
@@ -36,6 +37,9 @@ export function UploadDropZone({
   onClearFile,
   onVerify,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const hasFile = selectedFile !== null;
   const isImage = selectedFile?.kind === "image" && Boolean(selectedFile.uri);
 
@@ -77,7 +81,7 @@ export function UploadDropZone({
               <Pressable onPress={onPickDocument} style={styles.fileTapArea}>
                 <View style={styles.fileIconWrap}>
                   <MaterialCommunityIcons
-                    color={colors.foreground}
+                    color={colors.onAccent}
                     name="file-document-outline"
                     size={22}
                   />
@@ -130,8 +134,8 @@ export function UploadDropZone({
 
       {error ? (
         <View style={styles.errorBanner}>
-          <MaterialCommunityIcons color={colors.foreground} name="alert-circle-outline" size={18} />
-          <Text style={styles.errorText}>{getNotesUploadErrorMessage(error)}</Text>
+          <MaterialCommunityIcons color={colors.onAccent} name="alert-circle-outline" size={18} />
+          <Text style={[styles.errorText, { color: colors.onAccent }]}>{getNotesUploadErrorMessage(error)}</Text>
         </View>
       ) : null}
 
@@ -147,7 +151,7 @@ export function UploadDropZone({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   clearButton: {
     alignItems: "center",
     borderColor: colors.border,

@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
@@ -11,12 +12,15 @@ export function NeoDashboardCard({
   backgroundColor,
   children,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
-    <View style={[styles.card, { backgroundColor }]}>{children}</View>
+    <View style={[styles.card, { backgroundColor: backgroundColor ?? colors.card }]}>{children}</View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     borderColor: colors.border,
     borderRadius: radii.lg,

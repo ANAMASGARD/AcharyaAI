@@ -1,5 +1,6 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { RecorderStartingLabel } from "@/components/recording/recorder-starting-label";
-import { colors } from "@/theme/colors";
 import { fontFamilies } from "@/theme/typography";
 import { Pressable, StyleSheet, Text } from "react-native";
 
@@ -20,6 +21,8 @@ export function RecorderStatusLabel({
   onConfirmPartial,
   onRetryAnalysis,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <>
       {isStarting ? (
@@ -47,7 +50,7 @@ export function RecorderStatusLabel({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   error: {
     color: colors.destructive,
     fontFamily: fontFamilies.sans,

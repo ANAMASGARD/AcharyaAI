@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
@@ -35,6 +37,9 @@ function scoreColor(score: number): string {
  * Renders nothing when no weightage was computed (graceful fallback).
  */
 export function WeightageBreakdown({ weightage }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (!weightage || weightage.chapters.length === 0) {
     return null;
   }
@@ -49,8 +54,8 @@ export function WeightageBreakdown({ weightage }: Props): React.ReactElement | n
           </Text>
         </View>
         <View style={[styles.scoreBadge, { backgroundColor: scoreColor(weightage.balanceScore) }]}>
-          <Text style={styles.scoreValue}>{weightage.balanceScore}</Text>
-          <Text style={styles.scoreLabel}>balance</Text>
+          <Text style={[styles.scoreValue, { color: colors.onAccent }]}>{weightage.balanceScore}</Text>
+          <Text style={[styles.scoreLabel, { color: colors.onAccent }]}>balance</Text>
         </View>
       </View>
 
@@ -67,7 +72,7 @@ export function WeightageBreakdown({ weightage }: Props): React.ReactElement | n
                   {chapter.chapterTitle}
                 </Text>
                 <View style={[styles.statusChip, { backgroundColor: status.color }]}>
-                  <Text style={styles.statusText}>{status.label}</Text>
+                  <Text style={[styles.statusText, { color: colors.onAccent }]}>{status.label}</Text>
                 </View>
               </View>
 
@@ -92,8 +97,8 @@ export function WeightageBreakdown({ weightage }: Props): React.ReactElement | n
 
       {weightage.outOfSyllabusMarks > 0 ? (
         <View style={styles.warningCallout}>
-          <MaterialCommunityIcons color={colors.foreground} name="alert-octagon-outline" size={18} />
-          <Text style={styles.warningText}>
+          <MaterialCommunityIcons color={colors.onAccent} name="alert-octagon-outline" size={18} />
+          <Text style={[styles.warningText, { color: colors.onAccent }]}>
             {weightage.outOfSyllabusMarks}{" "}
             {weightage.outOfSyllabusMarks === 1 ? "mark" : "marks"} (
             {weightage.outOfSyllabusPct}%) fall outside the selected chapters.
@@ -103,15 +108,15 @@ export function WeightageBreakdown({ weightage }: Props): React.ReactElement | n
 
       {weightage.contentInsight ? (
         <View style={styles.insightCallout}>
-          <Text style={styles.insightEmoji}>💡</Text>
-          <Text style={styles.insightText}>{weightage.contentInsight}</Text>
+          <Text style={[styles.insightEmoji, { color: colors.onAccent }]}>💡</Text>
+          <Text style={[styles.insightText, { color: colors.onAccent }]}>{weightage.contentInsight}</Text>
         </View>
       ) : null}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     backgroundColor: colors.card,
     borderColor: colors.border,

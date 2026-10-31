@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { usePreviewAttachments, usePreviewFeature } from "@/components/preview/preview-provider";
 import type { PreviewAttachment } from "@/lib/ui-preview/types";
 import {
@@ -6,7 +8,6 @@ import {
   isWithinSizeLimit,
   normalizePickerAsset,
 } from "@/lib/notes-file-validation";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useCurriculumAvailability } from "@/hooks/use-curriculum-availability";
@@ -59,7 +60,7 @@ type Props = Readonly<{
   onOpenTeachingClasses: () => void;
 }>;
 
-const AVAILABLE_GREEN = "#22A06B";
+const AVAILABLE_GREEN = "#176A42";
 
 function subjectCountLabel(count: number): string {
   return count === 1 ? "1 subject" : `${count} subjects`;
@@ -77,6 +78,9 @@ export function CurriculumSelectSheet({
   onUploadedBook,
   onOpenTeachingClasses,
 }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const { saveAttachment, removeAttachment } = usePreviewAttachments();
   const [bookAttachment, setBookAttachment] = usePreviewFeature<PreviewAttachment | null>("curriculum-book", null);
@@ -226,11 +230,11 @@ export function CurriculumSelectSheet({
           <View style={styles.sheetHeader}>
             <View style={styles.sheetTitleRow}>
               <MaterialCommunityIcons
-                color={colors.foreground}
+                color={colors.onAccent}
                 name="book-open-page-variant"
                 size={22}
               />
-              <Text style={styles.sheetTitle}>Select Curriculum</Text>
+              <Text style={[styles.sheetTitle, { color: colors.onAccent }]}>Select Curriculum</Text>
             </View>
             <Pressable
               accessibilityLabel="Close"
@@ -264,7 +268,7 @@ export function CurriculumSelectSheet({
                     pressed ? styles.emptyCtaPressed : null,
                   ]}
                 >
-                  <Text style={styles.emptyCtaLabel}>Select classes in settings</Text>
+                  <Text style={[styles.emptyCtaLabel, { color: colors.onAccent }]}>Select classes in settings</Text>
                 </Pressable>
               </View>
             ) : (
@@ -341,6 +345,8 @@ function SubjectAvailabilityBadge({
   available: boolean;
   selected: boolean;
 }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   if (available) {
     return (
       <View style={styles.availableBadge}>
@@ -367,6 +373,9 @@ function CurriculumClassBlock({
   onToggle,
   onSelectSubject,
 }: ClassBlockProps): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const subjectCount = classItem.subjects.length;
 
   return (
@@ -381,7 +390,7 @@ function CurriculumClassBlock({
           pressed ? styles.rowPressed : null,
         ]}
       >
-        <Text style={styles.classLabel}>{classItem.label}</Text>
+        <Text style={[styles.classLabel, expanded && { color: colors.onAccent }]}>{classItem.label}</Text>
         <View style={styles.classMeta}>
           <View style={styles.subjectBadge}>
             <Text style={styles.subjectBadgeText}>
@@ -389,7 +398,7 @@ function CurriculumClassBlock({
             </Text>
           </View>
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={expanded ? colors.onAccent : colors.foreground}
             name={expanded ? "chevron-down" : "chevron-right"}
             size={22}
           />
@@ -425,6 +434,7 @@ function CurriculumClassBlock({
                 <Text
                   style={[
                     styles.subjectLabel,
+                    { color: colors.onAccent },
                     hasBooks ? styles.subjectLabelAvailable : null,
                   ]}
                 >
@@ -439,7 +449,7 @@ function CurriculumClassBlock({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backdropPressable: {
     ...StyleSheet.absoluteFill,
   },
@@ -652,7 +662,7 @@ const styles = StyleSheet.create({
     lineHeight: 16,
   },
   selectedLabel: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sansBold,
     fontSize: 12,
     lineHeight: 16,

@@ -1,5 +1,6 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ProfileNativeAccountView } from "@/components/profile/profile-native-account-view";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { useAuth } from "@clerk/expo";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -15,6 +16,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function ProfileAccountScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
   useEffect(() => {
@@ -37,7 +42,7 @@ export default function ProfileAccountScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <View style={styles.header}>
         <Pressable
@@ -59,7 +64,7 @@ export default function ProfileAccountScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.card,

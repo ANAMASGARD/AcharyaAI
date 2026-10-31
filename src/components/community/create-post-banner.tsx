@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Image } from "expo-image";
@@ -10,6 +11,9 @@ type Props = Readonly<{
 }>;
 
 export function CreatePostBanner({ onPress }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <Pressable
@@ -17,7 +21,7 @@ export function CreatePostBanner({ onPress }: Props): React.ReactElement {
         onPress={onPress}
         style={({ pressed }) => [styles.button, pressed && styles.buttonPressed]}
       >
-        <Text style={styles.buttonLabel}>+ Create Post</Text>
+        <Text style={[styles.buttonLabel, { color: colors.onAccent }]}>+ Create Post</Text>
       </Pressable>
       <Image
         accessibilityLabel="Teacher with pencil"
@@ -29,7 +33,7 @@ export function CreatePostBanner({ onPress }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: {
     backgroundColor: colors.primary,
     borderColor: colors.border,

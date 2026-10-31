@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -15,6 +16,9 @@ export function CommunityScreenHeader({
   title,
   rightActions,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
 
   return (
@@ -37,7 +41,7 @@ export function CommunityScreenHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backButton: {
     alignItems: "center",
     height: 40,

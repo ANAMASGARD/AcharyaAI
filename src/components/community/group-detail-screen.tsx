@@ -1,6 +1,7 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { useCommunityPreview } from "@/hooks/use-community-preview";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import * as Clipboard from "expo-clipboard";
@@ -17,6 +18,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function GroupDetailScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
   const router = useRouter();
   const community = useCommunityPreview();
@@ -51,7 +56,7 @@ export function GroupDetailScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title={group.name} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.description}>
@@ -65,9 +70,9 @@ export function GroupDetailScreen(): React.ReactElement {
           }}
           style={styles.codeCard}
         >
-          <Text style={styles.codeLabel}>Join code</Text>
-          <Text style={styles.codeValue}>{group.joinCode}</Text>
-          <Text style={styles.codeHint}>Tap to copy</Text>
+          <Text style={[styles.codeLabel, { color: colors.onAccent }]}>Join code</Text>
+          <Text style={[styles.codeValue, { color: colors.onAccent }]}>{group.joinCode}</Text>
+          <Text style={[styles.codeHint, { color: colors.onAccent }]}>Tap to copy</Text>
         </Pressable>
 
         <Text style={styles.sectionTitle}>
@@ -76,7 +81,7 @@ export function GroupDetailScreen(): React.ReactElement {
         {group.members.map((member) => (
           <View key={member.clerkId} style={styles.memberRow}>
             <View style={styles.memberAvatar}>
-              <Text style={styles.memberAvatarText}>{member.avatarLetter}</Text>
+              <Text style={[styles.memberAvatarText, { color: colors.onAccent }]}>{member.avatarLetter}</Text>
             </View>
             <View>
               <Text style={styles.memberName}>{member.displayName}</Text>
@@ -93,7 +98,7 @@ export function GroupDetailScreen(): React.ReactElement {
             }
             style={styles.chatButton}
           >
-            <Text style={styles.chatButtonLabel}>Open group chat</Text>
+            <Text style={[styles.chatButtonLabel, { color: colors.onAccent }]}>Open group chat</Text>
           </Pressable>
         ) : (
           <Text style={styles.notMember}>
@@ -105,7 +110,7 @@ export function GroupDetailScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   chatButton: {
     alignItems: "center",
     backgroundColor: colors.primary,

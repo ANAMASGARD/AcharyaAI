@@ -1,10 +1,11 @@
+import { useColorMode, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { RecorderReportPanel } from "@/components/recording/recorder-report-panel";
 import { RecorderSessionCard } from "@/components/recording/recorder-session-card";
 import { RecorderTranscriptPanel } from "@/components/recording/recorder-transcript-panel";
 import { useRecorder } from "@/hooks/use-recorder";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StatusBar } from "expo-status-bar";
@@ -14,6 +15,9 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function RecorderScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const dockClearance = Math.max(TAB_BAR_CLEARANCE, getTabBarOverlayHeight(insets.bottom) + spacing.lg);
   const {
@@ -44,7 +48,7 @@ export function RecorderScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <KeyboardAwareScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: dockClearance }]}
         keyboardShouldPersistTaps="handled"
@@ -97,7 +101,7 @@ export function RecorderScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   safeArea: {
     backgroundColor: colors.cream,
     flex: 1,

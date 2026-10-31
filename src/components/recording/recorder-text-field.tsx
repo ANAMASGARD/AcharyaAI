@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, TextInput } from "react-native";
@@ -16,6 +17,9 @@ export function RecorderTextField({
   placeholder,
   editable = true,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <TextInput
       autoCapitalize="sentences"
@@ -30,7 +34,7 @@ export function RecorderTextField({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   input: {
     backgroundColor: colors.input,
     borderColor: colors.border,

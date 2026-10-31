@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { VoteValue } from "@/types/community";
@@ -18,6 +19,9 @@ export function VoteBar({
   onUpvote,
   onDownvote,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const upActive = viewerVote === 1;
   const downActive = viewerVote === -1;
 
@@ -36,7 +40,7 @@ export function VoteBar({
         ]}
       >
         <MaterialCommunityIcons
-          color={colors.foreground}
+          color={upActive ? colors.onAccent : colors.foreground}
           name={upActive ? "arrow-up-bold" : "arrow-up-bold-outline"}
           size={22}
         />
@@ -67,7 +71,7 @@ export function VoteBar({
         ]}
       >
         <MaterialCommunityIcons
-          color={colors.foreground}
+          color={downActive ? colors.onAccent : colors.foreground}
           name={downActive ? "arrow-down-bold" : "arrow-down-bold-outline"}
           size={22}
         />
@@ -76,7 +80,7 @@ export function VoteBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   downChip: {
     backgroundColor: colors.card,
   },

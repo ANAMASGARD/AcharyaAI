@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { SessionBookmarkButton } from "@/components/calendar/session-bookmark-button";
 import { getScoreBadgeColors } from "@/components/calendar/class-reflection-sections";
 import { NeoButton } from "@/components/ui/neo-button";
@@ -10,7 +12,6 @@ import {
   getSubjectBadgeColors,
   getSubjectDisplayLabel,
 } from "@/lib/calendar/session-display";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CalendarSession } from "@/types/calendar";
@@ -28,6 +29,9 @@ export function SessionCard({
   periodNumber,
   onViewDetails,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const subjectColors = getSubjectBadgeColors(session.subject);
   const classColors = getClassBadgeColors();
   const score =
@@ -114,7 +118,7 @@ export function SessionCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   divider: {
     borderBottomColor: colors.muted,
     borderBottomWidth: 2,

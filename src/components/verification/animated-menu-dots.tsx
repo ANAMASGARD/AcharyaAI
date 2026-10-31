@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
@@ -15,6 +16,8 @@ const DOT_SIZE = 5;
 const DOT_GAP = 4;
 
 function AnimatedDot({ delayMs }: Readonly<{ delayMs: number }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const scale = useSharedValue(1);
   const opacity = useSharedValue(0.55);
 
@@ -52,6 +55,8 @@ function AnimatedDot({ delayMs }: Readonly<{ delayMs: number }>): React.ReactEle
 }
 
 export function AnimatedMenuDots(): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <AnimatedDot delayMs={0} />
@@ -61,7 +66,7 @@ export function AnimatedMenuDots(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   dot: {
     backgroundColor: colors.destructiveForeground,
     borderRadius: 999,

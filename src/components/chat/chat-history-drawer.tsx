@@ -1,7 +1,8 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ChatDeleteConfirmDialog } from "@/components/chat/chat-delete-confirm-dialog";
 import { ChatEditTitleDialog } from "@/components/chat/chat-edit-title-dialog";
 import { ChatHistoryCard } from "@/components/chat/chat-history-card";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { ChatConversationSummary } from "@/types/chat";
@@ -63,6 +64,9 @@ export function ChatHistoryDrawer({
   onRenameConversation,
   onNewChat,
 }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const { width } = useWindowDimensions();
   const drawerWidth = Math.min(width * 0.84, 340);
@@ -247,7 +251,7 @@ export function ChatHistoryDrawer({
                 { paddingTop: insets.top + spacing.sm },
               ]}
             >
-              <Text style={styles.drawerTitle}>Chat History</Text>
+              <Text style={[styles.drawerTitle, { color: colors.onAccent }]}>Chat History</Text>
               <Pressable
                 accessibilityLabel="Close drawer"
                 onPress={onClose}
@@ -281,11 +285,11 @@ export function ChatHistoryDrawer({
                 ]}
               >
                 <MaterialCommunityIcons
-                  color={colors.foreground}
+                  color={colors.onAccent}
                   name="plus"
                   size={18}
                 />
-                <Text style={styles.newChatLabel}>New Chat</Text>
+                <Text style={[styles.newChatLabel, { color: colors.onAccent }]}>New Chat</Text>
               </Pressable>
 
               <View style={styles.sectionHeader}>
@@ -353,7 +357,7 @@ export function ChatHistoryDrawer({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backdropPressable: {
     ...StyleSheet.absoluteFill,
   },

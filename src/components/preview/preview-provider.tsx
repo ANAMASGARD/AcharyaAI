@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles , AppThemeProvider } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { ActivityIndicator, AppState, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useStore } from 'zustand';
@@ -8,7 +10,6 @@ import { confirmAction } from '@/lib/confirm-action';
 import { PreviewSessionEndedError } from '@/lib/ui-preview/lifecycle';
 import { previewStorage } from '@/lib/ui-preview/storage';
 import { DEFAULT_UI_PREFERENCES, PreviewDataError, restoreAttachmentUris, type AttachmentInput, type PreviewFeatures, type UiPreferences } from '@/lib/ui-preview/types';
-import { colors } from '@/theme/colors';
 import { fontFamilies } from '@/theme/typography';
 
 type PreviewState = { features: PreviewFeatures; preferences: UiPreferences };
@@ -23,6 +24,9 @@ type PreviewContextValue = {
 const PreviewContext = createContext<PreviewContextValue | null>(null);
 
 export function UiPreviewProvider({ owner, children }: { owner: string; children: ReactNode }): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [store] = useState(makeStore);
   const [session] = useState(() => previewLifecycle.createSession(owner));
   const [hydrated, setHydrated] = useState(false);
@@ -87,17 +91,17 @@ export function UiPreviewProvider({ owner, children }: { owner: string; children
     return <View style={styles.loading}>
       {error ? <>
         <Text style={styles.error}>{error}</Text>
-        <Pressable accessibilityRole="button" style={styles.button} onPress={() => { setError(null); void hydrate(); }}><Text style={styles.label}>Retry</Text></Pressable>
-        <Pressable accessibilityRole="button" style={styles.button} onPress={() => void resetLocalData()}><Text style={styles.label}>Reset local previews</Text></Pressable>
+        <Pressable accessibilityRole="button" style={styles.button} onPress={() => { setError(null); void hydrate(); }}><Text style={[styles.label, { color: colors.onAccent }]}>Retry</Text></Pressable>
+        <Pressable accessibilityRole="button" style={styles.button} onPress={() => void resetLocalData()}><Text style={[styles.label, { color: colors.onAccent }]}>Reset local previews</Text></Pressable>
       </> : <><ActivityIndicator color={colors.foreground} /><Text style={styles.label}>Opening your local drafts…</Text></>}
     </View>;
   }
   return <PreviewContext value={value}>
     {error ? <View accessibilityRole="alert" style={styles.banner}>
-      <Text style={styles.error}>{error}</Text>
-      <Pressable accessibilityRole="button" onPress={() => { setError(null); persistDrafts(); persistPreferences(); }}><Text style={styles.retry}>Retry saving</Text></Pressable>
+      <Text style={[styles.error, { color: colors.onAccent }]}>{error}</Text>
+      <Pressable accessibilityRole="button" onPress={() => { setError(null); persistDrafts(); persistPreferences(); }}><Text style={[styles.retry, { color: colors.onAccent }]}>Retry saving</Text></Pressable>
     </View> : null}
-    {children}
+    <PreviewTheme>{children}</PreviewTheme>
   </PreviewContext>;
 }
 
@@ -121,6 +125,11 @@ export function usePreviewFeature<T>(key: string, initial: T): readonly [T, (nex
   return [selected, update] as const;
 }
 
+function PreviewTheme({ children }: { children: ReactNode }): React.ReactElement {
+  const { colorMode } = useUiPreferences();
+  return <AppThemeProvider mode={colorMode}>{children}</AppThemeProvider>;
+}
+
 export function useUiPreferences() {
   const { store, persistPreferences } = usePreviewContext();
   const preferences = useStore(store, (state) => state.preferences);
@@ -131,6 +140,7 @@ export function useUiPreferences() {
   return useMemo(() => ({
     ...preferences,
     hasHydrated: true,
+    setColorMode: (mode: UiPreferences["colorMode"]) => update({ colorMode: mode }),
     setSelectedLanguageId: (id: string | null) => update({ selectedLanguageId: id }),
     setSelectedLanguage: (id: string) => update({ selectedLanguageId: id }),
     clearLanguagePreference: () => update({ selectedLanguageId: null }),
@@ -151,7 +161,7 @@ export function usePreviewAttachments() {
   }), [owner, session]);
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   loading: { flex: 1, backgroundColor: colors.cream, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24 },
   label: { fontFamily: fontFamilies.sansBold, color: colors.foreground, fontSize: 16 },
   error: { fontFamily: fontFamilies.sans, color: colors.foreground, fontSize: 14 },

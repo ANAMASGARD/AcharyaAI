@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { TabLottieIcon } from "@/components/navigation/tab-lottie-icon";
 import { tabBarGlass } from "@/components/navigation/tab-bar-glass";
-import { colors } from "@/theme/colors";
 import { Ionicons } from "@expo/vector-icons";
 import type { LottieViewProps } from "lottie-react-native";
 import { useEffect } from "react";
@@ -35,6 +36,9 @@ export function TabBarIcon({
   variant = "ionicons",
   lottieSource,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const iconScale = useSharedValue(1);
   const reducedMotion = useReducedMotion();
   const iconColor = focused
@@ -87,7 +91,7 @@ export function TabBarIcon({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   iconWrap: {
     width: 30,
     height: 30,

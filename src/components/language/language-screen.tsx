@@ -1,3 +1,5 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { fontFamilies } from "@/theme/typography";
 import { LanguageListItem } from "@/components/language/language-list-item";
 import { LanguageSearchBar } from "@/components/language/language-search-bar";
@@ -5,7 +7,6 @@ import { allLanguages, filterLanguages, popularLanguages } from "@/data/language
 import { useLanguageGate } from "@/hooks/use-language-gate";
 import { images } from "@/constants/images";
 import { usePreferencesStore } from "@/store/preferences-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import type { TeachingLanguage } from "@/types/language";
 import { useAuth } from "@clerk/expo";
@@ -35,6 +36,10 @@ const CONFIRM_HEIGHT = 52;
 const FOOTER_INNER_GAP = 6;
 
 export function LanguageSelectionScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const { width: screenWidth } = useWindowDimensions();
   const { isLoaded, isSignedIn } = useAuth();
@@ -110,7 +115,7 @@ export function LanguageSelectionScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.screen} edges={["top", "left", "right"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <View style={styles.main}>
       <View style={styles.header}>
@@ -182,7 +187,7 @@ export function LanguageSelectionScreen(): React.ReactElement {
             onPress={handleConfirm}
             style={({ pressed }) => [styles.confirmButton, styles.confirmVisual, !canConfirm && { opacity: 0.5 }, pressed && { transform: [{ translateX: 2 }, { translateY: 2 }] }]}
           >
-            <Text style={styles.confirmLabel}>
+            <Text style={[styles.confirmLabel, { color: colors.onAccent }]}>
               Confirm
             </Text>
           </Pressable>
@@ -204,7 +209,7 @@ export function LanguageSelectionScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   title: { flex: 1, textAlign: 'center', fontFamily: fontFamilies.head, fontSize: 24, color: colors.foreground },
   emptyText: { paddingVertical: 32, textAlign: 'center', fontFamily: fontFamilies.sans, fontSize: 15, color: colors.mutedForeground },
   sectionTitle: { paddingBottom: 8, paddingTop: 4, fontFamily: fontFamilies.sansBold, fontSize: 16, color: colors.foreground },

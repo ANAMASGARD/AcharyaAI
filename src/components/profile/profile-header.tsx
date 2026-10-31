@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -39,6 +40,9 @@ export function ProfileHeader({
   photoError,
   onPickPhoto,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.header}>
       <Pressable
@@ -56,7 +60,7 @@ export function ProfileHeader({
           />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
-            <Text style={styles.initials}>{getInitials(displayName)}</Text>
+            <Text style={[styles.initials, { color: colors.onAccent }]}>{getInitials(displayName)}</Text>
           </View>
         )}
         {isUploadingPhoto ? (
@@ -81,7 +85,7 @@ export function ProfileHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   avatar: {
     borderColor: colors.border,
     borderRadius: radii.lg,

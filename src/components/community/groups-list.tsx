@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityGroup } from "@/types/community";
@@ -22,6 +23,9 @@ export function GroupsList({
   onCreatePress,
   onJoinPress,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (isLoading && groups.length === 0) {
     return (
       <View style={styles.center}>
@@ -38,14 +42,14 @@ export function GroupsList({
           onPress={onCreatePress}
           style={({ pressed }) => [styles.actionChip, pressed && styles.pressed]}
         >
-          <Text style={styles.actionLabel}>Create group</Text>
+          <Text style={[styles.actionLabel, { color: colors.onAccent }]}>Create group</Text>
         </Pressable>
         <Pressable
           accessibilityRole="button"
           onPress={onJoinPress}
           style={({ pressed }) => [styles.actionChip, pressed && styles.pressed]}
         >
-          <Text style={styles.actionLabel}>Join with code</Text>
+          <Text style={[styles.actionLabel, { color: colors.onAccent }]}>Join with code</Text>
         </Pressable>
       </View>
 
@@ -79,7 +83,7 @@ export function GroupsList({
               </Text>
               <View style={styles.metaRow}>
                 <View style={styles.codeChip}>
-                  <Text style={styles.codeText}>{group.joinCode}</Text>
+                  <Text style={[styles.codeText, { color: colors.onAccent }]}>{group.joinCode}</Text>
                 </View>
                 <Text style={styles.memberCount}>
                   {group.memberCount} member{group.memberCount === 1 ? "" : "s"}
@@ -93,7 +97,7 @@ export function GroupsList({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actionChip: {
     backgroundColor: colors.primary,
     borderColor: colors.border,

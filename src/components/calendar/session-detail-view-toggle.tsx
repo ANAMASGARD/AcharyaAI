@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Pressable, StyleSheet, Text, View } from "react-native";
@@ -17,16 +18,20 @@ type ToggleOption = Readonly<{
   activeBg: string;
 }>;
 
-const OPTIONS: readonly ToggleOption[] = [
-  { id: "reflection", label: "Reflection", activeBg: colors.card },
-  { id: "notes", label: "Notes", activeBg: colors.sky },
-];
+
 
 export function SessionDetailViewToggle({
   value,
   onChange,
   inline = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const OPTIONS: readonly ToggleOption[] = [
+  { id: "reflection", label: "Reflection", activeBg: colors.card },
+  { id: "notes", label: "Notes", activeBg: colors.sky },
+];
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={[styles.row, inline ? styles.rowInline : null]}>
       {OPTIONS.map((option) => {
@@ -46,7 +51,7 @@ export function SessionDetailViewToggle({
               pressed ? styles.pillPressed : null,
             ]}
           >
-            <Text style={[styles.pillText, !isActive ? styles.pillTextMuted : null]}>
+            <Text style={[styles.pillText, !isActive ? styles.pillTextMuted : null, isActive && option.id === "notes" && { color: colors.onAccent }]}>
               {option.label}
             </Text>
           </Pressable>
@@ -66,7 +71,7 @@ export function SessionDetailViewToggle({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   pill: {
     borderColor: colors.border,
     borderRadius: radii.sm,
@@ -78,7 +83,7 @@ const styles = StyleSheet.create({
     borderWidth: borderWidths.thin,
   },
   pillInactive: {
-    backgroundColor: "rgba(255, 255, 255, 0.45)",
+    backgroundColor: colors.card,
   },
   pillPressed: {
     opacity: 0.85,

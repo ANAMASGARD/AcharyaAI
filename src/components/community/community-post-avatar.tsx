@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useUser } from "@clerk/expo";
@@ -25,6 +26,9 @@ export function CommunityPostAvatar({
   demoWelcome = false,
   size = 36,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { user } = useUser();
   const isAcharya =
     demoWelcome ||
@@ -80,14 +84,14 @@ export function CommunityPostAvatar({
 
   return (
     <View style={[styles.avatar, shellStyle, styles.letterAvatar]}>
-      <Text style={[styles.letter, { fontSize: size * 0.42 }]}>
+      <Text style={[[styles.letter, { fontSize: size * 0.42 }], { color: colors.onAccent }]}>
         {authorAvatarLetter}
       </Text>
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   acharyaAvatar: {
     alignItems: "center",
     backgroundColor: colors.primary,

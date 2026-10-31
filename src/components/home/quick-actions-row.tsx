@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
-import { colors } from "@/theme/colors";
 import { borderWidths, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -14,6 +15,9 @@ export function QuickActionsRow({
   onVerifyNotes,
   onStartClass,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <Pressable
@@ -22,7 +26,7 @@ export function QuickActionsRow({
         style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
       >
         <NeoDashboardCard backgroundColor={colors.mint}>
-          <MaterialCommunityIcons color={colors.foreground} name="file-check-outline" size={22} />
+          <MaterialCommunityIcons color={colors.onAccent} name="file-check-outline" size={22} />
           <Text style={styles.label}>Verify Notes</Text>
         </NeoDashboardCard>
       </Pressable>
@@ -32,7 +36,7 @@ export function QuickActionsRow({
         style={({ pressed }) => [styles.cardPressable, pressed && styles.pressed]}
       >
         <NeoDashboardCard backgroundColor={colors.coral}>
-          <MaterialCommunityIcons color={colors.foreground} name="microphone" size={22} />
+          <MaterialCommunityIcons color={colors.onAccent} name="microphone" size={22} />
           <Text style={styles.label}>Start Class</Text>
         </NeoDashboardCard>
       </Pressable>
@@ -40,12 +44,12 @@ export function QuickActionsRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   cardPressable: {
     flex: 1,
   },
   label: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sansMedium,
     fontSize: 14,
     lineHeight: 18,

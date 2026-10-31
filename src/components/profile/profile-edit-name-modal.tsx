@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAvoidingView } from "react-native-keyboard-controller";
 import { isClerkAPIResponseError, useUser } from "@clerk/expo";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useState } from "react";
@@ -27,6 +28,9 @@ function EditNameForm({
   visible,
   onClose,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { user } = useUser();
   const [firstName, setFirstName] = useState(user?.firstName ?? "");
   const [lastName, setLastName] = useState(user?.lastName ?? "");
@@ -122,7 +126,7 @@ function EditNameForm({
               {isSaving ? (
                 <ActivityIndicator color={colors.primaryForeground} size="small" />
               ) : (
-                <Text style={styles.buttonPrimaryText}>Save</Text>
+                <Text style={[styles.buttonPrimaryText, { color: colors.onAccent }]}>Save</Text>
               )}
             </Pressable>
           </View>
@@ -132,7 +136,7 @@ function EditNameForm({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: spacing.md,

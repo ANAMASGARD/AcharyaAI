@@ -1,10 +1,11 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
 import { SessionCard } from "@/components/calendar/session-card";
 import { SessionDetailModal } from "@/components/calendar/session-detail-modal";
 import { TeachingCalendar } from "@/components/calendar/teaching-calendar";
 import { NeoButton } from "@/components/ui/neo-button";
 import { useCalendarSessions } from "@/hooks/use-calendar-sessions";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
@@ -16,6 +17,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function CalendarScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const dockClearance = Math.max(TAB_BAR_CLEARANCE, getTabBarOverlayHeight(insets.bottom) + spacing.lg);
   const router = useRouter();
@@ -53,7 +58,7 @@ export function CalendarScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: dockClearance }]}
@@ -71,7 +76,7 @@ export function CalendarScreen(): React.ReactElement {
       >
         {error ? (
           <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>{error}</Text>
+            <Text style={[styles.errorText, { color: colors.onAccent }]}>{error}</Text>
           </View>
         ) : null}
 
@@ -140,7 +145,7 @@ export function CalendarScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   contentBelowCalendar: {
     marginTop: spacing.sm,
   },

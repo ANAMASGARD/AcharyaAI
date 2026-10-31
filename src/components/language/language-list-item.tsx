@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import type { TeachingLanguage } from "@/types/language";
 import { colors } from "@/theme/colors";
 import { fontFamilies } from "@/theme/typography";
@@ -36,6 +38,9 @@ export function LanguageListItem({
   badgeIndex,
   onPress,
 }: LanguageListItemProps): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const accent = BADGE_ACCENTS[badgeIndex % BADGE_ACCENTS.length];
 
   return (
@@ -51,13 +56,13 @@ export function LanguageListItem({
       ]}
     >
       <View style={[styles.badge, { backgroundColor: accent }]}>
-        <Text style={styles.badgeText}>{getBadgeLabel(language)}</Text>
+        <Text style={[styles.badgeText, { color: colors.onAccent }]}>{getBadgeLabel(language)}</Text>
       </View>
 
       <View style={styles.textWrap}>
-        <Text style={styles.nameEnglish}>{language.nameEnglish}</Text>
-        <Text style={styles.nameNative}>{language.nameNative}</Text>
-        <Text style={styles.code}>{language.languageCode}</Text>
+        <Text style={[styles.nameEnglish, isSelected && { color: colors.onAccent }]}>{language.nameEnglish}</Text>
+        <Text style={[styles.nameNative, isSelected && { color: colors.onAccent }]}>{language.nameNative}</Text>
+        <Text style={[styles.code, isSelected && { color: colors.onAccent }]}>{language.languageCode}</Text>
       </View>
 
       {isSelected ? (
@@ -68,7 +73,7 @@ export function LanguageListItem({
         />
       ) : (
         <MaterialCommunityIcons
-          color={colors.mutedForeground}
+          color={colors.foreground}
           name="chevron-right"
           size={26}
         />
@@ -77,7 +82,7 @@ export function LanguageListItem({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   row: {
     flexDirection: "row",
     alignItems: "center",

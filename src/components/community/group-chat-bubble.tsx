@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { formatTimeAgo } from "@/lib/community/time-ago";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { GroupMessage } from "@/types/community";
@@ -10,10 +11,13 @@ type Props = Readonly<{
 }>;
 
 export function GroupChatBubble({ message }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.row}>
       <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{message.authorAvatarLetter}</Text>
+        <Text style={[styles.avatarText, { color: colors.onAccent }]}>{message.authorAvatarLetter}</Text>
       </View>
       <View style={styles.bubble}>
         <Text style={styles.author}>{message.authorDisplayName}</Text>
@@ -34,7 +38,7 @@ export function GroupChatBubble({ message }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   author: {
     color: colors.mutedForeground,
     fontFamily: fontFamilies.sansMedium,

@@ -1,7 +1,8 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { Ionicons } from "@expo/vector-icons";
 import type { LottieViewProps } from "lottie-react-native";
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { Image } from "expo-image";
 import { StyleSheet, View } from "react-native";
 import Animated, {
@@ -29,6 +30,9 @@ export function TabLottieIcon({
   playSignal,
   recorderStyle = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const iconScale = useSharedValue(1);
   const reducedMotion = useReducedMotion();
 
@@ -75,7 +79,7 @@ export function TabLottieIcon({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   icon: {
     height: 32,
     width: 32,

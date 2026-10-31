@@ -1,3 +1,6 @@
+import { AppearanceToggle } from "@/components/profile/appearance-toggle";
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
 import { ProfileEditNameModal } from "@/components/profile/profile-edit-name-modal";
 import { ProfileHeader } from "@/components/profile/profile-header";
@@ -11,7 +14,6 @@ import { useProfilePhoto } from "@/hooks/use-profile-photo";
 import { useProfileSummary } from "@/hooks/use-profile-summary";
 import { formatTeachingClassesSummary } from "@/lib/teaching-classes";
 import { usePreferencesStore } from "@/store/preferences-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useAuth, useUser } from "@clerk/expo";
@@ -35,6 +37,10 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function ProfileScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const insets = useSafeAreaInsets();
   const dockClearance = Math.max(TAB_BAR_CLEARANCE, getTabBarOverlayHeight(insets.bottom) + spacing.lg);
   const router = useRouter();
@@ -91,7 +97,7 @@ export function ProfileScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <ScrollView
         contentContainerStyle={[styles.scrollContent, { paddingBottom: dockClearance + spacing.lg }]}
         showsVerticalScrollIndicator={false}
@@ -127,7 +133,7 @@ export function ProfileScreen(): React.ReactElement {
               pressed ? styles.pressed : null,
             ]}
           >
-            <Text style={styles.primaryCtaText}>Manage account & security</Text>
+            <Text style={[styles.primaryCtaText, { color: colors.onAccent }]}>Manage account & security</Text>
           </Pressable>
           {hasAccountPortal ? (
             <Pressable
@@ -184,6 +190,7 @@ export function ProfileScreen(): React.ReactElement {
 
         <View style={styles.section}>
           <ProfileMenuCard backgroundColor={colors.lavender} title="App settings">
+            <AppearanceToggle />
             <ProfileMenuRow
               icon="translate"
               label="Teaching language"
@@ -279,7 +286,7 @@ export function ProfileScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actionError: { color: colors.destructive, fontFamily: fontFamilies.sans, paddingHorizontal: spacing.lg, paddingBottom: spacing.md },
   loading: {
     alignItems: "center",

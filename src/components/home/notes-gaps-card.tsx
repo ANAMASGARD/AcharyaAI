@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { NotesGapsContent } from "@/types/home-dashboard";
@@ -14,6 +15,9 @@ export function NotesGapsCard({
   content,
   onPressCta,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <NeoDashboardCard backgroundColor={colors.mint}>
       <Text style={styles.title}>{content.title}</Text>
@@ -34,9 +38,9 @@ export function NotesGapsCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sans,
     fontSize: 14,
     lineHeight: 21,
@@ -62,7 +66,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.lg,
   },
   title: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.head,
     fontSize: 20,
     lineHeight: 26,

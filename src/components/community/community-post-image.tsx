@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii } from "@/theme/tokens";
 import type { CommunityPostImage } from "@/types/community";
 import { Image } from "expo-image";
@@ -21,6 +22,8 @@ export function CommunityPostImageView({
   style,
   contentFit = "cover",
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
 
   if (!image.uri) return <View style={[styles.placeholder, style]}><Text>Attachment unavailable on this device</Text></View>;
   return (
@@ -33,7 +36,7 @@ export function CommunityPostImageView({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   image: {
     backgroundColor: colors.muted,
     borderColor: colors.border,

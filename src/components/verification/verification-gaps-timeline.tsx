@@ -1,5 +1,6 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { VerificationGapCard } from "@/components/verification/verification-gap-card";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { VerificationGap } from "@/types/notes-verification";
@@ -10,6 +11,8 @@ type Props = Readonly<{
 }>;
 
 export function VerificationGapsTimeline({ gaps }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Verification Gaps & Suggestions</Text>
@@ -34,7 +37,7 @@ export function VerificationGapsTimeline({ gaps }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   cards: {
     flex: 1,
     gap: spacing.md,

@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -17,6 +18,9 @@ export function NeoButton({
   iconName,
   disabled = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -31,18 +35,18 @@ export function NeoButton({
       {iconName ? (
         <View style={styles.iconWrap}>
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name={iconName}
             size={16}
           />
         </View>
       ) : null}
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: colors.onAccent }]}>{label}</Text>
     </Pressable>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: {
     alignItems: "center",
     backgroundColor: colors.primary,

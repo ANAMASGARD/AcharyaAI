@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CurriculumBookSummary } from "@/types/question-paper";
@@ -24,6 +25,9 @@ export function ChapterScopeSelect({
   selectedChapterIds,
   onToggleChapter,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const [expanded, setExpanded] = useState(false);
 
   const scopedBooks = books.filter(
@@ -86,11 +90,11 @@ export function ChapterScopeSelect({
                         ]}
                       >
                         <MaterialCommunityIcons
-                          color={colors.foreground}
+                          color={selected ? colors.onAccent : colors.foreground}
                           name={selected ? "checkbox-marked" : "checkbox-blank-outline"}
                           size={16}
                         />
-                        <Text numberOfLines={1} style={styles.chipText}>
+                        <Text numberOfLines={1} style={[styles.chipText, selected && { color: colors.onAccent }]}>
                           {chapter.title}
                         </Text>
                       </Pressable>
@@ -106,7 +110,7 @@ export function ChapterScopeSelect({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     gap: spacing.md,
   },

@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import LottieView, { type LottieViewProps } from "lottie-react-native";
 import { useEffect, useRef } from "react";
 import { StyleSheet, View } from "react-native";
@@ -28,6 +29,9 @@ export function TabLottieIcon({
   loopWhenFocused = false,
   recorderStyle = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const animationRef = useRef<LottieView>(null);
   const iconScale = useSharedValue(1);
   const reducedMotion = useReducedMotion();
@@ -109,7 +113,7 @@ export function TabLottieIcon({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   wrap: {
     width: 32,
     height: 32,

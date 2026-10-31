@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Image } from "expo-image";
@@ -16,13 +17,16 @@ export function HomeHeader({
   greetingText,
   streakDays,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.header}>
       <View style={styles.topRow}>
         <View style={styles.textBlock}>
-          <Text style={styles.greeting}>{greetingText}</Text>
+          <Text style={[styles.greeting, { color: colors.onAccent }]}>{greetingText}</Text>
           <View style={styles.streakRow}>
-            <Text style={styles.streakLabel}>
+            <Text style={[styles.streakLabel, { color: colors.onAccent }]}>
               Streak indicator: {streakDays} day{streakDays === 1 ? "" : "s"}
             </Text>
             <Image
@@ -44,7 +48,7 @@ export function HomeHeader({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   greeting: {
     color: colors.foreground,
     fontFamily: fontFamilies.head,

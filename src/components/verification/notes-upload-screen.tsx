@@ -1,3 +1,5 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { AnimatedMenuDots } from "@/components/verification/animated-menu-dots";
 import { BookMultiSelect } from "@/components/verification/book-multi-select";
 import { ChapterScopeSelect } from "@/components/verification/chapter-scope-select";
@@ -11,7 +13,6 @@ import { useQuestionPaperUpload } from "@/hooks/use-question-paper-upload";
 import { useQuestionPaperVerify } from "@/hooks/use-question-paper-verify";
 import { getTeachingClassesForCurriculum } from "@/lib/teaching-classes";
 import { usePreferencesStore } from "@/store/preferences-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -22,6 +23,10 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function NotesUploadScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const teachingClassIds = usePreferencesStore((state) => state.teachingClassIds);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
@@ -100,7 +105,7 @@ export function NotesUploadScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <View style={styles.header}>
         <Pressable
@@ -147,11 +152,11 @@ export function NotesUploadScreen(): React.ReactElement {
       {selection ? (
         <View style={styles.selectionBanner}>
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name="book-open-page-variant"
             size={18}
           />
-          <Text numberOfLines={1} style={styles.selectionText}>
+          <Text numberOfLines={1} style={[styles.selectionText, { color: colors.onAccent }]}>
             {selection.classLabel} · {selection.subjectLabel}
           </Text>
           <Pressable
@@ -174,9 +179,9 @@ export function NotesUploadScreen(): React.ReactElement {
         showsVerticalScrollIndicator={false}
       >
         <View style={styles.explainerCard}>
-          <Text style={styles.explainerTitle}>Check a paper against the syllabus</Text>
-          <Text style={styles.hint}>Local preview · files stay on this device. Verification is not connected yet.</Text>
-          <Text style={styles.explainerBody}>
+          <Text style={[styles.explainerTitle, { color: colors.onAccent }]}>Check a paper against the syllabus</Text>
+          <Text style={[styles.hint, { color: colors.onAccent }]}>Local preview · files stay on this device. Verification is not connected yet.</Text>
+          <Text style={[styles.explainerBody, { color: colors.onAccent }]}>
             Upload a question paper (PDF, Word, or a photo) and Acharya checks it against the NCERT
             curriculum — chapter coverage, difficulty mix, and per-chapter weightage balance. Pick the
             class, subject, and books, then verify.
@@ -239,7 +244,7 @@ export function NotesUploadScreen(): React.ReactElement {
 
         {result?.extractionWarning === "image_unclear" ? (
           <View style={styles.warningBanner}>
-            <Text style={styles.warningText}>
+            <Text style={[styles.warningText, { color: colors.onAccent }]}>
               Image unclear — retake in better lighting for a more reliable check.
             </Text>
           </View>
@@ -284,7 +289,7 @@ export function NotesUploadScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.card,

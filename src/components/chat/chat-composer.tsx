@@ -1,11 +1,17 @@
+import { useCallback, useState } from 'react';
+import { useFocusEffect } from 'expo-router';
+import Animated, { FadeIn } from 'react-native-reanimated';
+import { VoiceInputPreview } from '@/components/chat/voice-input-preview';
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { VoiceWaveformIcon } from "@/components/chat/voice-waveform-icon";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { VoiceInputStatus } from "@/types/chat";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
+  Keyboard,
   Pressable,
   StyleSheet,
   Text,
@@ -17,7 +23,6 @@ type Props = Readonly<{
   draftText: string;
   onChangeText: (value: string) => void;
   onSend: () => void;
-  onToggleMic: () => void;
   onVoiceAgent: () => void;
   voiceInputStatus: VoiceInputStatus;
   disabled?: boolean;
@@ -27,11 +32,17 @@ export function ChatComposer({
   draftText,
   onChangeText,
   onSend,
-  onToggleMic,
   onVoiceAgent,
   voiceInputStatus,
   disabled = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
+  const [voicePreview, setVoicePreview] = useState(false);
+  const closePreview = useCallback(() => setVoicePreview(false), []);
+  useFocusEffect(useCallback(() => () => setVoicePreview(false), []));
+
   const isRecording = voiceInputStatus === "recording";
   const isTranscribing = voiceInputStatus === "transcribing";
   const voiceDisabled = disabled || isTranscribing;
@@ -43,6 +54,10 @@ export function ChatComposer({
     : isTranscribing
       ? "Transcribing speech…"
       : "Ask anything…";
+
+  if (voicePreview) {
+    return <Animated.View entering={FadeIn.duration(150)} style={styles.wrap}><VoiceInputPreview onClose={closePreview} /></Animated.View>;
+  }
 
   return (
     <View style={styles.wrap}>
@@ -65,7 +80,7 @@ export function ChatComposer({
       <View style={styles.toolbar}>
         <Pressable
           accessibilityLabel={
-            isRecording ? "Stop dictation" : "Start voice dictation"
+            isRecording ? "Stop voice" : "Start voice"
           }
           disabled={voiceDisabled}
           onPress={onVoiceAgent}
@@ -75,9 +90,9 @@ export function ChatComposer({
             pressed && !voiceDisabled ? styles.pressed : null,
           ]}
         >
-          <VoiceWaveformIcon color={colors.foreground} height={16} />
+          <VoiceWaveformIcon color={colors.onAccent} height={16} />
           <Text style={styles.voiceLabel}>
-            {isRecording ? "Stop" : "Dictate"}
+            {isRecording ? "Stop" : "Voice"}
           </Text>
         </Pressable>
 
@@ -86,10 +101,10 @@ export function ChatComposer({
         <View style={styles.rightActions}>
           <Pressable
             accessibilityLabel={
-              isRecording ? "Stop dictation" : "Dictate message"
+              isRecording ? "Stop voice" : "Voice message"
             }
             disabled={disabled || isTranscribing}
-            onPress={onToggleMic}
+            onPress={() => { Keyboard.dismiss(); setVoicePreview(true); }}
             style={({ pressed }) => [
               styles.micCircle,
               isRecording && styles.micRecording,
@@ -97,12 +112,12 @@ export function ChatComposer({
             ]}
           >
             {isTranscribing ? (
-              <ActivityIndicator color={colors.foreground} size="small" />
+              <ActivityIndicator color={colors.onAccent} size="small" />
             ) : (
               <MaterialCommunityIcons
-                color={colors.foreground}
+                color={colors.onAccent}
                 name={isRecording ? "stop" : "microphone"}
-                size={16}
+                size={24}
               />
             )}
           </Pressable>
@@ -118,9 +133,9 @@ export function ChatComposer({
             ]}
           >
             <MaterialCommunityIcons
-              color={colors.foreground}
+              color={colors.onAccent}
               name="arrow-up"
-              size={18}
+              size={24}
             />
           </Pressable>
         </View>
@@ -129,7 +144,7 @@ export function ChatComposer({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   input: {
     backgroundColor: colors.card,
     color: colors.foreground,
@@ -148,9 +163,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 999,
     borderWidth: borderWidths.thin,
-    height: 32,
+    height: 44,
     justifyContent: "center",
-    width: 32,
+    width: 44,
   },
   micRecording: {
     backgroundColor: colors.coral,
@@ -169,9 +184,9 @@ const styles = StyleSheet.create({
     borderColor: colors.border,
     borderRadius: 999,
     borderWidth: borderWidths.thin,
-    height: 32,
+    height: 44,
     justifyContent: "center",
-    width: 32,
+    width: 44,
   },
   sendDisabled: {
     opacity: 0.45,
@@ -200,7 +215,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.coral,
   },
   voiceLabel: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sansBold,
     fontSize: 12,
   },

@@ -1,3 +1,5 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -7,7 +9,6 @@ import { RecorderReportPanel } from '@/components/recording/recorder-report-pane
 import { GeneratedPaperResult } from '@/components/verification/generated-paper-result';
 import { VerificationGapsTimeline } from '@/components/verification/verification-gaps-timeline';
 import { WeightageBreakdown } from '@/components/verification/weightage-breakdown';
-import { colors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from '@/theme/tokens';
 import { fontFamilies } from '@/theme/typography';
 import type { TeachingReport } from '@/types/recorder';
@@ -58,6 +59,9 @@ const sections: readonly GallerySection[] = ['report', 'verification', 'paper'];
 
 /** Explicit developer fixtures: never returned from feature hooks or stored as teacher data. */
 export function UiGalleryScreen(): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const [section, setSection] = useState<GallerySection>('report');
   return <SafeAreaView style={styles.screen}>
@@ -66,7 +70,7 @@ export function UiGalleryScreen(): React.ReactElement {
       <Text style={styles.title}>UI fixture gallery</Text>
       <Text style={styles.body}>Development preview · all reports, scores, and questions here are sample fixtures. They are not AI output or saved teaching records.</Text>
       <View style={styles.tabs}>
-        {sections.map((item) => <Pressable key={item} accessibilityRole="tab" accessibilityState={{ selected: section === item }} onPress={() => setSection(item)} style={[styles.tab, section === item && styles.selected]}><Text style={styles.body}>{item}</Text></Pressable>)}
+        {sections.map((item) => <Pressable key={item} accessibilityRole="tab" accessibilityState={{ selected: section === item }} onPress={() => setSection(item)} style={[styles.tab, section === item && styles.selected]}><Text style={[styles.body, section === item && { color: colors.onAccent }]}>{item}</Text></Pressable>)}
       </View>
       {section === 'report' ? <RecorderReportPanel report={report} classNotes={'Sample class notes\n\nEquivalent fractions represent the same quantity.\nExample: 1/2 = 2/4.\n\nDiscuss an example using a number line.'} /> : null}
       {section === 'verification' ? <><WeightageBreakdown weightage={weightage} /><VerificationGapsTimeline gaps={gaps} /></> : null}
@@ -75,7 +79,7 @@ export function UiGalleryScreen(): React.ReactElement {
   </SafeAreaView>;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.cream },
   content: { padding: spacing.lg, paddingBottom: spacing['2xl'], gap: spacing.lg },
   title: { fontFamily: fontFamilies.head, fontSize: 26, color: colors.foreground },

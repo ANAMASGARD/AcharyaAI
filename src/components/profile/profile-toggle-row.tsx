@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -21,6 +22,9 @@ export function ProfileToggleRow({
   onValueChange,
   showDivider = true,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={[styles.row, showDivider ? styles.rowDivider : null]}>
       <View style={styles.iconWrap}>
@@ -33,7 +37,7 @@ export function ProfileToggleRow({
       <Switch
         accessibilityLabel={label}
         onValueChange={onValueChange}
-        thumbColor={colors.card}
+        thumbColor={colors.secondaryForeground}
         trackColor={{ false: colors.muted, true: colors.foreground }}
         value={value}
       />
@@ -41,7 +45,7 @@ export function ProfileToggleRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   iconWrap: {
     alignItems: "center",
     justifyContent: "center",

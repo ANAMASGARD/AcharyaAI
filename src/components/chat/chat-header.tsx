@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -12,6 +13,9 @@ type Props = Readonly<{
 }>;
 
 export function ChatHeader({ onOpenHistory }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
 
   return (
@@ -31,7 +35,7 @@ export function ChatHeader({ onOpenHistory }: Props): React.ReactElement {
           source={images.mascotLogo}
           style={styles.logo}
         />
-        <Text numberOfLines={1} style={styles.title}>
+        <Text numberOfLines={1} style={[styles.title, { color: colors.onAccent }]}>
           Acharya
         </Text>
       </View>
@@ -57,7 +61,7 @@ export function ChatHeader({ onOpenHistory }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   brandRow: {
     alignItems: "center",
     flex: 1,

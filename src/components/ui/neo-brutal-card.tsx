@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
-import { colors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from '@/theme/tokens';
 
 type NeoBrutalCardProps = PressableProps & {
@@ -13,12 +14,15 @@ type NeoBrutalCardProps = PressableProps & {
 export function NeoBrutalCard({
   children,
   style,
-  backgroundColor = colors.card,
+  backgroundColor,
   onPress,
   ...pressableProps
 }: NeoBrutalCardProps): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const content = (
-    <View style={[styles.card, { backgroundColor }, style]}>{children}</View>
+    <View style={[styles.card, { backgroundColor: backgroundColor ?? colors.card }, style]}>{children}</View>
   );
 
   if (!onPress) {
@@ -36,7 +40,7 @@ export function NeoBrutalCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     borderColor: colors.border,
     borderRadius: radii.lg,

@@ -1,3 +1,5 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { GeneratedPaperResult } from "@/components/verification/generated-paper-result";
 import { usePreviewFeature } from "@/components/preview/preview-provider";
 import { AnimatedMenuDots } from "@/components/verification/animated-menu-dots";
@@ -9,7 +11,6 @@ import { useCurriculumSelection } from "@/hooks/use-curriculum-selection";
 import { useQuestionPaperGenerate } from "@/hooks/use-question-paper-generate";
 import { getTeachingClassesForCurriculum } from "@/lib/teaching-classes";
 import { usePreferencesStore } from "@/store/preferences-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { Difficulty, PaperType } from "@/types/question-paper";
@@ -35,6 +36,10 @@ const DIFFICULTIES: readonly { id: Difficulty; label: string }[] = [
 ];
 
 export function QuestionPaperGenerateScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const teachingClassIds = usePreferencesStore((state) => state.teachingClassIds);
   const [selectedBookIds, setSelectedBookIds] = useState<string[]>([]);
@@ -81,7 +86,7 @@ export function QuestionPaperGenerateScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
       <View style={styles.header}>
         <Pressable
@@ -127,7 +132,7 @@ export function QuestionPaperGenerateScreen(): React.ReactElement {
               }}
               style={[styles.chip, paperType === item.id ? styles.chipSelected : null]}
             >
-              <Text style={styles.chipText}>{item.label}</Text>
+              <Text style={[styles.chipText, paperType === item.id && { color: colors.onAccent }]}>{item.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -142,7 +147,7 @@ export function QuestionPaperGenerateScreen(): React.ReactElement {
               }}
               style={[styles.chip, difficulty === item.id ? styles.chipSelected : null]}
             >
-              <Text style={styles.chipText}>{item.label}</Text>
+              <Text style={[styles.chipText, difficulty === item.id && { color: colors.onAccent }]}>{item.label}</Text>
             </Pressable>
           ))}
         </View>
@@ -183,7 +188,7 @@ export function QuestionPaperGenerateScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   backButton: {
     alignItems: "center",
     backgroundColor: colors.card,

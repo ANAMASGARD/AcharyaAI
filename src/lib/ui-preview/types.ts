@@ -1,10 +1,12 @@
 export type UiPreferences = {
+  colorMode: 'light' | 'dark';
   selectedLanguageId: string | null;
   teachingClassIds: string[];
   pushNotificationsEnabled: boolean;
 };
 
 export const DEFAULT_UI_PREFERENCES: UiPreferences = {
+  colorMode: 'light',
   selectedLanguageId: null,
   teachingClassIds: [],
   pushNotificationsEnabled: true,
@@ -72,7 +74,9 @@ export function parsePreferences(raw: string | null): UiPreferences {
       !('pushNotificationsEnabled' in value) || typeof value.pushNotificationsEnabled !== 'boolean') {
     throw new PreviewDataError('preferences');
   }
-  return value as UiPreferences;
+  const mode = 'colorMode' in value ? value.colorMode : 'light';
+  if (mode !== 'light' && mode !== 'dark') throw new PreviewDataError('preferences');
+  return { ...value, colorMode: mode } as UiPreferences;
 }
 
 /** Saved sandbox and blob URLs are temporary. Resolve references from their stable attachment IDs. */

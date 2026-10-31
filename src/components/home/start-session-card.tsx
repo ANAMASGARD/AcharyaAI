@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { StartSessionContent } from "@/types/home-dashboard";
@@ -14,6 +15,9 @@ export function StartSessionCard({
   content,
   onPress,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <Pressable
       accessibilityRole="button"
@@ -28,7 +32,7 @@ export function StartSessionCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     color: colors.foreground,
     fontFamily: fontFamilies.sans,

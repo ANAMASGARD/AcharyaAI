@@ -1,3 +1,5 @@
+import { useThemeColors, useColorMode, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ChatComposer } from "@/components/chat/chat-composer";
 import { ChatHeader } from "@/components/chat/chat-header";
 import { ChatHistoryDrawer } from "@/components/chat/chat-history-drawer";
@@ -6,7 +8,6 @@ import { getTabBarOverlayHeight } from "@/components/navigation/acharya-tab-bar"
 import { useChat } from "@/hooks/use-chat";
 import { useChatHistory } from "@/hooks/use-chat-history";
 import { useVoiceInput } from "@/hooks/use-voice-input";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StatusBar } from "expo-status-bar";
@@ -21,6 +22,10 @@ import {
 } from "react-native-safe-area-context";
 
 export function ChatScreen(): React.ReactElement {
+  const colors = useThemeColors();
+  const colorMode = useColorMode();
+  const styles = useThemeStyles(createStyles);
+
   const [composerHeight, setComposerHeight] = useState(96);
   const insets = useSafeAreaInsets();
   const tabBarOverlayHeight = getTabBarOverlayHeight(insets.bottom);
@@ -86,7 +91,7 @@ export function ChatScreen(): React.ReactElement {
   return (
     <>
       <SafeAreaView style={styles.safeArea} edges={["top"]}>
-        <StatusBar style="dark" />
+        <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
 
         <ChatHeader
           onOpenHistory={() => {
@@ -99,13 +104,13 @@ export function ChatScreen(): React.ReactElement {
           <View style={styles.body}>
             {error || voiceInput.error ? (
               <View style={styles.errorBanner}>
-                <Text style={styles.errorText}>
+                <Text style={[styles.errorText, { color: colors.onAccent }]}>
                   {error ?? voiceInput.error}
                 </Text>
                 {error ? (
                   <Text
                     onPress={() => void retryLast()}
-                    style={styles.retryText}
+                    style={[styles.retryText, { color: colors.onAccent }]}
                   >
                     Retry
                   </Text>
@@ -138,7 +143,6 @@ export function ChatScreen(): React.ReactElement {
                 draftText={draftText}
                 onChangeText={setDraftText}
                 onSend={handleSend}
-                onToggleMic={handleToggleMic}
                 onVoiceAgent={handleToggleMic}
                 voiceInputStatus={voiceInput.status}
               />
@@ -166,7 +170,7 @@ export function ChatScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   previewHint: { paddingHorizontal: spacing.md, paddingVertical: spacing.xs, fontFamily: fontFamilies.sans, fontSize: 12, color: colors.mutedForeground },
   body: {
     flex: 1,

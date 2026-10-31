@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Pressable, StyleSheet } from "react-native";
@@ -12,6 +13,9 @@ export function PostTopActions({
   viewerSaved,
   onToggleSave,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <Pressable
       accessibilityLabel={viewerSaved ? "Unsave post" : "Save post"}
@@ -29,7 +33,7 @@ export function PostTopActions({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   iconButton: {
     alignItems: "center",
     backgroundColor: colors.card,

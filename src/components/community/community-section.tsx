@@ -1,9 +1,10 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { CommunityFeedList } from "@/components/community/community-feed-list";
 import { CreatePostBanner } from "@/components/community/create-post-banner";
 import { GroupsList } from "@/components/community/groups-list";
 import { useCommunityFeed } from "@/hooks/use-community-feed";
 import { useCommunityGroups } from "@/hooks/use-community-groups";
-import { colors } from "@/theme/colors";
 import { borderWidths, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { communityPostPath } from "@/lib/community/post-route";
@@ -14,6 +15,8 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 type Segment = "feed" | "groups";
 
 export function CommunitySection(): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const [segment, setSegment] = useState<Segment>("feed");
   const [groupsLoaded, setGroupsLoaded] = useState(false);
@@ -112,7 +115,7 @@ export function CommunitySection(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   heading: {
     color: colors.foreground,
     fontFamily: fontFamilies.head,
@@ -142,6 +145,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   segmentLabelActive: {
+    color: colors.onAccent,
     fontFamily: fontFamilies.head,
   },
   segmentRow: {

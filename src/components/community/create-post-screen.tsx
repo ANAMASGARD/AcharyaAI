@@ -1,3 +1,5 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { PostImagePicker } from "@/components/community/post-image-picker";
@@ -8,7 +10,6 @@ import {
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
 import { useCommunityPreview } from "@/hooks/use-community-preview";
 import { useCommunityStore } from "@/store/community-store";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
@@ -33,6 +34,10 @@ const SUBJECT_TAGS = [
 ] as const;
 
 export function CreatePostScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const community = useCommunityPreview();
   const displayName = useTeacherDisplayName();
@@ -79,7 +84,7 @@ export function CreatePostScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Create Post" />
       <Text style={styles.label}>Local preview · this post will only be saved on this device.</Text>
       <KeyboardAwareScrollView keyboardShouldPersistTaps="handled" contentContainerStyle={styles.content}>
@@ -114,7 +119,7 @@ export function CreatePostScreen(): React.ReactElement {
                 draftPost.subjectTag === tag ? styles.tagChipActive : null,
               ]}
             >
-              <Text style={styles.tagChipLabel}>{tag}</Text>
+              <Text style={[styles.tagChipLabel, draftPost.subjectTag === tag && { color: colors.onAccent }]}>{tag}</Text>
             </Pressable>
           ))}
         </View>
@@ -159,9 +164,9 @@ export function CreatePostScreen(): React.ReactElement {
           style={[styles.submit, isSubmitting && styles.submitDisabled]}
         >
           {isSubmitting ? (
-            <ActivityIndicator color={colors.foreground} size="small" />
+            <ActivityIndicator color={colors.onAccent} size="small" />
           ) : (
-            <Text style={styles.submitLabel}>Save local post</Text>
+            <Text style={[styles.submitLabel, { color: colors.onAccent }]}>Save local post</Text>
           )}
         </Pressable>
       </KeyboardAwareScrollView>
@@ -169,7 +174,7 @@ export function CreatePostScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   content: {
     gap: spacing.sm,
     padding: spacing.lg,

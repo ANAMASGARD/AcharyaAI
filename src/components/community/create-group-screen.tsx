@@ -1,9 +1,10 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { usePreviewFeature } from "@/components/preview/preview-provider";
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
 import { useCommunityGroups } from "@/hooks/use-community-groups";
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
@@ -19,6 +20,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function CreateGroupScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const router = useRouter();
   const displayName = useTeacherDisplayName();
   const { createGroup } = useCommunityGroups();
@@ -61,7 +66,7 @@ export function CreateGroupScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader title="Create Group" />
       <KeyboardAwareScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
         <Text style={styles.label}>Local preview · this group stays on this device.</Text>
@@ -104,9 +109,9 @@ export function CreateGroupScreen(): React.ReactElement {
           style={[styles.button, isSubmitting && styles.buttonDisabled]}
         >
           {isSubmitting ? (
-            <ActivityIndicator color={colors.foreground} size="small" />
+            <ActivityIndicator color={colors.onAccent} size="small" />
           ) : (
-            <Text style={styles.buttonLabel}>Save local group</Text>
+            <Text style={[styles.buttonLabel, { color: colors.onAccent }]}>Save local group</Text>
           )}
         </Pressable>
       </KeyboardAwareScrollView>
@@ -114,7 +119,7 @@ export function CreateGroupScreen(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   button: {
     alignItems: "center",
     backgroundColor: colors.primary,

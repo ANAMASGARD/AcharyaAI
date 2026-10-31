@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { DashboardStats } from "@/types/community";
@@ -21,6 +22,8 @@ function StatCard({
   value,
   backgroundColor,
 }: StatCardProps): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <NeoDashboardCard backgroundColor={backgroundColor}>
       <Text style={styles.statValue}>{value}</Text>
@@ -33,6 +36,9 @@ export function TeachingStatsRow({
   stats,
   isLoading,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (isLoading && !stats) {
     return (
       <View style={styles.loadingWrap}>
@@ -75,7 +81,7 @@ export function TeachingStatsRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   cardWrap: {
     flex: 1,
   },
@@ -89,14 +95,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
   },
   statLabel: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.sans,
     fontSize: 12,
     lineHeight: 16,
     marginTop: spacing.xs,
   },
   statValue: {
-    color: colors.foreground,
+    color: colors.onAccent,
     fontFamily: fontFamilies.head,
     fontSize: 24,
     lineHeight: 30,

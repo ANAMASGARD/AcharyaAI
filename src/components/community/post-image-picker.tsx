@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityPostImageDraft } from "@/types/community";
@@ -34,6 +35,9 @@ export function PostImagePicker({
   onTakePhoto,
   onRemoveImage,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.container}>
       <Text style={styles.label}>Images (optional)</Text>
@@ -51,11 +55,11 @@ export function PostImagePicker({
           ]}
         >
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name="image-multiple-outline"
             size={16}
           />
-          <Text style={styles.actionLabel}>Gallery</Text>
+          <Text style={[styles.actionLabel, { color: colors.onAccent }]}>Gallery</Text>
         </Pressable>
 
         <Pressable
@@ -70,11 +74,11 @@ export function PostImagePicker({
           ]}
         >
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name="camera-outline"
             size={16}
           />
-          <Text style={styles.actionLabel}>Camera</Text>
+          <Text style={[styles.actionLabel, { color: colors.onAccent }]}>Camera</Text>
         </Pressable>
 
         <Pressable
@@ -89,11 +93,11 @@ export function PostImagePicker({
           ]}
         >
           <MaterialCommunityIcons
-            color={colors.foreground}
+            color={colors.onAccent}
             name="folder-image"
             size={16}
           />
-          <Text style={styles.actionLabel}>Files</Text>
+          <Text style={[styles.actionLabel, { color: colors.onAccent }]}>Files</Text>
         </Pressable>
       </View>
 
@@ -123,7 +127,7 @@ export function PostImagePicker({
                 onPress={() => onRemoveImage(image.id ?? image.uri)}
                 style={styles.removeButton}
               >
-                <MaterialCommunityIcons color={colors.foreground} name="close" size={14} />
+                <MaterialCommunityIcons color={colors.onAccent} name="close" size={14} />
               </Pressable>
               <Text numberOfLines={1} style={styles.previewName}>
                 {image.name}
@@ -138,7 +142,7 @@ export function PostImagePicker({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actionChip: {
     alignItems: "center",
     borderColor: colors.border,

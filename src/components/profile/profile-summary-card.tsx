@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { ProfileMenuCard } from "@/components/profile/profile-menu-card";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, Text, View } from "react-native";
@@ -15,6 +16,8 @@ function SummaryLine({
   label,
   value,
 }: Readonly<{ label: string; value: string }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.line}>
       <Text style={styles.lineLabel}>{label}</Text>
@@ -29,6 +32,9 @@ export function ProfileSummaryCard({
   connectedProviders,
   memberSince,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const providersText =
     connectedProviders.length > 0
       ? connectedProviders.join(", ")
@@ -49,7 +55,7 @@ export function ProfileSummaryCard({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   body: {
     gap: spacing.md,
     paddingBottom: spacing.lg,

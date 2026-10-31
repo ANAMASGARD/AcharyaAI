@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { fontFamilies } from "@/theme/typography";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -15,6 +16,9 @@ export function LanguageSearchBar({
   onChangeText,
   placeholder = "Search languages",
 }: LanguageSearchBarProps): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.wrap}>
       <MaterialCommunityIcons
@@ -37,7 +41,7 @@ export function LanguageSearchBar({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   wrap: {
     flexDirection: "row",
     alignItems: "center",

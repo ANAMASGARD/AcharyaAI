@@ -1,5 +1,6 @@
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useReducedMotion } from "react-native-reanimated";
-import { colors } from "@/theme/colors";
 import { fontFamilies } from "@/theme/typography";
 import { useEffect, useState } from "react";
 import { Animated, StyleSheet, Text, View } from "react-native";
@@ -28,6 +29,8 @@ function createDotPulse(opacity: Animated.Value, delayMs: number): Animated.Comp
 }
 
 export function RecorderStartingLabel(): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const reducedMotion = useReducedMotion();
   const [opacities] = useState(() =>
     Array.from({ length: DOT_COUNT }, () => new Animated.Value(0.25)),
@@ -68,7 +71,7 @@ export function RecorderStartingLabel(): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   dot: {
     color: colors.foreground,
     fontFamily: fontFamilies.sansBold,

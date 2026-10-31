@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -23,6 +24,9 @@ export function ProfileMenuRow({
   trailing,
   destructive = false,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const content = (
     <View style={[styles.row, showDivider ? styles.rowDivider : null]}>
       <View style={styles.iconWrap}>
@@ -67,7 +71,7 @@ export function ProfileMenuRow({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   iconWrap: {
     alignItems: "center",
     justifyContent: "center",

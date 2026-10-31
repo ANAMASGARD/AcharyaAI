@@ -1,3 +1,5 @@
+import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { KeyboardAwareScrollView } from "react-native-keyboard-controller";
 import { usePreviewFeature } from "@/components/preview/preview-provider";
 import { CommunityPostBody } from "@/components/community/community-post-body";
@@ -11,7 +13,6 @@ import { confirmDeletePost } from "@/lib/community/delete-post-alert";
 import { formatTimeAgo } from "@/lib/community/time-ago";
 import { resolvePostIdParam } from "@/lib/community/post-route";
 import { useTeacherDisplayName } from "@/hooks/use-teacher-display-name";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type {
@@ -32,6 +33,10 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function PostDetailScreen(): React.ReactElement {
+  const colorMode = useColorMode();
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const params = useLocalSearchParams<{ postId?: string | string[] }>();
   const postId = useMemo(() => resolvePostIdParam(params.postId), [params.postId]);
   const router = useRouter();
@@ -93,7 +98,7 @@ export function PostDetailScreen(): React.ReactElement {
             }}
             style={styles.retryButton}
           >
-            <Text style={styles.retryLabel}>Go back</Text>
+            <Text style={[styles.retryLabel, { color: colors.onAccent }]}>Go back</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -102,7 +107,7 @@ export function PostDetailScreen(): React.ReactElement {
 
   return (
     <SafeAreaView style={styles.safeArea} edges={["bottom"]}>
-      <StatusBar style="dark" />
+      <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <CommunityScreenHeader rightActions={headerActions} title="Post" />
       <KeyboardAwareScrollView keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.content}
@@ -180,14 +185,14 @@ export function PostDetailScreen(): React.ReactElement {
           }}
           style={[styles.commentButton, isSubmitting && styles.disabled]}
         >
-          <Text style={styles.commentButtonLabel}>Comment</Text>
+          <Text style={[styles.commentButtonLabel, { color: colors.onAccent }]}>Comment</Text>
         </Pressable>
       </KeyboardAwareScrollView>
     </SafeAreaView>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actionsRow: {
     alignItems: "center",
     flexDirection: "row",

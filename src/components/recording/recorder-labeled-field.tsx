@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, Text, View } from "react-native";
@@ -14,6 +15,8 @@ export function RecorderLabeledField({
   required = false,
   children,
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.wrap}>
       <Text style={styles.label}>
@@ -25,7 +28,7 @@ export function RecorderLabeledField({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   label: {
     color: colors.foreground,
     fontFamily: fontFamilies.sansBold,

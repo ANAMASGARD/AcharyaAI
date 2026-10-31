@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { CommunityPostCard } from "@/components/community/community-post-card";
 import { confirmDeletePost } from "@/lib/community/delete-post-alert";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityPost, VoteValue } from "@/types/community";
@@ -38,6 +39,9 @@ export function CommunityFeedList({
   onToggleSave,
   onDeletePost,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { userId } = useAuth();
 
   if (isLoading && posts.length === 0) {
@@ -115,7 +119,7 @@ export function CommunityFeedList({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   center: {
     alignItems: "center",
     paddingVertical: spacing.lg,

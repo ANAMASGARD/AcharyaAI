@@ -32,6 +32,23 @@ export const accentColors = {
 export const colors = {
   ...retroColors,
   ...accentColors,
+  onAccent: '#000000',
+  mutedOnAccent: '#454545',
 } as const;
 
 export type ThemeColor = keyof typeof colors;
+
+/** Accent fills stay identical in both modes; use onAccent for their content. */
+export type ThemeColors = { [Key in keyof typeof colors]: string };
+export const darkColors: ThemeColors = {
+  ...colors,
+  background: '#121212',
+  cream: '#121212',
+  card: '#202020',
+  input: '#202020',
+  foreground: '#F5F5F5',
+  cardForeground: '#F5F5F5',
+  mutedForeground: '#BEBEBE',
+  muted: '#777777',
+  border: '#707070',
+};

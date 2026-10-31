@@ -1,6 +1,7 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { CommunityPostAvatar } from "@/components/community/community-post-avatar";
 import { formatTimeAgo } from "@/lib/community/time-ago";
-import { colors } from "@/theme/colors";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CommunityPost } from "@/types/community";
@@ -11,6 +12,9 @@ type Props = Readonly<{
 }>;
 
 export function CommunityPostDetailHeader({ post }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   return (
     <View style={styles.wrap}>
       <View style={styles.headerRow}>
@@ -25,7 +29,7 @@ export function CommunityPostDetailHeader({ post }: Props): React.ReactElement {
         <View style={styles.meta}>
           <View style={styles.tagRow}>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>{post.subjectTag}</Text>
+              <Text style={[styles.tagText, { color: colors.onAccent }]}>{post.subjectTag}</Text>
             </View>
             <Text style={styles.time}>{formatTimeAgo(post.createdAt)}</Text>
           </View>
@@ -33,7 +37,7 @@ export function CommunityPostDetailHeader({ post }: Props): React.ReactElement {
             <Text style={styles.author}>{post.authorDisplayName}</Text>
             {post.demoWelcome ? (
               <View style={styles.acharyaBadge}>
-                <Text style={styles.acharyaBadgeText}>Official</Text>
+                <Text style={[styles.acharyaBadgeText, { color: colors.onAccent }]}>Official</Text>
               </View>
             ) : null}
           </View>
@@ -45,7 +49,7 @@ export function CommunityPostDetailHeader({ post }: Props): React.ReactElement {
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   acharyaBadge: {
     backgroundColor: colors.primary,
     borderColor: colors.border,

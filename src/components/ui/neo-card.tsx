@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { StyleSheet, View } from "react-native";
 
@@ -12,11 +13,14 @@ type Props = Readonly<{
 
 export function NeoCard({
   children,
-  backgroundColor = colors.card,
+  backgroundColor,
   stacked = false,
   padding = spacing.lg,
   style,
 }: Props): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   if (stacked) {
     return (
       <View style={styles.stackWrap}>
@@ -24,7 +28,7 @@ export function NeoCard({
         <View
           style={[
             styles.card,
-            { backgroundColor, padding },
+            { backgroundColor: backgroundColor ?? colors.card, padding },
             styles.stackedCard,
             style,
           ]}
@@ -36,13 +40,13 @@ export function NeoCard({
   }
 
   return (
-    <View style={[styles.card, { backgroundColor, padding }, style]}>
+    <View style={[styles.card, { backgroundColor: backgroundColor ?? colors.card, padding }, style]}>
       {children}
     </View>
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   card: {
     borderColor: colors.border,
     borderRadius: radii.lg,

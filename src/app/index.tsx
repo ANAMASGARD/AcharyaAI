@@ -1,12 +1,16 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { useAuth } from '@clerk/expo';
 import { Redirect } from 'expo-router';
 import { ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SIGNED_IN_HOME, SIGNED_OUT_ENTRY } from '@/lib/routes';
-import { colors } from '@/theme/colors';
 
 export default function IndexGate(): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { isLoaded, isSignedIn } = useAuth();
 
   if (!isLoaded) {
@@ -24,7 +28,7 @@ export default function IndexGate(): React.ReactElement {
   return <Redirect href={SIGNED_OUT_ENTRY} />;
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   loading: {
     flex: 1,
     alignItems: 'center',

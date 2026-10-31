@@ -1,5 +1,6 @@
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
-import { colors } from "@/theme/colors";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { ChatReplyPhase } from "@/types/chat";
@@ -43,6 +44,8 @@ function WaveDot({
   index,
   tone,
 }: Readonly<{ index: number; tone: string }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const progress = useSharedValue(0);
 
   useEffect(() => {
@@ -78,6 +81,9 @@ function WaveDot({
 }
 
 function ThinkingDots(): React.ReactElement {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const tones = [colors.primary, colors.mint, colors.coral] as const;
 
   return (
@@ -90,6 +96,8 @@ function ThinkingDots(): React.ReactElement {
 }
 
 function MascotPulse({ size }: Readonly<{ size: number }>): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const mascotScale = useSharedValue(1);
   const mascotFloat = useSharedValue(0);
   const glowScale = useSharedValue(1);
@@ -215,6 +223,8 @@ function StatusText({
   inline = false,
   label,
 }: Readonly<{ inline?: boolean; label: string }>): React.ReactElement | null {
+  const styles = useThemeStyles(createStyles);
+
   if (!label) {
     return null;
   }
@@ -244,6 +254,8 @@ export function ChatLoadingIndicator({
   layout = "centered",
   phase = "sent",
 }: Props): React.ReactElement {
+  const styles = useThemeStyles(createStyles);
+
   const isInline = layout === "inline";
   const mascotSize = isInline ? 40 : 56;
   const statusLabel = resolveStatusLabel(layout, phase);
@@ -273,7 +285,7 @@ export function ChatLoadingIndicator({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   centeredContent: {
     alignItems: "center",
     gap: spacing.md,

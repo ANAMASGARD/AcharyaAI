@@ -1,4 +1,5 @@
-import { colors } from "@/theme/colors";
+import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
+import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
@@ -29,6 +30,9 @@ export function ChatDeleteConfirmDialog({
   onCancel,
   onConfirm,
 }: Props): React.ReactElement | null {
+  const colors = useThemeColors();
+  const styles = useThemeStyles(createStyles);
+
   const { width } = useWindowDimensions();
   if (!visible) {
     return null;
@@ -97,9 +101,9 @@ export function ChatDeleteConfirmDialog({
             ]}
           >
             {isDeleting ? (
-              <ActivityIndicator color={colors.foreground} size="small" />
+              <ActivityIndicator color={colors.onAccent} size="small" />
             ) : (
-              <Text style={styles.deleteLabel}>Delete</Text>
+              <Text style={[styles.deleteLabel, { color: colors.onAccent }]}>Delete</Text>
             )}
           </Pressable>
         </View>
@@ -108,7 +112,7 @@ export function ChatDeleteConfirmDialog({
   );
 }
 
-const styles = StyleSheet.create({
+const createStyles = (colors: ThemeColors) => StyleSheet.create({
   actions: {
     flexDirection: "row",
     gap: spacing.sm,
