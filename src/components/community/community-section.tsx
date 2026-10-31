@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { CommunityFeedList } from "@/components/community/community-feed-list";
@@ -10,7 +11,7 @@ import { fontFamilies } from "@/theme/typography";
 import { communityPostPath } from "@/lib/community/post-route";
 import { useRouter } from "expo-router";
 import { useCallback, useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Segment = "feed" | "groups";
 

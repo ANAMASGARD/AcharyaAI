@@ -1,6 +1,7 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { SymbolView } from 'expo-symbols';
 import { PropsWithChildren, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import Animated, { FadeIn } from 'react-native-reanimated';
 
 import { ThemedText } from '@/components/themed-text';

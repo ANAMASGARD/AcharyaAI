@@ -1,10 +1,11 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { formatTimeAgo } from "@/lib/community/time-ago";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { GroupMessage } from "@/types/community";
-import { Linking, Pressable, StyleSheet, Text, View } from "react-native";
+import { Linking, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   message: GroupMessage;

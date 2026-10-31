@@ -25,7 +25,7 @@ test('neutral surfaces and unchanged accent fills have readable text in both mod
         assert.ok(contrast(palette[background], palette[foreground]) >= 4.5, `${background}/${foreground}`);
       }
     }
-    for (const accent of ['primary', 'mint', 'sky', 'coral', 'coralLight', 'lime', 'lavender', 'accent']) {
+    for (const accent of ['primary', 'apricot', 'mint', 'sky', 'coral', 'coralLight', 'lime', 'lavender', 'accent']) {
       assert.equal(palette[accent], colors[accent], accent);
       assert.ok(contrast(palette[accent], palette.onAccent) >= 4.5, accent);
       assert.ok(contrast(palette[accent], palette.mutedOnAccent) >= 4.5, `${accent} secondary text`);

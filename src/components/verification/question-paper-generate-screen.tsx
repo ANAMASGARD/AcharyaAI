@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { GeneratedPaperResult } from "@/components/verification/generated-paper-result";
@@ -18,7 +19,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const PAPER_TYPES: readonly { id: PaperType; label: string }[] = [

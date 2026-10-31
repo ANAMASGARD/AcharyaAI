@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { StyleSheet, View } from "react-native";
 import Animated, {
   Easing,
+  cancelAnimation,
+  useReducedMotion,
   useAnimatedStyle,
   useSharedValue,
   withDelay,
@@ -39,10 +41,12 @@ function WaveBar({
 }>): React.ReactElement {
   const styles = useThemeStyles(createStyles);
 
+  const reducedMotion = useReducedMotion();
   const barHeight = useSharedValue(minHeight);
 
   useEffect(() => {
-    barHeight.value = withDelay(
+    if (reducedMotion) return;
+    barHeight.set(withDelay(
       delayMs,
       withRepeat(
         withSequence(
@@ -58,11 +62,12 @@ function WaveBar({
         -1,
         false,
       ),
-    );
-  }, [barHeight, delayMs, maxHeight, minHeight]);
+    ));
+    return () => cancelAnimation(barHeight);
+  }, [barHeight, delayMs, maxHeight, minHeight, reducedMotion]);
 
   const animatedStyle = useAnimatedStyle(() => ({
-    height: barHeight.value,
+    transform: [{ scaleY: barHeight.get() / maxHeight }],
   }));
 
   return (
@@ -72,6 +77,7 @@ function WaveBar({
         {
           backgroundColor: color,
           width,
+          height: maxHeight,
         },
         animatedStyle,
       ]}
@@ -115,7 +121,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     borderRadius: 99,
   },
   row: {
-    alignItems: "flex-end",
+    alignItems: "center",
     flexDirection: "row",
     justifyContent: "center",
   },

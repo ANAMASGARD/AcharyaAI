@@ -1,9 +1,10 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { useProfileAccount } from "@/hooks/use-profile-account";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
-import { Pressable, StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
+import { StyleSheet, Text, View, type StyleProp, type ViewStyle } from "react-native";
 
 type Props = Readonly<{
   style?: StyleProp<ViewStyle>;

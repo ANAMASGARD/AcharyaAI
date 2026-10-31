@@ -1,10 +1,11 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { useCalendarStore } from "@/store/calendar-store";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 type Props = Readonly<{
   sessionId: string;

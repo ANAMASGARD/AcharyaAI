@@ -1,3 +1,7 @@
+import { Pressable } from '@/components/feedback/pressable';
+import { ChatAttachmentMenu } from '@/components/chat/chat-attachment-menu';
+import { ChatAttachments } from '@/components/chat/chat-attachments';
+import { useChatAttachments } from '@/hooks/use-chat-attachments';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
 import Animated, { FadeIn } from 'react-native-reanimated';
@@ -12,7 +16,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import {
   ActivityIndicator,
   Keyboard,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -43,6 +46,11 @@ export function ChatComposer({
   const closePreview = useCallback(() => setVoicePreview(false), []);
   useFocusEffect(useCallback(() => () => setVoicePreview(false), []));
 
+  const uploads = useChatAttachments();
+  const [menuOpen, setMenuOpen] = useState(false);
+  useFocusEffect(useCallback(() => () => setMenuOpen(false), []));
+  const hasText = draftText.trim().length > 0;
+
   const isRecording = voiceInputStatus === "recording";
   const isTranscribing = voiceInputStatus === "transcribing";
   const voiceDisabled = disabled || isTranscribing;
@@ -53,7 +61,7 @@ export function ChatComposer({
     ? "Listening… tap mic to stop"
     : isTranscribing
       ? "Transcribing speech…"
-      : "Ask anything…";
+      : "Ask Acharya AI";
 
   if (voicePreview) {
     return <Animated.View entering={FadeIn.duration(150)} style={styles.wrap}><VoiceInputPreview onClose={closePreview} /></Animated.View>;
@@ -61,12 +69,15 @@ export function ChatComposer({
 
   return (
     <View style={styles.wrap}>
+      {uploads.attachments.length > 0 && <ChatAttachments files={uploads.attachments} onRemove={(id) => { void uploads.remove(id); }} />}
+      {uploads.error && <Text accessibilityRole="alert" style={{ color: colors.destructive, padding: 8 }}>{uploads.error}</Text>}
+      <ChatAttachmentMenu visible={menuOpen} onClose={() => setMenuOpen(false)} onSelect={(source) => { setMenuOpen(false); void uploads.pick(source); }} />
       <TextInput
         editable={!disabled && !isTranscribing && !isRecording}
         multiline
         onChangeText={onChangeText}
         onSubmitEditing={() => {
-          if (draftText.trim()) {
+          if (canSend && !uploads.busy) {
             onSend();
           }
         }}
@@ -78,22 +89,8 @@ export function ChatComposer({
       />
 
       <View style={styles.toolbar}>
-        <Pressable
-          accessibilityLabel={
-            isRecording ? "Stop voice" : "Start voice"
-          }
-          disabled={voiceDisabled}
-          onPress={onVoiceAgent}
-          style={({ pressed }) => [
-            styles.voiceButton,
-            isRecording && styles.voiceButtonActive,
-            pressed && !voiceDisabled ? styles.pressed : null,
-          ]}
-        >
-          <VoiceWaveformIcon color={colors.onAccent} height={16} />
-          <Text style={styles.voiceLabel}>
-            {isRecording ? "Stop" : "Voice"}
-          </Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Add attachment" disabled={disabled || uploads.busy} onPress={() => { Keyboard.dismiss(); setMenuOpen(true); }} style={[styles.attachmentCircle, uploads.busy && styles.sendDisabled]}>
+          {uploads.busy ? <ActivityIndicator color={colors.onAccent} /> : <MaterialCommunityIcons name="plus" size={26} color={colors.onAccent} />}
         </Pressable>
 
         <View style={styles.toolbarSpacer} />
@@ -123,20 +120,17 @@ export function ChatComposer({
           </Pressable>
 
           <Pressable
-            accessibilityLabel="Send message"
-            disabled={!canSend}
-            onPress={onSend}
+            accessibilityRole="button"
+            accessibilityLabel={hasText ? "Send message" : "Start voice conversation"}
+            disabled={hasText ? !canSend || uploads.busy : voiceDisabled}
+            onPress={hasText ? onSend : onVoiceAgent}
             style={({ pressed }) => [
               styles.sendCircle,
-              !canSend && styles.sendDisabled,
-              pressed && canSend ? styles.pressed : null,
+              (hasText ? !canSend || uploads.busy : voiceDisabled) && styles.sendDisabled,
+              pressed && !voiceDisabled ? styles.pressed : null,
             ]}
           >
-            <MaterialCommunityIcons
-              color={colors.onAccent}
-              name="arrow-up"
-              size={24}
-            />
+            {hasText ? <MaterialCommunityIcons color={colors.onAccent} name="arrow-up" size={24} /> : <VoiceWaveformIcon color={colors.onAccent} height={22} /> }
           </Pressable>
         </View>
       </View>
@@ -200,24 +194,10 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   toolbarSpacer: {
     flex: 1,
   },
-  voiceButton: {
+  attachmentCircle: {
+    width: 44, height: 44, borderRadius: 22, justifyContent: "center",
+    backgroundColor: colors.lavender, borderColor: colors.border, borderWidth: borderWidths.thin,
     alignItems: "center",
-    backgroundColor: colors.primary,
-    borderColor: colors.border,
-    borderRadius: radii.lg,
-    borderWidth: borderWidths.thin,
-    flexDirection: "row",
-    gap: 6,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 6,
-  },
-  voiceButtonActive: {
-    backgroundColor: colors.coral,
-  },
-  voiceLabel: {
-    color: colors.onAccent,
-    fontFamily: fontFamilies.sansBold,
-    fontSize: 12,
   },
   wrap: {
     backgroundColor: colors.card,

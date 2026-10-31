@@ -1,3 +1,4 @@
+import { useTapSound } from '@/components/feedback/tap-sound-provider';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, spacing } from "@/theme/tokens";
@@ -12,6 +13,7 @@ type Props = Readonly<{
   value: boolean;
   onValueChange: (value: boolean) => void;
   showDivider?: boolean;
+  soundFeedback?: boolean;
 }>;
 
 export function ProfileToggleRow({
@@ -21,7 +23,9 @@ export function ProfileToggleRow({
   value,
   onValueChange,
   showDivider = true,
+  soundFeedback = true,
 }: Props): React.ReactElement {
+  const playTap = useTapSound();
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
@@ -36,7 +40,7 @@ export function ProfileToggleRow({
       </View>
       <Switch
         accessibilityLabel={label}
-        onValueChange={onValueChange}
+        onValueChange={(next) => { if (soundFeedback) playTap(); onValueChange(next); }}
         thumbColor={colors.secondaryForeground}
         trackColor={{ false: colors.muted, true: colors.foreground }}
         value={value}

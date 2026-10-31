@@ -1,10 +1,11 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { CurriculumBookSummary } from "@/types/question-paper";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   books: readonly CurriculumBookSummary[];

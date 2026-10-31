@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ActivityEmptyState } from "@/components/home/activity-empty-state";
@@ -8,7 +9,7 @@ import type { DashboardStats } from "@/types/community";
 import type { RecentActivityItem } from "@/types/home-dashboard";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   items: readonly RecentActivityItem[];

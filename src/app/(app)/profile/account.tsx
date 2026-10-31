@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ProfileNativeAccountView } from "@/components/profile/profile-native-account-view";
@@ -9,7 +10,6 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   StyleSheet,
   View,
 } from "react-native";

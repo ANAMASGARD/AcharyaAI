@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { TabBarIcon } from "@/components/navigation/tab-bar-icon";
 import {
   TAB_BAR_ICON_ANCHOR_SIZE,
@@ -9,7 +10,7 @@ import { fontFamilies, typography } from "@/theme/typography";
 import { Ionicons } from "@expo/vector-icons";
 import type { LottieViewProps } from "lottie-react-native";
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,

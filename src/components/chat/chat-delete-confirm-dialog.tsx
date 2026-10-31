@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
@@ -8,7 +9,6 @@ import {
   ActivityIndicator,
   useWindowDimensions,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   View,
@@ -50,6 +50,7 @@ export function ChatDeleteConfirmDialog({
         accessibilityLabel="Dismiss delete dialog"
         disabled={isDeleting}
         onPress={onCancel}
+        soundFeedback={false}
         style={styles.backdropPressable}
       />
 

@@ -9,9 +9,9 @@ export function useChat() {
     if (!text.trim()) return;
     setState((current) => {
       const active = current.conversations.find((item) => item.conversationId === current.activeId) ?? newConversation();
-      const message: ChatMessage = { messageId: createId(), role: 'user', content: text.trim(), createdAt: new Date().toISOString() };
+      const message: ChatMessage = { messageId: createId(), role: 'user', content: text.trim(), attachments: current.attachments ?? [], createdAt: new Date().toISOString() };
       const updated = { ...active, title: active.messages.length ? active.title : text.trim().slice(0, 60), messages: [...active.messages, message] };
-      return { draftText: '', activeId: active.conversationId, conversations: [updated, ...current.conversations.filter((item) => item.conversationId !== active.conversationId)] };
+      return { draftText: '', attachments: [], activeId: active.conversationId, conversations: [updated, ...current.conversations.filter((item) => item.conversationId !== active.conversationId)] };
     });
   };
   return {

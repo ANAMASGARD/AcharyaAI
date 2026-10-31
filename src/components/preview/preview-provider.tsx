@@ -1,3 +1,4 @@
+import { TapSoundProvider } from '@/components/feedback/tap-sound-provider';
 import { useThemeColors, useThemeStyles , AppThemeProvider } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { createContext, use, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
@@ -126,8 +127,8 @@ export function usePreviewFeature<T>(key: string, initial: T): readonly [T, (nex
 }
 
 function PreviewTheme({ children }: { children: ReactNode }): React.ReactElement {
-  const { colorMode } = useUiPreferences();
-  return <AppThemeProvider mode={colorMode}>{children}</AppThemeProvider>;
+  const { colorMode, soundEffectsEnabled } = useUiPreferences();
+  return <AppThemeProvider mode={colorMode}><TapSoundProvider enabled={soundEffectsEnabled}>{children}</TapSoundProvider></AppThemeProvider>;
 }
 
 export function useUiPreferences() {
@@ -140,6 +141,7 @@ export function useUiPreferences() {
   return useMemo(() => ({
     ...preferences,
     hasHydrated: true,
+    setSoundEffectsEnabled: (enabled: boolean) => update({ soundEffectsEnabled: enabled }),
     setColorMode: (mode: UiPreferences["colorMode"]) => update({ colorMode: mode }),
     setSelectedLanguageId: (id: string | null) => update({ selectedLanguageId: id }),
     setSelectedLanguage: (id: string) => update({ selectedLanguageId: id }),

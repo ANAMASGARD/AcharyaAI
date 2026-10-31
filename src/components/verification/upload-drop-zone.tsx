@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { NeoButton } from "@/components/ui/neo-button";
@@ -10,7 +11,7 @@ import { fontFamilies } from "@/theme/typography";
 import type { NotesUploadError, NotesUploadFile } from "@/types/notes-verification";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
-import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   selectedFile: NotesUploadFile | null;

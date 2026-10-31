@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import type { RecorderOption } from "@/data/recorder-options";
@@ -9,7 +10,6 @@ import { useState } from "react";
 import {
   FlatList,
   Modal,
-  Pressable,
   StyleSheet,
   Text,
 } from "react-native";
@@ -75,8 +75,8 @@ export function RecorderSelectField({
         visible={open}
         onRequestClose={() => setOpen(false)}
       >
-        <Pressable style={styles.backdrop} onPress={() => setOpen(false)}>
-          <Pressable style={styles.sheet} onPress={() => undefined}>
+        <Pressable soundFeedback={false} style={styles.backdrop} onPress={() => setOpen(false)}>
+          <Pressable soundFeedback={false} style={styles.sheet} onPress={() => undefined}>
             <Text style={styles.sheetTitle}>{placeholder}</Text>
             <FlatList
               data={options}

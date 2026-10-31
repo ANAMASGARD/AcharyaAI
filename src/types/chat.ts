@@ -1,3 +1,4 @@
+import type { PreviewAttachment } from '@/lib/ui-preview/types';
 export type ChatReplyPhase =
   | "idle"
   | "sent"
@@ -11,6 +12,7 @@ export type ChatMessage = Readonly<{
   messageId: string;
   role: ChatRole;
   content: string;
+  attachments?: PreviewAttachment[];
   createdAt: string;
 }>;
 

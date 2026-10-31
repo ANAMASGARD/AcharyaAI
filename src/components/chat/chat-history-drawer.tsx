@@ -1,3 +1,5 @@
+import { Pressable } from '@/components/feedback/pressable';
+import { ChatHistorySearch } from '@/components/chat/chat-history-search';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ChatDeleteConfirmDialog } from "@/components/chat/chat-delete-confirm-dialog";
@@ -11,10 +13,10 @@ import { AcharyaBlurView as BlurView } from "@/components/ui/acharya-blur";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Keyboard,
   useWindowDimensions,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -76,6 +78,7 @@ export function ChatHistoryDrawer({
   const [pendingEdit, setPendingEdit] = useState<ChatConversationSummary | null>(
     null,
   );
+  const [searchOpen, setSearchOpen] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isRenaming, setIsRenaming] = useState(false);
 
@@ -84,6 +87,8 @@ export function ChatHistoryDrawer({
 
   const finishClose = (): void => {
     setMounted(false);
+    setSearchOpen(false);
+    Keyboard.dismiss();
     setPendingDelete(null);
     setPendingEdit(null);
     setIsDeleting(false);
@@ -211,6 +216,7 @@ export function ChatHistoryDrawer({
       onRequestClose={() => {
         if (pendingEdit) handleCancelEdit();
         else if (pendingDelete) handleCancelDelete();
+        else if (searchOpen) { Keyboard.dismiss(); setSearchOpen(false); }
         else onClose();
       }}
       animationType="none"
@@ -233,6 +239,7 @@ export function ChatHistoryDrawer({
           <Pressable
             accessibilityLabel="Close history"
             onPress={onClose}
+            soundFeedback={false}
             style={styles.backdropPressable}
           />
         </Animated.View>
@@ -274,7 +281,10 @@ export function ChatHistoryDrawer({
                 { paddingBottom: Math.max(insets.bottom, spacing.md) },
               ]}
             >
+              {searchOpen ? <ChatHistorySearch onClose={() => setSearchOpen(false)} /> : <>
+              <View style={styles.actionsRow}>
               <Pressable
+                accessibilityRole="button"
                 onPress={() => {
                   onNewChat();
                   onClose();
@@ -291,6 +301,15 @@ export function ChatHistoryDrawer({
                 />
                 <Text style={[styles.newChatLabel, { color: colors.onAccent }]}>New Chat</Text>
               </Pressable>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Search chats"
+                onPress={() => setSearchOpen(true)}
+                style={({ pressed }) => [styles.searchButton, pressed && styles.pressed]}
+              >
+                <MaterialCommunityIcons name="magnify" size={26} color={colors.onAccent} />
+              </Pressable>
+              </View>
 
               <View style={styles.sectionHeader}>
                 <Text style={styles.sectionTitle}>Chat History</Text>
@@ -333,6 +352,7 @@ export function ChatHistoryDrawer({
                   </Text>
                 ) : null}
               </ScrollView>
+              </>}
             </View>
           </View>
         </Animated.View>
@@ -453,7 +473,11 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
   loader: {
     marginVertical: spacing.lg,
   },
+  actionsRow: { flexDirection: "row", alignItems: "center", gap: spacing.sm, marginBottom: spacing.lg },
+  searchButton: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.sky, borderColor: colors.onAccent, borderWidth: borderWidths.default, alignItems: "center", justifyContent: "center", ...shadows.sm },
   newChatButton: {
+    flex: 1,
+    minHeight: 52,
     alignItems: "center",
     backgroundColor: colors.primary,
     borderColor: colors.border,
@@ -462,8 +486,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "center",
-    marginBottom: spacing.lg,
-    paddingHorizontal: spacing.lg,
+    paddingHorizontal: spacing.sm,
     paddingVertical: spacing.md,
     ...shadows.md,
   },

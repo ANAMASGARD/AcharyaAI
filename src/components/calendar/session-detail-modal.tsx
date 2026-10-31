@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ClassNotesSection } from "@/components/calendar/class-notes-section";
@@ -29,7 +30,6 @@ import {
   useWindowDimensions,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -163,6 +163,7 @@ export function SessionDetailModal({
             accessibilityLabel="Close session details"
             accessibilityRole="button"
             onPress={onClose}
+            soundFeedback={false}
             style={styles.backdropPressable}
           />
         </Animated.View>

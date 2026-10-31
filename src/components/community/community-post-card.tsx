@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { CommunityPostAvatar } from "@/components/community/community-post-avatar";
@@ -11,7 +12,7 @@ import { fontFamilies } from "@/theme/typography";
 import type { CommunityPost } from "@/types/community";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Clipboard from "expo-clipboard";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   post: CommunityPost;

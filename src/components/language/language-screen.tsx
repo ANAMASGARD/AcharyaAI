@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { fontFamilies } from "@/theme/typography";
@@ -18,7 +19,6 @@ import { StatusBar } from "expo-status-bar";
 import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
-  Pressable,
   SectionList,
   StyleSheet,
   Text,

@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useColorMode, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
@@ -10,7 +11,7 @@ import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 const TAB_BAR_CLEARANCE = 100;

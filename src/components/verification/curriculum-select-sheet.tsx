@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { usePreviewAttachments, usePreviewFeature } from "@/components/preview/preview-provider";
@@ -20,7 +21,6 @@ import {
   useWindowDimensions,
   Modal,
   Platform,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -216,6 +216,7 @@ export function CurriculumSelectSheet({
           <Pressable
             accessibilityLabel="Close curriculum selector"
             onPress={onClose}
+            soundFeedback={false}
             style={styles.backdropPressable}
           />
         </Animated.View>

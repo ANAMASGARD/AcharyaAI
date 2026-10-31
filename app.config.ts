@@ -46,6 +46,7 @@ const config: ExpoConfig = {
         },
       },
     ],
+    ['expo-audio', { microphonePermission: 'Allow Acharya to display voice levels while the microphone is open.', recordAudioAndroid: true, enableBackgroundPlayback: false, enableBackgroundRecording: false }],
     'expo-secure-store',
     '@clerk/expo',
     'expo-web-browser',

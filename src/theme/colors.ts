@@ -20,6 +20,7 @@ export const retroColors = {
 } as const;
 
 export const accentColors = {
+  apricot: '#FFBE85',
   mint: '#B8E5E1',
   sky: '#A8D5E5',
   coral: '#FFB5A7',

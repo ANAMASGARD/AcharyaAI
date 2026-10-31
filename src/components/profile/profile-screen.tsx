@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { AppearanceToggle } from "@/components/profile/appearance-toggle";
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -26,7 +27,6 @@ import { useState } from "react";
 import {
   ActivityIndicator,
   Linking,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,
@@ -49,6 +49,9 @@ export function ProfileScreen(): React.ReactElement {
   const summary = useProfileSummary();
   const { isUploading, error: photoError, pickAndUpload } = useProfilePhoto();
   const { signOut, openAccountPortal, hasAccountPortal, actionError } = useProfileAccount();
+
+  const soundEnabled = usePreferencesStore((state) => state.soundEffectsEnabled);
+  const setSoundEnabled = usePreferencesStore((state) => state.setSoundEffectsEnabled);
 
   const pushEnabled = usePreferencesStore(
     (state) => state.pushNotificationsEnabled,
@@ -191,6 +194,14 @@ export function ProfileScreen(): React.ReactElement {
         <View style={styles.section}>
           <ProfileMenuCard backgroundColor={colors.lavender} title="App settings">
             <AppearanceToggle />
+            <ProfileToggleRow
+              icon="volume-high"
+              label="Sound effects"
+              soundFeedback={false}
+              subtitle="Play a drop sound when tapping buttons"
+              value={soundEnabled}
+              onValueChange={setSoundEnabled}
+            />
             <ProfileMenuRow
               icon="translate"
               label="Teaching language"

@@ -1,8 +1,9 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, StyleSheet } from "react-native";
+import { StyleSheet } from "react-native";
 
 type Props = Readonly<{
   viewerSaved: boolean;

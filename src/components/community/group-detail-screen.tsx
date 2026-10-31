@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { CommunityScreenHeader } from "@/components/community/community-screen-header";
@@ -9,7 +10,6 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,

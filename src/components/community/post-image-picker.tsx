@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { borderWidths, radii, spacing } from "@/theme/tokens";
@@ -7,7 +8,6 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import {
   ActivityIndicator,
-  Pressable,
   ScrollView,
   StyleSheet,
   Text,

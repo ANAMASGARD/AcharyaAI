@@ -3,6 +3,7 @@ export type UiPreferences = {
   selectedLanguageId: string | null;
   teachingClassIds: string[];
   pushNotificationsEnabled: boolean;
+  soundEffectsEnabled: boolean;
 };
 
 export const DEFAULT_UI_PREFERENCES: UiPreferences = {
@@ -10,6 +11,7 @@ export const DEFAULT_UI_PREFERENCES: UiPreferences = {
   selectedLanguageId: null,
   teachingClassIds: [],
   pushNotificationsEnabled: true,
+  soundEffectsEnabled: true,
 };
 
 export type PreviewFeatures = Record<string, unknown>;
@@ -76,7 +78,9 @@ export function parsePreferences(raw: string | null): UiPreferences {
   }
   const mode = 'colorMode' in value ? value.colorMode : 'light';
   if (mode !== 'light' && mode !== 'dark') throw new PreviewDataError('preferences');
-  return { ...value, colorMode: mode } as UiPreferences;
+  const soundEffectsEnabled = 'soundEffectsEnabled' in value ? value.soundEffectsEnabled : true;
+  if (typeof soundEffectsEnabled !== 'boolean') throw new PreviewDataError('preferences');
+  return { ...value, colorMode: mode, soundEffectsEnabled } as UiPreferences;
 }
 
 /** Saved sandbox and blob URLs are temporary. Resolve references from their stable attachment IDs. */

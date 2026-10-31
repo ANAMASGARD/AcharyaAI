@@ -1,10 +1,11 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { Image } from "expo-image";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   onPress: () => void;

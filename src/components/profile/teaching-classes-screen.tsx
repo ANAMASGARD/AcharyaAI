@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { NeoButton } from "@/components/ui/neo-button";
@@ -11,7 +12,7 @@ import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useState } from "react";
-import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 export function TeachingClassesScreen(): React.ReactElement {

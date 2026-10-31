@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { useKeyboardState } from "react-native-keyboard-controller";
@@ -11,7 +12,6 @@ import {
   useWindowDimensions,
   Keyboard,
   Platform,
-  Pressable,
   StyleSheet,
   Text,
   TextInput,
@@ -91,6 +91,7 @@ function ChatTitleForm({
         accessibilityLabel="Dismiss edit dialog"
         disabled={isSaving}
         onPress={handleCancel}
+        soundFeedback={false}
         style={styles.backdropPressable}
       />
 

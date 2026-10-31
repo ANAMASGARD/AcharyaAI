@@ -1,10 +1,11 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { NeoDashboardCard } from "@/components/home/neo-dashboard-card";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import type { NotesGapsContent } from "@/types/home-dashboard";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   content: NotesGapsContent;

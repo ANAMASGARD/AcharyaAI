@@ -1,6 +1,7 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
-import { Pressable, StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
+import { StyleSheet, View, type PressableProps, type StyleProp, type ViewStyle } from 'react-native';
 
 import { borderWidths, radii, shadows, spacing } from '@/theme/tokens';
 

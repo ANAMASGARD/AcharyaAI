@@ -1,9 +1,10 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { SUGGESTED_CHAT_PROMPTS } from "@/constants/chat-prompts";
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   onSelect: (message: string) => void;

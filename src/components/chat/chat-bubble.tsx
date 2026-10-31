@@ -1,3 +1,4 @@
+import { ChatAttachments } from '@/components/chat/chat-attachments';
 import { useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ChatLoadingIndicator } from "@/components/chat/chat-loading-indicator";
@@ -39,6 +40,7 @@ export function ChatBubble({
           isUser ? styles.userBubble : styles.assistantBubble,
         ]}
       >
+        {message.attachments && <ChatAttachments files={message.attachments} />}
         <Text style={[styles.content, isUser && styles.userContent]}>
           {message.content}
           {!isUser && isStreaming ? " ▍" : ""}

@@ -1,3 +1,4 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { images } from "@/constants/images";
@@ -6,7 +7,7 @@ import { fontFamilies } from "@/theme/typography";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { Image } from "expo-image";
 import { useRouter } from "expo-router";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 type Props = Readonly<{
   onOpenHistory: () => void;
@@ -88,7 +89,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     alignItems: "center",
     backgroundColor: colors.card,
     borderColor: colors.border,
-    borderRadius: radii.lg,
+    borderRadius: 20,
     borderWidth: borderWidths.default,
     height: 40,
     justifyContent: "center",

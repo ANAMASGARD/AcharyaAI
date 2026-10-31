@@ -1,8 +1,9 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { RecorderStartingLabel } from "@/components/recording/recorder-starting-label";
 import { fontFamilies } from "@/theme/typography";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { StyleSheet, Text } from "react-native";
 
 type Props = Readonly<{
   message: string;

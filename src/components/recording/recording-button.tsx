@@ -1,9 +1,10 @@
+import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { RecorderPulseRing } from "@/components/recording/recorder-pulse-ring";
 import { borderWidths, shadows } from "@/theme/tokens";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { Pressable, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 
 /** Bold Acharya yellow — full saturation even when disabled. */
 const RECORD_BUTTON_YELLOW = "#FFCC00";
