@@ -4,8 +4,6 @@ import { ChatAttachments } from '@/components/chat/chat-attachments';
 import { useChatAttachments } from '@/hooks/use-chat-attachments';
 import { useCallback, useState } from 'react';
 import { useFocusEffect } from 'expo-router';
-import Animated, { FadeIn } from 'react-native-reanimated';
-import { VoiceInputPreview } from '@/components/chat/voice-input-preview';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { VoiceWaveformIcon } from "@/components/chat/voice-waveform-icon";
@@ -42,9 +40,6 @@ export function ChatComposer({
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
-  const [voicePreview, setVoicePreview] = useState(false);
-  const closePreview = useCallback(() => setVoicePreview(false), []);
-  useFocusEffect(useCallback(() => () => setVoicePreview(false), []));
 
   const uploads = useChatAttachments();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -55,7 +50,7 @@ export function ChatComposer({
   const isTranscribing = voiceInputStatus === "transcribing";
   const voiceDisabled = disabled || isTranscribing;
   const canSend =
-    draftText.trim().length > 0 && !disabled && !isTranscribing;
+    draftText.trim().length > 0 && !disabled && !isTranscribing && !isRecording;
 
   const inputPlaceholder = isRecording
     ? "Listening… tap mic to stop"
@@ -63,9 +58,6 @@ export function ChatComposer({
       ? "Transcribing speech…"
       : "Ask Acharya AI";
 
-  if (voicePreview) {
-    return <Animated.View entering={FadeIn.duration(150)} style={styles.wrap}><VoiceInputPreview onClose={closePreview} /></Animated.View>;
-  }
 
   return (
     <View style={styles.wrap}>
@@ -101,7 +93,7 @@ export function ChatComposer({
               isRecording ? "Stop voice" : "Voice message"
             }
             disabled={disabled || isTranscribing}
-            onPress={() => { Keyboard.dismiss(); setVoicePreview(true); }}
+            onPress={() => { Keyboard.dismiss(); onVoiceAgent(); }}
             style={({ pressed }) => [
               styles.micCircle,
               isRecording && styles.micRecording,
@@ -121,7 +113,7 @@ export function ChatComposer({
 
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel={hasText ? "Send message" : "Start voice conversation"}
+            accessibilityLabel={hasText ? "Send message" : isRecording ? "Stop voice message" : "Start voice message"}
             disabled={hasText ? !canSend || uploads.busy : voiceDisabled}
             onPress={hasText ? onSend : onVoiceAgent}
             style={({ pressed }) => [

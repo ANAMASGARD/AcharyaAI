@@ -31,6 +31,7 @@ export function RecordingButton({
     <View style={styles.wrap}>
       <RecorderPulseRing active={isRecording} size={RECORDING_BUTTON_SIZE} />
       <Pressable
+        soundFeedback={false}
         accessibilityLabel={isRecording ? "Stop recording" : "Start recording"}
         accessibilityRole="button"
         accessibilityState={{ disabled: isDisabled }}

@@ -54,7 +54,7 @@ export function RecorderSessionCard({
     <RecorderNeoCard>
       <RecorderForm
         classLevel={classLevel}
-        isRecording={isRecording}
+        isRecording={isRecording || isStarting}
         subject={subject}
         topic={topic}
         onClassLevelChange={onClassLevelChange}

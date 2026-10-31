@@ -18,6 +18,14 @@ App branding and icons are configured in [`app.config.ts`](app.config.ts) (same
 stale **AcharyaApp** entry from Recent, clear Expo Go cache, and run
 `npx expo start --clear`.
 
+## Bring your own API keys
+
+Open **Profile → App settings → AI API keys** to save Gnani, OpenAI-compatible,
+Gemini, and Claude keys in encrypted device storage. Gnani powers class transcription, voice messages, and read aloud. Saving a text
+provider selects it for chat; its model ID is editable. The eye button reveals
+typed or saved keys. Local models remain coming later.
+See [storage, scope, and device checks](docs/byok-settings.md).
+
 ## Design system
 
 Neo-brutalism tokens live in `src/theme/` (colors, typography, spacing, shadows).
@@ -65,7 +73,7 @@ Clerk). See `.env.example` for the full Dashboard checklist.
 ## Database (Drizzle + Neon + Expo SQLite)
 
 - **Cloud:** Neon PostgreSQL on project `Acharya` (Gaurav org). Set `DATABASE_URL` in `.env` (server only).
-- **Local:** `expo-sqlite` + Drizzle migrations in `drizzle/expo/`; bootstrap via `DatabaseProvider` in the root layout.
+- **Local:** `expo-sqlite` + Drizzle migrations in `drizzle/expo/`; the recorder initializes its repository on first use.
 - **IDs:** 21-char NanoID for app records (`src/lib/id.ts`); Clerk user IDs unchanged.
 - **API routes:** `src/app/api/*` (Clerk JWT required). Sync: `POST /api/sync/push`, `GET /api/sync/pull?cursor=…`.
 - **EAS Hosting:** configure `DATABASE_URL` and `CLERK_SECRET_KEY` as supported server-side env vars (not `EXPO_PUBLIC_`). Optional `EXPO_PUBLIC_API_URL` for the hosted origin in production.
@@ -77,6 +85,13 @@ npm run db:generate:expo  # after SQLite schema changes
 ```
 
 `expo-sqlite` works in Expo Go for development. Audio recordings stay as **local files**; SQLite stores paths and metadata only.
+
+## Classroom transcription
+
+The foreground recorder captures 30-second segments and displays Gnani transcripts
+while recording. See [Gnani STT setup and device acceptance](docs/gnani-stt.md) for
+direct device keys, retry behavior, and current verification limits. No custom AI
+backend is needed for these direct calls.
 
 ## Validation
 

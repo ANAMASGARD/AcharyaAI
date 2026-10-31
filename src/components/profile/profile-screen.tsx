@@ -7,7 +7,6 @@ import { ProfileEditNameModal } from "@/components/profile/profile-edit-name-mod
 import { ProfileHeader } from "@/components/profile/profile-header";
 import { ProfileMenuCard } from "@/components/profile/profile-menu-card";
 import { ProfileMenuRow } from "@/components/profile/profile-menu-row";
-import { ProfileSummaryCard } from "@/components/profile/profile-summary-card";
 import { ProfileToggleRow } from "@/components/profile/profile-toggle-row";
 import { legalLinks } from "@/constants/legal";
 import { useProfileAccount } from "@/hooks/use-profile-account";
@@ -119,12 +118,60 @@ export function ProfileScreen(): React.ReactElement {
         {actionError || linkError ? <Text accessibilityRole="alert" style={styles.actionError}>{actionError ?? linkError}</Text> : null}
 
         <View style={styles.section}>
-          <ProfileSummaryCard
-            connectedProviders={summary.connectedProviders}
-            memberSince={summary.memberSince}
-            teachingLanguageLabel={summary.teachingLanguageLabel}
-            twoFactorEnabled={summary.twoFactorEnabled}
-          />
+          <ProfileMenuCard backgroundColor={colors.lavender} title="App settings">
+            <ProfileMenuRow
+              icon="key-outline"
+              label="AI API keys"
+              subtitle="Bring your own keys · encrypted on this device"
+              onPress={() => router.push("/profile/api-keys")}
+            />
+            <AppearanceToggle />
+            <ProfileToggleRow
+              icon="volume-high"
+              label="Sound effects"
+              soundFeedback={false}
+              subtitle="Play a drop sound when tapping buttons"
+              value={soundEnabled}
+              onValueChange={setSoundEnabled}
+            />
+            <ProfileMenuRow
+              icon="translate"
+              label="Teaching language"
+              onPress={() => router.push("/language")}
+              showDivider
+              subtitle={summary.teachingLanguageLabel}
+            />
+            <ProfileMenuRow
+              icon="school-outline"
+              label="Select classes"
+              onPress={() => router.push("/profile/teaching-classes")}
+              showDivider
+              subtitle={teachingClassesSummary}
+            />
+            <ProfileToggleRow
+              icon="bell-outline"
+              label="Push notifications"
+              onValueChange={(value) => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                setPushEnabled(value);
+              }}
+              showDivider
+              subtitle="Preference saved for when alerts are enabled"
+              value={pushEnabled}
+            />
+            <ProfileMenuRow
+              icon="microphone"
+              label="Open recorder"
+              onPress={() => router.push("/(app)/(tabs)/recorder")}
+              showDivider
+            />
+            <ProfileMenuRow
+              icon="calendar-month-outline"
+              label="Open calendar"
+              onPress={() => router.push("/(app)/(tabs)/calendar")}
+              showDivider={false}
+            />
+          </ProfileMenuCard>
         </View>
 
         <View style={styles.section}>
@@ -186,57 +233,6 @@ export function ProfileScreen(): React.ReactElement {
               icon="devices"
               label="Active devices"
               onPress={goToAccount}
-              showDivider={false}
-            />
-          </ProfileMenuCard>
-        </View>
-
-        <View style={styles.section}>
-          <ProfileMenuCard backgroundColor={colors.lavender} title="App settings">
-            <AppearanceToggle />
-            <ProfileToggleRow
-              icon="volume-high"
-              label="Sound effects"
-              soundFeedback={false}
-              subtitle="Play a drop sound when tapping buttons"
-              value={soundEnabled}
-              onValueChange={setSoundEnabled}
-            />
-            <ProfileMenuRow
-              icon="translate"
-              label="Teaching language"
-              onPress={() => router.push("/language")}
-              showDivider
-              subtitle={summary.teachingLanguageLabel}
-            />
-            <ProfileMenuRow
-              icon="school-outline"
-              label="Select classes"
-              onPress={() => router.push("/profile/teaching-classes")}
-              showDivider
-              subtitle={teachingClassesSummary}
-            />
-            <ProfileToggleRow
-              icon="bell-outline"
-              label="Push notifications"
-              onValueChange={(value) => {
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                setPushEnabled(value);
-              }}
-              showDivider
-              subtitle="Preference saved for when alerts are enabled"
-              value={pushEnabled}
-            />
-            <ProfileMenuRow
-              icon="microphone"
-              label="Open recorder"
-              onPress={() => router.push("/(app)/(tabs)/recorder")}
-              showDivider
-            />
-            <ProfileMenuRow
-              icon="calendar-month-outline"
-              label="Open calendar"
-              onPress={() => router.push("/(app)/(tabs)/calendar")}
               showDivider={false}
             />
           </ProfileMenuCard>

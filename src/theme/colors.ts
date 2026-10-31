@@ -13,6 +13,7 @@ export const retroColors = {
   mutedForeground: '#5A5A5A',
   accent: '#FAE583',
   accentForeground: '#000000',
+  success: '#15803D',
   destructive: '#E63946',
   destructiveForeground: '#FFFFFF',
   border: '#000000',
@@ -51,5 +52,6 @@ export const darkColors: ThemeColors = {
   cardForeground: '#F5F5F5',
   mutedForeground: '#BEBEBE',
   muted: '#777777',
+  success: '#4ADE80',
   border: '#707070',
 };

@@ -1,6 +1,8 @@
-import { createContext, use, useCallback, useEffect, useRef, type ReactNode } from 'react';
+import { createContext, use, useCallback, useEffect, useRef, useSyncExternalStore, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { createAudioPlayer, preload, setAudioModeAsync } from 'expo-audio';
+
+import { isRecorderMicrophoneActive, subscribeRecorderMicrophone } from '@/lib/recording/audio-focus';
 
 import { createTapSound } from '@/lib/tap-sound';
 
@@ -12,11 +14,12 @@ const TapSoundContext = createContext<() => void>(() => {});
 
 /** One bundled player for the hydrated account; no capture or background playback. */
 export function TapSoundProvider({ enabled, children }: { enabled: boolean; children: ReactNode }) {
+  const microphoneActive = useSyncExternalStore(subscribeRecorderMicrophone, isRecorderMicrophoneActive, () => false);
   const playback = useRef<ReturnType<typeof createTapSound> | null>(null);
-  const play = useCallback(() => playback.current?.play(), []);
+  const play = useCallback(() => { if (!isRecorderMicrophoneActive()) playback.current?.play(); }, []);
 
   useEffect(() => {
-    if (!enabled) return;
+    if (!enabled || microphoneActive) return;
     let disposed = false;
     let release: (() => void) | undefined;
     const configure = async () => {
@@ -46,7 +49,7 @@ export function TapSoundProvider({ enabled, children }: { enabled: boolean; chil
     };
     void configure();
     return () => { disposed = true; release?.(); };
-  }, [enabled]);
+  }, [enabled, microphoneActive]);
 
   return <TapSoundContext value={play}>{children}</TapSoundContext>;
 }

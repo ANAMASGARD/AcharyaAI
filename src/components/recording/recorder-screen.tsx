@@ -30,6 +30,7 @@ export function RecorderScreen(): React.ReactElement {
     timerLabel,
     canStartRecording,
     canSend,
+    canRetry,
     statusMessage,
     mergedTranscript,
     report,
@@ -71,9 +72,9 @@ export function RecorderScreen(): React.ReactElement {
             topic={topic}
             onClassLevelChange={setClassLevel}
             onConfirmPartial={confirmPartialSend}
-            onRetryAnalysis={() => {
+            onRetryAnalysis={canRetry ? () => {
               void retryAnalysis();
-            }}
+            } : undefined}
             onSubjectChange={setSubject}
             onToggleRecording={toggleRecording}
             onTopicChange={setTopic}

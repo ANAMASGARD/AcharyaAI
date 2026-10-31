@@ -34,6 +34,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    'expo-asset',
     [
       'expo-splash-screen',
       {
@@ -46,7 +47,7 @@ const config: ExpoConfig = {
         },
       },
     ],
-    ['expo-audio', { microphonePermission: 'Allow Acharya to display voice levels while the microphone is open.', recordAudioAndroid: true, enableBackgroundPlayback: false, enableBackgroundRecording: false }],
+    ['expo-audio', { microphonePermission: 'Allow Acharya to record and transcribe your class while the recorder is open.', recordAudioAndroid: true, enableBackgroundPlayback: false, enableBackgroundRecording: false }],
     'expo-secure-store',
     '@clerk/expo',
     'expo-web-browser',

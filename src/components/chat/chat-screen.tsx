@@ -1,3 +1,6 @@
+import { Pressable } from '@/components/feedback/pressable';
+import { useRouter } from 'expo-router';
+import { useVoiceOutput } from '@/hooks/use-voice-output';
 import { useThemeColors, useColorMode, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { ChatComposer } from "@/components/chat/chat-composer";
@@ -44,8 +47,11 @@ export function ChatScreen(): React.ReactElement {
     openConversation,
   } = useChat();
 
+  const router = useRouter();
   const history = useChatHistory();
-  const voiceInput = useVoiceInput();
+  const voiceOutput = useVoiceOutput();
+  const voiceInput = useVoiceInput((text) => setDraftText(draftText.trim() ? `${draftText.trim()} ${text}` : text));
+  const lastReply = [...messages].reverse().find((message) => message.role === 'assistant');
   const streamingMessageId = useMemo(() => {
     if (!isStreaming) {
       return null;
@@ -55,7 +61,7 @@ export function ChatScreen(): React.ReactElement {
       .reverse()
       .find((message) => message.role === "assistant");
 
-    return lastAssistant?.messageId ?? null;
+    return messages.at(-1)?.role === 'assistant' ? lastAssistant?.messageId ?? null : null;
   }, [isStreaming, messages]);
 
   const handleSend = useCallback((): void => {
@@ -67,24 +73,10 @@ export function ChatScreen(): React.ReactElement {
   }, [draftText, isStreaming, sendMessage]);
 
   const handleToggleMic = useCallback((): void => {
-    if (voiceInput.status === "recording") {
-      void (async () => {
-        const transcript = await voiceInput.stopRecording();
-
-        if (!transcript) {
-          return;
-        }
-
-        const trimmedDraft = draftText.trim();
-        setDraftText(
-          trimmedDraft ? `${trimmedDraft} ${transcript}` : transcript,
-        );
-      })();
-      return;
-    }
-
-    void voiceInput.startRecording();
-  }, [draftText, setDraftText, voiceInput]);
+    voiceOutput.stop();
+    if (voiceInput.status === 'recording') void voiceInput.stopRecording();
+    else void voiceInput.startRecording();
+  }, [voiceInput, voiceOutput]);
 
   const composerInset = composerHeight + spacing.lg + tabBarOverlayHeight;
 
@@ -95,17 +87,28 @@ export function ChatScreen(): React.ReactElement {
 
         <ChatHeader
           onOpenHistory={() => {
+            voiceInput.cancel();
+            voiceOutput.stop();
             void history.openDrawer();
           }}
         />
 
-        <Text style={styles.previewHint}>Local preview · messages stay on this device. AI and voice are not connected.</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Configure AI provider" onPress={() => router.push('/profile/api-keys')}>
+          <Text style={styles.previewHint}>Direct AI · text goes to your selected provider; voice goes to Gnani. Configure API keys →</Text>
+        </Pressable>
+        <Text style={styles.previewHint}>Voice messages: up to 30 seconds. Text chat only; attachments are not sent.</Text>
+        {lastReply ? <Pressable accessibilityRole="button" onPress={() => {
+          if (voiceOutput.status !== 'idle') voiceOutput.stop();
+          else void voiceOutput.speak(lastReply.content);
+        }} style={{ minHeight: 44, justifyContent: 'center' }}>
+          <Text style={styles.previewHint}>{voiceOutput.status === 'idle' ? 'Read latest reply aloud · Gnani' : 'Stop read aloud'}</Text>
+        </Pressable> : null}
         <View style={styles.flex}>
           <View style={styles.body}>
-            {error || voiceInput.error ? (
+            {error || voiceInput.error || voiceOutput.error ? (
               <View style={styles.errorBanner}>
                 <Text style={[styles.errorText, { color: colors.onAccent }]}>
-                  {error ?? voiceInput.error}
+                  {error ?? voiceInput.error ?? voiceOutput.error}
                 </Text>
                 {error ? (
                   <Text

@@ -62,6 +62,7 @@ export function ChatMessageList({
           replyPhase={replyPhase}
         />
       ))}
+      {isStreaming && !streamingMessageId ? <ChatLoadingIndicator layout="inline" phase={replyPhase} /> : null}
     </KeyboardAwareScrollView>
   );
 }

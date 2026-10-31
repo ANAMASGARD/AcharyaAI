@@ -1,3 +1,6 @@
+import { clearProviderCredentials } from '@/lib/ai-keys/vault';
+import { stopRecorderAccount } from '@/lib/recording/lifecycle';
+import { deleteRecordingAccount } from '@/lib/recording/api';
 import { useAuth, useClerk, useUser } from '@clerk/expo';
 import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
@@ -13,7 +16,7 @@ export function useAccountActions(): Readonly<{
 }> {
   const router = useRouter();
   const { signOut: clerkSignOut } = useClerk();
-  const { isSignedIn, userId } = useAuth();
+  const { isSignedIn, userId, getToken } = useAuth();
   const { user } = useUser();
   const [isSigningOut, setIsSigningOut] = useState(false);
   const [isDeletingAccount, setIsDeletingAccount] = useState(false);
@@ -23,6 +26,8 @@ export function useAccountActions(): Readonly<{
     setActionError(null);
     setIsSigningOut(true);
     try {
+      if (userId) await stopRecorderAccount(userId);
+      if (userId) await clearProviderCredentials(userId);
       await clerkSignOut();
       try {
         if (userId) await clearUiPreviewAccount(userId);
@@ -38,7 +43,7 @@ export function useAccountActions(): Readonly<{
   }, [clerkSignOut, router, userId]);
 
   const signOut = useCallback((): void => {
-    void confirmAction('Sign out', 'Sign out of Acharya and remove local drafts and copied files? Your preferences are kept for this account.', 'Sign out')
+    void confirmAction('Sign out', 'Sign out of Acharya and remove saved API keys, local drafts and copied files? Your preferences are kept for this account.', 'Sign out')
       .then((confirmed) => { if (confirmed) void performSignOut(); });
   }, [performSignOut]);
 
@@ -50,6 +55,10 @@ export function useAccountActions(): Readonly<{
     setActionError(null);
     setIsDeletingAccount(true);
     try {
+      await stopRecorderAccount(user.id);
+      // Retain cleanup for an explicitly configured legacy backend; direct BYOK needs none.
+      if (process.env.EXPO_PUBLIC_API_URL) await deleteRecordingAccount(getToken);
+      await clearProviderCredentials(user.id);
       await user.delete();
       try {
         await clearUiPreviewAccount(user.id, true);
@@ -66,10 +75,10 @@ export function useAccountActions(): Readonly<{
     } finally {
       setIsDeletingAccount(false);
     }
-  }, [clerkSignOut, isSignedIn, router, user]);
+  }, [clerkSignOut, getToken, isSignedIn, router, user]);
 
   const deleteAccount = useCallback((): void => {
-    void confirmAction('Delete account', 'This permanently removes your Acharya account and its local drafts, files, and preferences. This cannot be undone.', 'Delete')
+    void confirmAction('Delete account', 'This permanently removes your Acharya account and its saved API keys, local drafts, files, and preferences. This cannot be undone.', 'Delete')
       .then((confirmed) => { if (confirmed) void performDeleteAccount(); });
   }, [performDeleteAccount]);
 

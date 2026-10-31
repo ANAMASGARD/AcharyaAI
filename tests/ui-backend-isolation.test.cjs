@@ -12,7 +12,7 @@ function sourceFiles(directory) {
   });
 }
 
-test('reachable product UI imports no production database, sync, or AI backend modules', () => {
+test('reachable UI permits only recorder SQLite while isolating server, sync, and AI secrets', () => {
   const pending = [path.join(root, 'src/app/_layout.tsx'), ...sourceFiles(path.join(root, 'src/app/(app)'))];
   const visited = new Set();
   while (pending.length) {
@@ -20,8 +20,10 @@ test('reachable product UI imports no production database, sync, or AI backend m
     if (visited.has(filename)) continue;
     visited.add(filename);
     const relative = path.relative(root, filename).replaceAll(path.sep, '/');
-    assert.doesNotMatch(relative, /^src\/(?:server|db|lib\/sync|components\/(?:database|sync))\//, relative);
+    assert.doesNotMatch(relative, /^src\/(?:server|lib\/sync|components\/(?:database|sync))\//, relative);
+    if (relative.startsWith('src/db/')) assert.ok(['src/db/client.ts', 'src/db/schema.ts'].includes(relative), relative);
     const text = fs.readFileSync(filename, 'utf8');
+    assert.doesNotMatch(text, /process\.env\.(?:GNANI_API_KEY|GEMINI_API_KEY|CLERK_SECRET_KEY|DATABASE_URL)\b/, `${relative}: server secret`);
     const tree = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true, filename.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
     function visit(node) {
       if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {
@@ -32,7 +34,15 @@ test('reachable product UI imports no production database, sync, or AI backend m
         else if (specifier.startsWith('.')) base = path.resolve(path.dirname(filename), specifier);
         if (base) {
           for (const suffix of ['.ts', '.tsx', '.native.ts', '.native.tsx', '.web.ts', '.web.tsx', '/index.ts', '/index.tsx']) {
-            if (fs.existsSync(base + suffix)) pending.push(base + suffix);
+            if (fs.existsSync(base + suffix)) {
+              const target = path.relative(root, base + suffix).replaceAll(path.sep, '/');
+              if (target.startsWith('src/db/')) {
+                const allowed = (relative === 'src/lib/recording/repository.ts' && ['src/db/client.ts', 'src/db/schema.ts'].includes(target)) ||
+                  (relative === 'src/db/client.ts' && target === 'src/db/schema.ts');
+                assert.ok(allowed, `${relative} must not import ${target}`);
+              }
+              pending.push(base + suffix);
+            }
           }
         }
       }

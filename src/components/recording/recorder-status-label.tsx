@@ -36,9 +36,9 @@ export function RecorderStatusLabel({
         <Text style={styles.error}>{analysisError}</Text>
       ) : null}
 
-      {analysisError && onRetryAnalysis ? (
+      {onRetryAnalysis ? (
         <Pressable accessibilityRole="button" onPress={onRetryAnalysis}>
-          <Text style={styles.retry}>Tap to retry analysis</Text>
+          <Text style={styles.retry}>Retry transcription</Text>
         </Pressable>
       ) : null}
 

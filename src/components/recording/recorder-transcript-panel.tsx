@@ -40,7 +40,7 @@ export function RecorderTranscriptPanel({
   } else {
     bodyContent = (
       <Text style={[styles.body, styles.placeholder]}>
-        Transcript will appear here after you stop recording.
+        Text appears after each 30-second segment is processed. Audio is sent directly to Gnani using your saved API key.
       </Text>
     );
   }
@@ -60,6 +60,7 @@ export function RecorderTranscriptPanel({
         {bodyContent}
       </ScrollView>
 
+      <Text style={[styles.loadingText, { marginHorizontal: spacing.lg, marginTop: spacing.md }]}>Teaching reports will be available in a later milestone.</Text>
       <Pressable
         accessibilityLabel="Send transcript"
         accessibilityRole="button"

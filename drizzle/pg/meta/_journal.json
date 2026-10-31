@@ -15,6 +15,13 @@
       "when": 1791718125565,
       "tag": "0001_colossal_rocket_raccoon",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1791782289286,
+      "tag": "0002_empty_vapor",
+      "breakpoints": true
     }
   ]
 }

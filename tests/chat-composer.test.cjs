@@ -47,7 +47,7 @@ test('empty and whitespace drafts offer voice; typing switches to send', () => {
   for (const text of ['', '   ', 'Hello']) {
     const { nodes, calls } = composer(text);
     const hasText = Boolean(text.trim());
-    const button = nodes.find((node) => node.props?.accessibilityLabel === (hasText ? 'Send message' : 'Start voice conversation'));
+    const button = nodes.find((node) => node.props?.accessibilityLabel === (hasText ? 'Send message' : 'Start voice message'));
     assert.ok(button);
     assert.equal(button.props.disabled, false);
     button.props.onPress();
