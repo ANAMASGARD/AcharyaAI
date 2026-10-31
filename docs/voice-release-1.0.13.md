@@ -43,3 +43,7 @@ The user reported that live voice worked after installing the connection-fix APK
 The user subsequently requested full checks before Git delivery. `npm run check` completed successfully: TypeScript, zero-warning lint, Node tests (239 passed, 6 skipped, 0 failed), and Expo exports for Android, iOS, and web. `npm run test:rag` also passed (49 passed, 13 skipped, 0 failed). Skipped tests remain unverified. No paid audio generation was performed to audition the new accent.
 
 Checks exposed a missing vendor declaration in react-native-webrtc 124.0.8; a minimal patch re-exports its shipped source declaration. Expo route declarations were regenerated. The token getter ref now updates in an effect to satisfy React's render rules without restarting voice on each render. Composer tests now cover distinct dictation/live voice/send actions and microphone contention.
+
+## Upstream SDK 58 port — 2026-11-01
+
+Ported the voice feature to ANAMASGARD/AcharyaAI while preserving its Expo SDK 58, React Native, Clerk, and other existing dependency versions. The earlier SDK 57 device/build evidence above does not establish native SDK 58 compatibility. In the SDK 58 checkout, `npm run check` passed TypeScript, lint, 239 Node tests (6 skipped), and Android/iOS/web exports. RAG tests passed 49 tests (13 skipped). No new SDK 58 native build or physical audio test was run for this port.
