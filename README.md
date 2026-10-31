@@ -56,6 +56,22 @@ components at `/sign-in` and `/sign-up`. Signed-in teachers reach the tabbed
 app; Home includes sign-out and delete account (requires self-delete enabled in
 Clerk). See `.env.example` for the full Dashboard checklist.
 
+## Database (Drizzle + Neon + Expo SQLite)
+
+- **Cloud:** Neon PostgreSQL on project `Acharya` (Gaurav org). Set `DATABASE_URL` in `.env` (server only).
+- **Local:** `expo-sqlite` + Drizzle migrations in `drizzle/expo/`; bootstrap via `DatabaseProvider` in the root layout.
+- **IDs:** 21-char NanoID for app records (`src/lib/id.ts`); Clerk user IDs unchanged.
+- **API routes:** `src/app/api/*` (Clerk JWT required). Sync: `POST /api/sync/push`, `GET /api/sync/pull?cursor=…`.
+- **EAS Hosting:** configure `DATABASE_URL` and `CLERK_SECRET_KEY` as supported server-side env vars (not `EXPO_PUBLIC_`). Optional `EXPO_PUBLIC_API_URL` for the hosted origin in production.
+
+```bash
+npm run db:generate:pg    # after PG schema changes
+npm run db:migrate:pg     # apply to Neon (needs DATABASE_URL)
+npm run db:generate:expo  # after SQLite schema changes
+```
+
+`expo-sqlite` works in Expo Go for development. Audio recordings stay as **local files**; SQLite stores paths and metadata only.
+
 ## Validation
 
 ```bash

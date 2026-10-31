@@ -81,6 +81,10 @@ A React Native app **cannot securely hold long-lived Gnani, Gemini, or database 
 
 ## Database — Neon PostgreSQL, not Neo4j
 
+**Primary keys:** Acharya-owned rows use **21-character NanoID** (`varchar(21)` / SQLite `text`), generated once at create time (secure `nanoid` + `react-native-get-random-values` on mobile). Clerk `clerk_user_id` stays as Clerk provides. Same ID on device and Neon for sync; ownership always from verified Clerk JWT on the server.
+
+**Local + cloud:** Drizzle ORM on **Neon PostgreSQL** (API routes / EAS Hosting) and **Expo SQLite** on-device. Phase 1: schemas and migrations. Phase 2: cursor-based pull, idempotent push, server `revision`, outbox (metadata only—never audio blobs in SQL).
+
 Use relational schemas, migrations, constraints, foreign keys, and parameterized SQL. Conceptual tables:
 
 - `users`: unique `clerk_user_id`, app metadata/preferences (no passwords).

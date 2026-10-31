@@ -1,0 +1,1 @@
+CREATE INDEX "teaching_sessions_owner_idx" ON "teaching_sessions" USING btree ("owner_clerk_id");
