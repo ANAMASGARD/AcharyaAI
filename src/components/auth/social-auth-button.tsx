@@ -36,9 +36,12 @@ function GoogleIcon(): React.ReactElement {
 
 function FacebookIcon(): React.ReactElement {
   return (
-    <View style={styles.facebookIconWrap}>
-      <Text style={styles.facebookIconF}>f</Text>
-    </View>
+    <MaterialCommunityIcons
+      accessibilityLabel="Facebook"
+      color="#1877F2"
+      name="facebook"
+      size={26}
+    />
   );
 }
 
@@ -72,6 +75,7 @@ export function SocialAuthButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
+        (variant === 'google' || variant === 'facebook') && styles.googleButton,
         pressed && !isDisabled && styles.buttonPressed,
         isDisabled && styles.buttonDisabled,
         style,
@@ -120,6 +124,9 @@ const styles = StyleSheet.create({
   buttonDisabled: {
     opacity: 0.6,
   },
+  googleButton: {
+    backgroundColor: colors.background,
+  },
   buttonPressed: {
     transform: [{ translateX: 2 }, { translateY: 2 }],
     ...shadows.xs,
@@ -145,20 +152,6 @@ const styles = StyleSheet.create({
     fontFamily: 'SpaceGrotesk-Bold',
     fontSize: 14,
     textDecorationLine: 'underline',
-  },
-  facebookIconF: {
-    color: colors.secondaryForeground,
-    fontFamily: 'SpaceGrotesk-Bold',
-    fontSize: 18,
-    fontWeight: '700',
-  },
-  facebookIconWrap: {
-    alignItems: 'center',
-    backgroundColor: '#1877F2',
-    borderRadius: 12,
-    height: 24,
-    justifyContent: 'center',
-    width: 24,
   },
   googleIcon: {
     height: 24,

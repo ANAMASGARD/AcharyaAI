@@ -15,7 +15,7 @@ for (const line of fs.readFileSync(path.join(secrets, 'clerk-production.env'), '
   if (at > 0 && line.slice(0, at) === 'EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY') env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY = line.slice(at + 1).trim().replace(/^['"]|['"]$/g, '');
 }
 if (!env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith('pk_live_')) throw new Error('Missing production publishable key');
-Object.assign(env, { EXPO_PUBLIC_APP_VARIANT: 'production', EXPO_PUBLIC_GOOGLE_AUTH_ENABLED: 'false',
+Object.assign(env, { EXPO_PUBLIC_APP_VARIANT: 'production', EXPO_PUBLIC_GOOGLE_AUTH_ENABLED: 'true', EXPO_PUBLIC_FACEBOOK_AUTH_ENABLED: 'true',
   EXPO_PUBLIC_NEON_FUNCTION_URL: 'https://br-icy-resonance-b3camzf0-acharya.compute.c-4.ap-southeast-1.aws.neon.tech',
   ACHARYA_KEYSTORE_PATH: path.join(signing, 'acharya-release.p12'), ACHARYA_KEY_ALIAS: 'acharya-release',
   ACHARYA_KEY_PASSWORD: fs.readFileSync(path.join(signing, 'keystore-password.txt'), 'utf8').trim(),

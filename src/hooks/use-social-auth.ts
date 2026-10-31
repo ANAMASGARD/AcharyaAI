@@ -7,22 +7,37 @@ import { useRouter } from 'expo-router';
 import { SIGNED_IN_HOME } from '@/lib/routes';
 import { useCallback, useState } from 'react';
 
-const isSocialAuthAvailable = !isRunningInExpoGo() && process.env.EXPO_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+const isExpoGo = isRunningInExpoGo();
+const isGoogleConfigured = process.env.EXPO_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
+const isSocialAuthAvailable = !isExpoGo && isGoogleConfigured;
+const isFacebookAuthAvailable = !isExpoGo && process.env.EXPO_PUBLIC_FACEBOOK_AUTH_ENABLED === 'true';
+const facebookAuthUnavailableReason = isExpoGo
+  ? 'Facebook sign-in requires an Acharya development or installed build. Use email in Expo Go.'
+  : 'Facebook sign-in is being configured. Use Google or email for now.';
+const socialAuthUnavailableReason = isExpoGo
+  ? 'Google sign-in requires an Acharya development or installed build. Use email in Expo Go.'
+  : 'Google sign-in is being configured. Use email for now.';
 
 const REDIRECT_URL = AuthSession.makeRedirectUri({
   scheme: 'acharyaapp',
   path: '/',
 });
 
-type SocialProvider = 'google';
+type SocialProvider = 'google' | 'facebook';
 
 const STRATEGY_BY_PROVIDER: Record<SocialProvider, OAuthStrategy> = {
   google: 'oauth_google',
+  facebook: 'oauth_facebook',
 };
 
 export function useSocialAuth(): Readonly<{
   startGoogleAuth: () => Promise<void>;
+  startFacebookAuth: () => Promise<void>;
+  isFacebookAuthAvailable: boolean;
+  facebookAuthUnavailableReason: string;
+  isFacebookLoading: boolean;
   isSocialAuthAvailable: boolean;
+  socialAuthUnavailableReason: string;
   isGoogleLoading: boolean;
   oauthError: string | null;
   clearOauthError: () => void;
@@ -30,30 +45,37 @@ export function useSocialAuth(): Readonly<{
   const router = useRouter();
   const { startSSOFlow } = useSSO();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
+  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   const startProviderAuth = useCallback(
     async (provider: SocialProvider): Promise<void> => {
-      if (!isSocialAuthAvailable) {
-        setOauthError('Use email to sign in with Expo Go.');
+      const available = provider === 'google' ? isSocialAuthAvailable : isFacebookAuthAvailable;
+      if (!available) {
+        setOauthError(provider === 'google' ? socialAuthUnavailableReason : facebookAuthUnavailableReason);
         return;
       }
-      const setLoading = setIsGoogleLoading;
+      const setLoading = provider === 'google' ? setIsGoogleLoading : setIsFacebookLoading;
 
       setOauthError(null);
       setLoading(true);
 
       try {
-        const { createdSessionId, setActive } = await startSSOFlow({
+        const { createdSessionId, setActive, authSessionResult } = await startSSOFlow({
           strategy: STRATEGY_BY_PROVIDER[provider],
           redirectUrl: REDIRECT_URL,
         });
 
+        if (authSessionResult?.type === 'cancel' || authSessionResult?.type === 'dismiss') {
+          return;
+        }
+
         if (createdSessionId && setActive) {
           await setActive({
             session: createdSessionId,
-            navigate: ({ session, decorateUrl }) => {
+            navigate: ({ session }) => {
               if (session?.currentTask) {
+                setOauthError('Your account needs an additional verification step. Continue with email.');
                 return;
               }
 
@@ -77,6 +99,11 @@ export function useSocialAuth(): Readonly<{
 
   return {
     isSocialAuthAvailable,
+    socialAuthUnavailableReason,
+    isFacebookAuthAvailable,
+    facebookAuthUnavailableReason,
+    isFacebookLoading,
+    startFacebookAuth: () => startProviderAuth('facebook'),
     startGoogleAuth: () => startProviderAuth('google'),
     isGoogleLoading,
     oauthError,

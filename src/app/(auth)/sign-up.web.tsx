@@ -23,7 +23,15 @@ export default function SignUpWebScreen(): React.ReactElement {
 
   return (
     <View style={styles.centered}>
-      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+      <SignUp
+        appearance={{
+          options: { socialButtonsVariant: 'blockButton', socialButtonsPlacement: 'top' },
+          elements: { socialButtons: { gridTemplateColumns: '1fr' } },
+        }}
+        routing="path"
+        path="/sign-up"
+        signInUrl="/sign-in"
+      />
     </View>
   );
 }

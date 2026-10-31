@@ -32,8 +32,13 @@ export default function SignUpScreen(): React.ReactElement {
   const { signUp, fetchStatus } = useSignUp();
   const {
     isSocialAuthAvailable,
+    socialAuthUnavailableReason,
     startGoogleAuth,
     isGoogleLoading,
+    isFacebookAuthAvailable,
+    facebookAuthUnavailableReason,
+    startFacebookAuth,
+    isFacebookLoading,
     oauthError,
   } = useSocialAuth();
 
@@ -45,7 +50,7 @@ export default function SignUpScreen(): React.ReactElement {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
 
-  const isBusy = fetchStatus === 'fetching' || isSendingCode || isVerifying;
+  const isBusy = fetchStatus === 'fetching' || isSendingCode || isVerifying || isGoogleLoading || isFacebookLoading;
 
   const handleContinueWithEmail = async (): Promise<void> => {
     setFormError(null);
@@ -122,7 +127,7 @@ export default function SignUpScreen(): React.ReactElement {
             prompt="Already have an account?"
           />
         }
-        subtitle="Continue with your email."
+        subtitle="Continue with Google, Facebook, or email."
         title="Create your account">
         <AuthLabeledInput
           autoCapitalize="words"
@@ -146,19 +151,29 @@ export default function SignUpScreen(): React.ReactElement {
         {oauthError ? <Text style={styles.formError}>{oauthError}</Text> : null}
 
         <View style={styles.buttonStack}>
-          {isSocialAuthAvailable ? (
-            <>
-              <SocialAuthButton
-                disabled={isBusy}
-                label="Continue with Google"
-                loading={isGoogleLoading}
-                variant="google"
-                onPress={() => {
-                  void startGoogleAuth();
-                }}
-              />
-
-            </>
+          <SocialAuthButton
+            disabled={isBusy || !isSocialAuthAvailable}
+            label="Sign up with Google"
+            loading={isGoogleLoading}
+            variant="google"
+            onPress={() => {
+              void startGoogleAuth();
+            }}
+          />
+          {!isSocialAuthAvailable ? (
+            <Text style={styles.authHint}>{socialAuthUnavailableReason}</Text>
+          ) : null}
+          <SocialAuthButton
+            disabled={isBusy || !isFacebookAuthAvailable}
+            label="Sign up with Facebook"
+            loading={isFacebookLoading}
+            variant="facebook"
+            onPress={() => {
+              void startFacebookAuth();
+            }}
+          />
+          {!isFacebookAuthAvailable ? (
+            <Text style={styles.authHint}>{facebookAuthUnavailableReason}</Text>
           ) : null}
           <SocialAuthButton
             disabled={isBusy}
@@ -195,6 +210,10 @@ const styles = StyleSheet.create({
   buttonStack: {
     gap: spacing.md,
     marginTop: spacing.sm,
+  },
+  authHint: {
+    color: colors.foreground,
+    fontSize: 13,
   },
   formError: {
     color: colors.destructive,

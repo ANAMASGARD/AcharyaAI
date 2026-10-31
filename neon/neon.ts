@@ -13,6 +13,12 @@ export default {
         CLERK_AUTHORIZED_PARTIES: 'https://superacharya.com,https://accounts.superacharya.com',
         CLERK_SECRET_KEY: required(process.env.ACHARYA_RELEASE_CLERK_SECRET_KEY, 'ACHARYA_RELEASE_CLERK_SECRET_KEY'),
         DATABASE_URL: required(process.env.ACHARYA_RUNTIME_DATABASE_URL, 'ACHARYA_RUNTIME_DATABASE_URL'),
+        ...(process.env.ACHARYA_GOOGLE_OAUTH_CLIENT_ID && process.env.ACHARYA_GOOGLE_OAUTH_CLIENT_SECRET
+          ? {
+              GOOGLE_OAUTH_CLIENT_ID: process.env.ACHARYA_GOOGLE_OAUTH_CLIENT_ID,
+              GOOGLE_OAUTH_CLIENT_SECRET: process.env.ACHARYA_GOOGLE_OAUTH_CLIENT_SECRET,
+            }
+          : {}),
       },
     },
   },
