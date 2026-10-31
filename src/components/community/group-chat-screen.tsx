@@ -64,7 +64,7 @@ export function GroupChatScreen(): React.ReactElement {
           maintainVisibleContentPosition={{ minIndexForVisible: 0 }}
           onScroll={event => { const { layoutMeasurement, contentOffset, contentSize } = event.nativeEvent; nearBottom.current = layoutMeasurement.height + contentOffset.y >= contentSize.height - 100; }}
           onContentSizeChange={() => { if (nearBottom.current) list.current?.scrollToEnd({ animated: false }); }}
-          ListHeaderComponent={chat.hasMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44 }} onPress={() => { void chat.loadMore().catch(cause => setActionError(cause instanceof Error ? cause.message : 'Could not load messages.')); }}><Text style={{ color: colors.foreground }}>Load older messages</Text></Pressable> : null}
+          ListHeaderComponent={chat.hasMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44 }} onPress={() => { void chat.loadMore().catch(cause => setActionError(cause instanceof Error ? cause.message : 'Could not load messages.')); }}><Text style={{ color: colors.foreground }}>Load older messages</Text></Pressable> : undefined}
           ListEmptyComponent={chat.isLoading ? <ActivityIndicator color={colors.foreground} /> : <Text style={{ color: colors.mutedForeground }}>{chat.error ? 'Messages could not be loaded.' : 'Start the conversation with your group.'}</Text>}
           refreshing={chat.isLoading && chat.messages.length > 0} onRefresh={() => void chat.refresh()}
           renderItem={({ item }) => <GroupChatBubble message={item} onDelete={item.authorClerkId === userId || isOwner ? async () => { await community.deleteMessage(groupId, item.messageId); await chat.refresh(); } : undefined} />} />

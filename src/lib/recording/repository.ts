@@ -62,7 +62,7 @@ export const recordingRepository: RecordingRepository = {
     const file = new File(directory, `${chunkId}.wav`);
     // IDs are created once: overwriting an existing chunk would corrupt pending work.
     file.create({ overwrite: false });
-    try { file.write(wav); } catch (error) { if (file.exists) file.delete(); throw error; }
+    try { file.writeSync(wav); } catch (error) { if (file.exists) file.delete(); throw error; }
     return file.uri;
   }),
   deleteAudio: (owner, uri) => serialized(async () => {

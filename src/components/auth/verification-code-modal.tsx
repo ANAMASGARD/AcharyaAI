@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { type ComponentRef, useEffect, useRef, useState } from 'react';
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -36,7 +36,7 @@ export function VerificationCodeModal({
   onResend,
 }: VerificationCodeModalProps): React.ReactElement {
   const [digits, setDigits] = useState<string[]>(Array.from({ length: CODE_LENGTH }, () => ''));
-  const inputRefs = useRef<(TextInput | null)[]>([]);
+  const inputRefs = useRef<(ComponentRef<typeof TextInput> | null)[]>([]);
 
   useEffect(() => {
     if (!visible) {

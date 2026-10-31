@@ -62,7 +62,7 @@ export function useVoiceInput(onTranscript: (text: string) => void) {
     let file: File | null = null;
     try {
       file = new File(Paths.cache, `acharya-voice-${createId()}.wav`);
-      file.write(wav);
+      file.writeSync(wav);
       const text = await transcribeAudio(userId, file, controller.signal);
       if (current.current === controller && !controller.signal.aborted) {
         if (text) done.current(text); else setError('No speech was recognized. Please try again.');

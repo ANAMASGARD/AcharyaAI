@@ -34,7 +34,7 @@ function voiceHarness({ permission = async () => ({ granted: true }), start, tra
     '@clerk/expo': { useAuth: () => ({ userId: 'alice' }) },
     'react-native': { Platform: { OS: platform }, AppState: { addEventListener: (_, fn) => { app = fn; return { remove() {} }; } } },
     'expo-audio': { requestRecordingPermissionsAsync: permission, setAudioModeAsync: async () => {}, useAudioStream: options => { buffer = options.onBuffer; return { stream }; } },
-    'expo-file-system': { Paths: { cache: '/cache' }, File: class { exists = false; write(bytes) { this.bytes = bytes; this.exists = true; files.push(this); } delete() { this.exists = false; } } },
+    'expo-file-system': { Paths: { cache: '/cache' }, File: class { exists = false; writeSync(bytes) { this.bytes = bytes; this.exists = true; files.push(this); } delete() { this.exists = false; } } },
     '@/lib/id': { createId: () => 'id' }, '@/lib/ai-keys/vault': { getProviderCredential: async () => ({ apiKey: 'key' }) },
     '@/lib/ai/speech': { transcribeAudio: async (...args) => { events.push('transcribe'); return transcribe(...args); } },
     '@/lib/recording/pcm': pcm,

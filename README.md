@@ -2,7 +2,7 @@
 
 # AcharyaApp
 
-Expo Router app for Android, iOS, and web, using Expo SDK 57 and React Native 0.86.
+Expo Router app for Android, iOS, and web, using Expo SDK 58 and React Native 0.88.
 
 ## Development
 
@@ -10,7 +10,7 @@ Expo Router app for Android, iOS, and web, using Expo SDK 57 and React Native 0.
 npx expo start
 ```
 
-Scan the QR code with **Expo Go compatible with SDK 57**, with your phone and
+Scan the QR code with **Expo Go compatible with SDK 58**, with your phone and
 computer on the same Wi-Fi. Use email sign-in in Expo Go; Google/Facebook sign-in
 requires a development build. On a fresh checkout, run `npm ci` once and configure
 the Clerk publishable key in `.env` as described below. Provider features need
@@ -119,7 +119,23 @@ npm run check
 
 This runs TypeScript, repository lint, regression tests, and production exports
 for Android, iOS, and web, stopping at the first failure. Native release builds
-and device testing are separate checks.
+and device testing are separate checks. Also run:
+
+```bash
+npx expo install --check
+npx expo-doctor
+npx expo run:android      # Android SDK, JDK 17, and an authorized device/emulator
+# On macOS with Xcode:
+npx expo run:ios
+```
+
+There is no `npx expo run verify` command. `npm run check` is the repository's
+verification command; `expo run:android` builds, installs, and starts the native app.
+Use Node.js 22.13+ (22.x), 24.3+ (24.x), or a supported newer even-numbered release.
+
+SDK 58 requires a new native build. App version 1.0.9 (Android version code 10)
+keeps its `appVersion` OTA runtime separate from the SDK 57 binaries. Do not
+publish SDK 58 JavaScript to the old runtime. See [SDK 58 validation](docs/expo-sdk-58.md).
 
 See [Dependency security](docs/dependency-security.md) for security overrides,
 the Router compatibility patch, and remaining upstream advisories.

@@ -1,6 +1,6 @@
 import { useThemeColors } from '@/theme/use-theme';
 import type { PropsWithChildren } from 'react';
-import TopTabs from 'expo-router/js-top-tabs';
+import { TopTabs } from 'expo-router/js-top-tabs';
 import { useWindowDimensions } from 'react-native';
 import { useReducedMotion } from 'react-native-reanimated';
 
@@ -13,7 +13,7 @@ export default function AcharyaTabs(): React.ReactElement {
   const { width } = useWindowDimensions();
   const reducedMotion = useReducedMotion();
   return <TopTabs
-    initialRouteName="recorder"
+    backBehavior="initialRoute"
     initialLayout={{ width }}
     tabBarPosition="bottom"
     keyboardDismissMode="on-drag"

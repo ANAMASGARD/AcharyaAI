@@ -11,8 +11,7 @@ import {
 import { tabBarGlass } from "@/components/navigation/tab-bar-glass";
 import { lottieAnimations } from "@/constants/lottie";
 import { spacing } from "@/theme/tokens";
-import type { NavigationHelpers, ParamListBase, TabNavigationState } from "expo-router/react-navigation";
-import type { MaterialTopTabNavigationEventMap } from "expo-router/js-top-tabs";
+import type { MaterialTopTabBarProps } from "expo-router/js-top-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { AcharyaBlurView as BlurView } from "@/components/ui/acharya-blur";
 import * as Haptics from "expo-haptics";
@@ -73,12 +72,9 @@ export const TAB_ITEMS = [
   },
 ] as const;
 
-export type AcharyaTabBarProps = Readonly<{
-  state: TabNavigationState<ParamListBase>;
+export type AcharyaTabBarProps = Pick<MaterialTopTabBarProps, "state" | "emitter" | "navigateToTab"> & {
   descriptors: Record<string, { options: { title?: string } }>;
-  navigation: Pick<NavigationHelpers<ParamListBase, MaterialTopTabNavigationEventMap>, "emit" | "navigate">;
-  jumpTo?: (key: string) => void;
-}>;
+};
 
 export function AcharyaTabBar(props: AcharyaTabBarProps): React.ReactElement {
   const styles = useThemeStyles(createStyles);
@@ -171,19 +167,18 @@ export function AcharyaTabBar(props: AcharyaTabBarProps): React.ReactElement {
                 const { options } = descriptors[route.key];
 
                 const onPress = (): void => {
-                  const event = props.navigation.emit({
+                  const event = props.emitter.emit({
                     type: "tabPress",
                     target: route.key,
                     canPreventDefault: true,
                   });
                   if (!focused && !event.defaultPrevented) {
-                    if (props.jumpTo) props.jumpTo(route.key);
-                    else props.navigation.navigate(route.name, route.params);
+                    props.navigateToTab(route.key);
                   }
                 };
 
                 const onLongPress = (): void => {
-                  props.navigation.emit({ type: "tabLongPress", target: route.key });
+                  props.emitter.emit({ type: "tabLongPress", target: route.key });
                 };
 
                 return (

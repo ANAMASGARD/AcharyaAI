@@ -84,7 +84,7 @@ function fileRepository(freeSpace = 100_000_000) {
     constructor(...parts) { this.uri = parts.map(part => part.uri ?? part).join('/'); }
     get exists() { return files.has(this.uri); }
     create() { if (this.exists) throw Error('exists'); files.add(this.uri); }
-    write() {}
+    writeSync() {}
     delete() { files.delete(this.uri); }
   }
   const { recordingRepository } = moduleFrom('src/lib/recording/repository.ts', {

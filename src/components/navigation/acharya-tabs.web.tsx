@@ -8,7 +8,7 @@ export default function AcharyaTabs(): React.ReactElement {
   const colors = useThemeColors();
 
   return <Tabs
-    initialRouteName="recorder"
+    backBehavior="initialRoute"
     tabBar={(props) => <AcharyaTabBar {...props} />}
     screenLayout={({ children }) => <AcharyaBlurTarget>{children}</AcharyaBlurTarget>}
     screenOptions={{ headerShown: false, lazy: true, sceneStyle: { backgroundColor: colors.cream } }}

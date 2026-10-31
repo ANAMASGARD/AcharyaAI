@@ -52,8 +52,8 @@ export function CommunityFeedList({ posts, isLoading, error, onPostPress, onVote
   </View>;
   if (virtualized) return <FlatList data={posts} keyExtractor={post => post.postId} renderItem={({ item }) => renderPost(item)}
     contentInsetAdjustmentBehavior="automatic" contentContainerStyle={{ padding: 20, gap: 16, flexGrow: 1 }} keyboardShouldPersistTaps="handled"
-    ListHeaderComponent={errors} ListEmptyComponent={empty} refreshing={isLoading && posts.length > 0}
+    ListHeaderComponent={errors ?? undefined} ListEmptyComponent={empty} refreshing={isLoading && posts.length > 0}
     onRefresh={onRefresh ? () => run(onRefresh) : undefined}
-    ListFooterComponent={hasMore && onLoadMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => run(onLoadMore)}><Text style={{ color: colors.foreground }}>Load more posts</Text></Pressable> : null} />;
+    ListFooterComponent={hasMore && onLoadMore ? <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => run(onLoadMore)}><Text style={{ color: colors.foreground }}>Load more posts</Text></Pressable> : undefined} />;
   return <View style={{ gap: 16 }}>{errors}{posts.length ? posts.map(renderPost) : empty}</View>;
 }

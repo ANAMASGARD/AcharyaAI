@@ -40,7 +40,7 @@ export function useVoiceOutput() {
       const wav = await synthesizeSpeech(userId, text, controller.signal);
       if (controller.signal.aborted) return;
       file.current = new File(Paths.cache, `acharya-speech-${createId()}.wav`);
-      file.current.write(wav);
+      file.current.writeSync(wav);
       await setAudioModeAsync({ allowsRecording: false, playsInSilentMode: true, shouldPlayInBackground: false, interruptionMode: 'doNotMix' });
       if (controller.signal.aborted || isRecorderMicrophoneActive()) { stop(); return; }
       const audio = createAudioPlayer({ uri: file.current.uri });

@@ -1,5 +1,12 @@
 const { Buffer } = require('node:buffer');
-const { AbortController: MobileAbortController } = require('abort-controller/dist/abort-controller');
+// RN 0.88 no longer installs the external abort-controller package. Keep the
+// limited-signal regression without relying on an undeclared transitive dependency.
+class MobileAbortController extends AbortController {
+  constructor() {
+    super();
+    Object.defineProperty(this.signal, 'throwIfAborted', { value: undefined });
+  }
+}
 const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');

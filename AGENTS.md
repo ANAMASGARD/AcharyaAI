@@ -10,7 +10,7 @@ Acharya AI is a teacher-first React Native app for recording 1–2 hour classroo
 
 | Area | Required choice |
 |---|---|
-| Mobile | **Expo SDK 57 (target)**, React Native, Expo Router, strict TypeScript |
+| Mobile | **Expo SDK 58 (target)**, React Native, Expo Router, strict TypeScript |
 | Auth | **Clerk** (`@clerk/expo`); no custom authentication |
 | State | Zustand; AsyncStorage for small non-sensitive preferences |
 | Styling | NativeWind v5 + Tailwind CSS v4 when compatible and installed; otherwise React Native StyleSheet |
@@ -21,7 +21,7 @@ Acharya AI is a teacher-first React Native app for recording 1–2 hour classroo
 | ORM | Prefer Drizzle ORM and SQL migrations after checking dependencies |
 | Offline, later | On-device **SQLite** and open-source/Hugging Face-hosted STT, LLM, TTS models, selected after benchmarking |
 
-**Expo SDK 57 is the requested target, not a verified installed version.** Check official SDK availability and React Native/React/Expo Router/native module compatibility before installing. Do not guess versions or silently downgrade.
+**Expo SDK 58 is the requested target, not a verified installed version.** Check official SDK availability and React Native/React/Expo Router/native module compatibility before installing. Do not guess versions or silently downgrade.
 
 
 ## Product features

@@ -34,7 +34,7 @@ if (process.env.EXPO_PUBLIC_APP_VARIANT === 'production' && !['staging', 'produc
 const config: ExpoConfig = {
   name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.8',
+  version: '1.0.9',
   // Native changes require a new app version and store build before OTA publication.
   runtimeVersion: { policy: 'appVersion' },
   updates: {
@@ -56,7 +56,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 9,
+    versionCode: 10,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',

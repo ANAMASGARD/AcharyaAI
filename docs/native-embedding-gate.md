@@ -9,7 +9,7 @@ model download and local report history are described in [local models and histo
 
 ## What is implemented
 
-- An app-owned `AcharyaSqliteConnection` facade inside pinned `expo-sqlite@57.0.4`,
+- An app-owned `AcharyaSqliteConnection` facade inside pinned `expo-sqlite@58.0.15`,
   installed by patch-package. It uses Expo's existing JNI library, parameterized
   statements, a 1.5-second busy timeout, foreign keys, serialized short
   transactions, statement finalization, and explicit SQL/JNI connection close.

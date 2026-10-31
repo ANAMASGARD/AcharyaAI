@@ -33,8 +33,8 @@ export function BlockedTeachersScreen(): React.ReactElement {
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.cream }}>
     <CommunityScreenHeader title="Blocked teachers" />
     <FlatList data={blocks} keyExtractor={block => block.clerkId} contentContainerStyle={{ padding: 20, gap: 16 }} refreshing={loading} onRefresh={() => void refresh()}
-      ListHeaderComponent={error ? <Text selectable style={{ color: colors.destructive }}>{error}</Text> : null}
-      ListEmptyComponent={loading ? <ActivityIndicator color={colors.foreground} /> : !error ? <Text style={{ color: colors.foreground }}>You haven’t blocked any teachers.</Text> : null}
+      ListHeaderComponent={error ? <Text selectable style={{ color: colors.destructive }}>{error}</Text> : undefined}
+      ListEmptyComponent={loading ? <ActivityIndicator color={colors.foreground} /> : !error ? <Text style={{ color: colors.foreground }}>You haven’t blocked any teachers.</Text> : undefined}
       renderItem={({ item }) => <View style={{ borderWidth: 1, borderColor: colors.border, borderRadius: 8, padding: 16 }}><Text style={{ color: colors.foreground }}>{item.displayName}</Text><Pressable accessibilityRole="button" onPress={() => void unblock(item.clerkId)} style={{ minHeight: 44, justifyContent: 'center' }}><Text style={{ color: colors.foreground }}>Unblock</Text></Pressable></View>} />
   </SafeAreaView>;
 }

@@ -1,9 +1,9 @@
 import { BlurTargetView, BlurView, type BlurViewProps } from 'expo-blur';
 import { useFocusEffect } from 'expo-router';
-import { createContext, forwardRef, useCallback, useContext, useMemo, useRef, useState, type PropsWithChildren, type RefObject } from 'react';
+import { createContext, forwardRef, useCallback, useContext, useMemo, useRef, useState, type ComponentRef, type PropsWithChildren, type RefObject } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 
-type BlurTarget = RefObject<View | null>;
+type BlurTarget = RefObject<ComponentRef<typeof View> | null>;
 type BlurContextValue = {
   target: BlurTarget | undefined;
   register: (target: BlurTarget) => () => void;
@@ -11,7 +11,7 @@ type BlurContextValue = {
 
 const BlurContext = createContext<BlurContextValue | null>(null);
 
-/** Shares the focused scene with SDK 57's Android blur renderer. */
+/** Shares the focused scene with SDK 58's Android blur renderer. */
 export function AcharyaBlurProvider({ children }: PropsWithChildren): React.ReactElement {
   const [target, setTarget] = useState<BlurTarget>();
   const register = useCallback((next: BlurTarget) => {
@@ -24,7 +24,7 @@ export function AcharyaBlurProvider({ children }: PropsWithChildren): React.Reac
 
 /** Wrap screen content only, leaving the floating tab bar outside its own blur target. */
 export function AcharyaBlurTarget({ children }: PropsWithChildren): React.ReactElement {
-  const target = useRef<View>(null);
+  const target = useRef<ComponentRef<typeof View>>(null);
   const register = useContext(BlurContext)?.register;
   useFocusEffect(useCallback(() => register?.(target), [register]));
   return <BlurTargetView ref={target} style={styles.scene}>{children}</BlurTargetView>;

@@ -71,7 +71,7 @@ export function ProviderModelPicker({ owner, provider, title, selected, onSelect
       {loading ? <ActivityIndicator accessibilityLabel="Loading models" style={styles.loader} /> : null}
       {saving ? <Text accessibilityLiveRegion="polite" style={styles.hint}>Saving model…</Text> : null}
       <FlatList data={filtered} keyExtractor={(item) => item.id} keyboardShouldPersistTaps="handled" style={styles.list}
-        ListEmptyComponent={!loading && !error ? <Text style={styles.hint}>{query ? 'No matching models.' : 'No models returned. Try Refresh or enter an ID.'}</Text> : null}
+        ListEmptyComponent={!loading && !error ? <Text style={styles.hint}>{query ? 'No matching models.' : 'No models returned. Try Refresh or enter an ID.'}</Text> : undefined}
         renderItem={({ item }) => <Pressable accessibilityRole="button" accessibilityLabel={`${item.name}. ${item.description}`}
           accessibilityState={{ selected: item.id === selected, disabled: saving || !item.selectable }} disabled={saving || !item.selectable}
           onPress={() => void choose(item.id)} style={[styles.row, item.id === selected && styles.selected, !item.selectable && styles.disabled]}>

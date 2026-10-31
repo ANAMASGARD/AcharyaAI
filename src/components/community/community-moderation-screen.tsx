@@ -38,8 +38,8 @@ export function CommunityModerationScreen(): React.ReactElement {
   return <SafeAreaView style={{ flex: 1, backgroundColor: colors.cream }}>
     <CommunityScreenHeader title="Moderation queue" />
     <FlatList data={reports} keyExtractor={report => report.reportId} contentContainerStyle={{ padding: 20, gap: 16 }} onRefresh={() => void refresh()} refreshing={loading}
-      ListHeaderComponent={error ? <Text selectable accessibilityRole="alert" style={{ color: colors.destructive }}>{error}</Text> : null}
-      ListEmptyComponent={loading ? <ActivityIndicator color={colors.foreground} /> : !error ? <Text style={{ color: colors.foreground }}>No reports awaiting review.</Text> : null}
+      ListHeaderComponent={error ? <Text selectable accessibilityRole="alert" style={{ color: colors.destructive }}>{error}</Text> : undefined}
+      ListEmptyComponent={loading ? <ActivityIndicator color={colors.foreground} /> : !error ? <Text style={{ color: colors.foreground }}>No reports awaiting review.</Text> : undefined}
       renderItem={({ item }) => <View style={{ padding: 16, gap: 12, borderColor: colors.border, borderWidth: 2, borderRadius: 12 }}>
         <Text selectable style={{ color: colors.foreground, fontWeight: '700' }}>{item.targetType} · {item.reason}</Text>
         {item.body ? <Text selectable style={{ color: colors.foreground }}>{item.body}</Text> : null}
