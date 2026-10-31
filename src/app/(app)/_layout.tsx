@@ -6,6 +6,7 @@ import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { KeyboardProvider } from 'react-native-keyboard-controller';
 
+import { RagSessionLifecycle } from '@/components/rag/rag-session-lifecycle';
 import { CommunityLifecycle } from '@/hooks/use-community';
 import { UiPreviewProvider } from '@/components/preview/preview-provider';
 import { AcharyaBlurProvider, AcharyaBlurTarget } from '@/components/ui/acharya-blur';
@@ -24,6 +25,7 @@ export default function AppLayout(): React.ReactElement {
   return <GestureHandlerRootView style={styles.root}>
     <KeyboardProvider>
       <UiPreviewProvider key={userId} owner={userId}>
+        <RagSessionLifecycle />
         <CommunityLifecycle />
         <ReportSyncLifecycle />
         <ProductStack />

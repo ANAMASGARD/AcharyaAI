@@ -1,7 +1,7 @@
 {
   "name": "acharyaapp",
   "main": "expo-router/entry",
-  "version": "1.0.9",
+  "version": "1.0.12",
   "dependencies": {
     "@clerk/backend": "^3.23.2",
     "@clerk/expo": "^4.14.5",
@@ -52,7 +52,12 @@
     "react-native-tab-view": "4.3.3",
     "react-native-web": "~0.21.0",
     "react-native-worklets": "0.13.0",
-    "zustand": "5.0.15"
+    "zustand": "5.0.15",
+    "js-tiktoken": "1.0.21",
+    "openai": "7.47.0",
+    "pdf-lib": "1.17.1",
+    "pdf-parse": "2.4.5",
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@types/react": "~19.3.0",
@@ -61,7 +66,9 @@
     "eslint": "^9.0.0",
     "eslint-config-expo": "~58.0.4",
     "patch-package": "^8.0.1",
-    "typescript": "~6.0.3"
+    "typescript": "~6.0.3",
+    "tsx": "4.23.15",
+    "vitest": "4.1.10"
   },
   "scripts": {
     "start": "expo start",
@@ -77,7 +84,9 @@
     "db:generate:expo": "drizzle-kit generate --config drizzle.config.expo.ts",
     "check": "npm run typecheck && npm run lint && npm test && expo export --platform all --clear",
     "postinstall": "patch-package --error-on-fail",
-    "native:gate:prepare": "node scripts/native-gate/prepare.cjs"
+    "native:gate:prepare": "node scripts/native-gate/prepare.cjs",
+    "test:rag": "vitest run --config vitest.rag.config.ts",
+    "rag:status": "node scripts/rag-status.cjs"
   },
   "overrides": {
     "xcode": {

@@ -1,0 +1,35 @@
+{
+  "reason": "User-approved 2026-10-31: Santoor Grade 4 contents (desa1ps.pdf p15) has 12 chapters; these six legacy Marigold PDFs are not part of that edition. Preserve files locally, exclude from curriculum publication.",
+  "files": [
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa113.pdf",
+      "sha256": "1484dd17136629a9a7cafd904a6e59bdb24bf366614936a1b38cfcbaf79cd13e"
+    },
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa114.pdf",
+      "sha256": "9ad9f115782cc5e37b9855f33fc8e482d879bdebd1df2b5c83db4384078d50d7"
+    },
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa115.pdf",
+      "sha256": "71882c7fab7946518315a76e013ce652c01ac083cd169dce74a323ee7c7aa0d5"
+    },
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa116.pdf",
+      "sha256": "590d04df6bd611eecc874f9a5cbf88b53739df5176a96029136ca012b84bc642"
+    },
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa117.pdf",
+      "sha256": "bffecbadab166ca6676c11e8150855e2a7bfab900e8250cfe530d09e80579601"
+    },
+    {
+      "bookId": "ncert-english-class-4-marigold",
+      "relativePath": "class-4/english/marigold/desa118.pdf",
+      "sha256": "44b95a02357c08b4d1804db0e9c5894545a30515c3da19f2b7f1623df514bbbb"
+    }
+  ]
+}

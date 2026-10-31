@@ -1,18 +1,16 @@
-import type { PreviewAttachment } from '@/lib/ui-preview/types';
+import type { PreviewAttachment } from "@/lib/ui-preview/types";
+import type { Citation, SourceSelection } from "./rag";
 export type ChatReplyPhase =
-  | "idle"
-  | "sent"
-  | "analyzing"
-  | "preparing"
-  | "almost_ready";
+  "idle" | "sent" | "analyzing" | "preparing" | "almost_ready";
 
 export type ChatRole = "user" | "assistant" | "system";
 
 export type ChatMessage = Readonly<{
   messageId: string;
+  attachments?: PreviewAttachment[];
+  citations?: Citation[];
   role: ChatRole;
   content: string;
-  attachments?: PreviewAttachment[];
   createdAt: string;
 }>;
 
@@ -20,6 +18,8 @@ export type ChatConversation = Readonly<{
   conversationId: string;
   createdAt: string;
   contextSnapshot: string;
+  verificationId?: string | null;
+  selections?: SourceSelection[];
 }>;
 
 export type ChatConversationSummary = Readonly<{
@@ -50,5 +50,6 @@ export type NdjsonStreamEvent =
       conversationId: string;
       messageId: string;
       userMessageId: string;
+      citations?: Citation[];
     }>
   | Readonly<{ type: "error"; error: string; code?: string }>;

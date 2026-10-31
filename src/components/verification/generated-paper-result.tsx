@@ -13,7 +13,7 @@ export function GeneratedPaperResult({ paper }: { paper: GeneratedPaper }): Reac
           <View style={styles.paperCard}>
             <Text style={styles.paperTitle}>{paper.title}</Text>
             <Text style={styles.paperMeta}>
-              {paper.totalMarks} marks · {paper.difficulty}
+              Draft · {paper.totalMarks} proposed marks · {paper.difficulty}
             </Text>
             {paper.sections.map((section) => (
               <View key={section.title} style={styles.sectionBlock}>

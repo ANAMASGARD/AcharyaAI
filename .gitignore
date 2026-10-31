@@ -45,3 +45,7 @@ example
 
 # Locally built APKs
 /releases/
+
+/.codex-work/
+/release/*.apk
+/release/*.apk.sha256

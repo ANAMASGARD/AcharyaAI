@@ -23,7 +23,7 @@ test('reachable UI permits only recorder and report SQLite while isolating serve
     assert.doesNotMatch(relative, /^src\/(?:server|lib\/sync|components\/(?:database|sync))\//, relative);
     if (relative.startsWith('src/db/')) assert.ok(['src/db/client.ts', 'src/db/schema.ts', 'src/db/ready.ts'].includes(relative), relative);
     const text = fs.readFileSync(filename, 'utf8');
-    assert.doesNotMatch(text, /process\.env\.(?:GNANI_API_KEY|GEMINI_API_KEY|CLERK_SECRET_KEY|DATABASE_URL)\b/, `${relative}: server secret`);
+    assert.doesNotMatch(text, /process\.env\.(?:GNANI_API_KEY|GEMINI_API_KEY|OPENAI_API_KEY|CLERK_SECRET_KEY|DATABASE_URL|RAG_OPENAI_API_KEY|RAG_DATABASE_URL|RAG_CLERK_SECRET_KEY)\b/, `${relative}: server secret`);
     const tree = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true, filename.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
     function visit(node) {
       if ((ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) && node.moduleSpecifier && ts.isStringLiteral(node.moduleSpecifier)) {

@@ -1,0 +1,156 @@
+[
+  {
+    "bookId": "ncert-english-class-2-marigold",
+    "pdf": "bemr101.pdf",
+    "page": 1,
+    "query": "साइकिल का रंग क्या है और उसकी घंटी कैसी आवाज करती है?",
+    "expectedTerm": "red"
+  },
+  {
+    "bookId": "ncert-english-class-2-marigold",
+    "pdf": "bemr113.pdf",
+    "page": 18,
+    "query": "What should children ask their parents or grandparents to teach them for the folk-song project?",
+    "expectedTerm": "song"
+  },
+  {
+    "bookId": "ncert-english-class-3-marigold",
+    "pdf": "cesa101.pdf",
+    "page": 1,
+    "query": "Where are the hen and her chicks going in the opening picture story?",
+    "expectedTerm": "fair"
+  },
+  {
+    "bookId": "ncert-english-class-3-marigold",
+    "pdf": "cesa112.pdf",
+    "page": 11,
+    "query": "What choices can learners select when assessing how they recite poems?",
+    "expectedTerm": "poem"
+  },
+  {
+    "bookId": "ncert-english-class-4-marigold",
+    "pdf": "desa101.pdf",
+    "page": 1,
+    "query": "What does Together We Can say about standing strong and tall through teamwork?",
+    "expectedTerm": "together"
+  },
+  {
+    "bookId": "ncert-english-class-4-marigold",
+    "pdf": "desa112.pdf",
+    "page": 12,
+    "query": "Who should fill in the final self-assessment sheet, and how may teachers use it?",
+    "expectedTerm": "learners"
+  },
+  {
+    "bookId": "ncert-english-class-5-marigold",
+    "pdf": "eeen101.pdf",
+    "page": 3,
+    "query": "Which flavours does the Ice-cream Man sell?",
+    "expectedTerm": "vanilla"
+  },
+  {
+    "bookId": "ncert-english-class-5-marigold",
+    "pdf": "eeen110.pdf",
+    "page": 17,
+    "query": "In the teaching notes for Unit 10, why is Sanatombi the right choice to become Leima?",
+    "expectedTerm": "Sanatombi"
+  },
+  {
+    "bookId": "ncert-science-class-6-curiosity",
+    "pdf": "fecu101.pdf",
+    "page": 1,
+    "query": "बचपन की जिज्ञासा और प्रश्न पूछने का विज्ञान से क्या संबंध है?",
+    "expectedTerm": "curious"
+  },
+  {
+    "bookId": "ncert-science-class-6-curiosity",
+    "pdf": "fecu112.pdf",
+    "page": 23,
+    "query": "What advice closes the science book about continuing to explore and ask why?",
+    "expectedTerm": "science"
+  },
+  {
+    "bookId": "ncert-english-class-7-an-alien-hand",
+    "pdf": "geah101.pdf",
+    "page": 1,
+    "query": "What are the two common kinds of ants and where do they live?",
+    "expectedTerm": "ant"
+  },
+  {
+    "bookId": "ncert-english-class-7-an-alien-hand",
+    "pdf": "geah107.pdf",
+    "page": 9,
+    "query": "Why might the Viking missions have overlooked or killed Martian microbes?",
+    "expectedTerm": "Viking"
+  },
+  {
+    "bookId": "ncert-english-class-8-honeydew",
+    "pdf": "hehd101.pdf",
+    "page": 10,
+    "query": "What was hidden in the secret drawer of the roll-top desk?",
+    "expectedTerm": "letter"
+  },
+  {
+    "bookId": "ncert-english-class-8-honeydew",
+    "pdf": "hehd108.pdf",
+    "page": 13,
+    "query": "Which voices represent summer and winter in the poem On the Grasshopper and Cricket?",
+    "expectedTerm": "cricket"
+  },
+  {
+    "bookId": "ncert-english-class-9-beehive",
+    "pdf": "iebe101.pdf",
+    "page": 3,
+    "query": "Which Kannada weekly serialised Kashi Yatre?",
+    "expectedTerm": "Karmaveera"
+  },
+  {
+    "bookId": "ncert-english-class-9-beehive",
+    "pdf": "iebe1a1.pdf",
+    "page": 18,
+    "query": "What does the girl tell the nervous boy about confidence before he goes on stage?",
+    "expectedTerm": "confidence"
+  },
+  {
+    "bookId": "ncert-english-class-10-first-flight",
+    "pdf": "jeff101.pdf",
+    "page": 1,
+    "query": "How much money did Lencho ask God to send after his crops were ruined?",
+    "expectedTerm": "hundred"
+  },
+  {
+    "bookId": "ncert-english-class-10-first-flight",
+    "pdf": "jeff109.pdf",
+    "page": 21,
+    "query": "Which courts can issue writs to enforce fundamental rights?",
+    "expectedTerm": "Supreme"
+  },
+  {
+    "bookId": "ncert-english-class-11-hornbill",
+    "pdf": "kehb101.pdf",
+    "page": 3,
+    "query": "How does the narrator describe his grandfather in the portrait above the mantelpiece?",
+    "expectedTerm": "beard"
+  },
+  {
+    "bookId": "ncert-english-class-11-hornbill",
+    "pdf": "kehb116.pdf",
+    "page": 3,
+    "query": "Which different writing forms are suggested for the topic of environmental conservation?",
+    "expectedTerm": "environment"
+  },
+  {
+    "bookId": "ncert-english-class-12-flamingo",
+    "pdf": "lefl101.pdf",
+    "page": 4,
+    "query": "What order did M. Hamel announce from Berlin about teaching in Alsace and Lorraine?",
+    "expectedTerm": "German"
+  },
+  {
+    "bookId": "ncert-english-class-12-flamingo",
+    "pdf": "lefl115.pdf",
+    "page": 2,
+    "query": "What do Aunt Jennifer’s wedding band and terrified hands suggest in the poem?",
+    "expectedTerm": "wedding"
+  }
+]

@@ -1,0 +1,5 @@
+{
+  "books": [
+    { "bookId": "ncert-science-class-6-curiosity", "reason": "User requested leaving Curiosity out of this release on 2026-10-31. Keep its local PDFs and unpublished checkpoints." }
+  ]
+}

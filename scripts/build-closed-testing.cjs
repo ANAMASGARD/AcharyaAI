@@ -8,6 +8,7 @@ const root = path.resolve(__dirname, '..');
 const version = require('../package.json').version;
 const secrets = path.join(require('node:os').homedir(), '.local/share/acharya');
 const signing = path.join(secrets, 'signing/com.acharya.app');
+const apkOnly = process.env.ACHARYA_APK_ONLY === '1';
 const channel = process.env.ACHARYA_UPDATE_CHANNEL || 'production';
 if (!['production', 'staging'].includes(channel)) throw new Error('Release channel must be production or staging');
 const env = { ...process.env, ACHARYA_UPDATE_CHANNEL: channel };
@@ -15,6 +16,7 @@ const env = { ...process.env, ACHARYA_UPDATE_CHANNEL: channel };
 env.JAVA_HOME = process.env.ACHARYA_JAVA_HOME || '/usr/lib/jvm/java-17-temurin-jdk';
 env.PATH = path.join(env.JAVA_HOME, 'bin') + path.delimiter + env.PATH;
 Object.assign(env, require('./release-environment.cjs')(channel));
+env.ACHARYA_METRO_WORKERS = '2';
 Object.assign(env, { ACHARYA_KEYSTORE_PATH: path.join(signing, 'acharya-release.p12'), ACHARYA_KEY_ALIAS: 'acharya-release', ACHARYA_KEY_PASSWORD: fs.readFileSync(path.join(signing, 'keystore-password.txt'), 'utf8').trim() });
 const run = (cmd, args, cwd = root) => { const r = spawnSync(cmd, args, { cwd, env, stdio:'inherit' }); if (r.status !== 0) process.exit(r.status || 1); };
 run('npx', ['expo','prebuild','--platform','android','--no-install']);
@@ -37,10 +39,10 @@ fs.writeFileSync(init, `gradle.beforeProject { app ->
 // Release lint loads the SDK and OTA classes together; 512 MiB metaspace is insufficient.
 const gradleArgs = ['-I',init,'--console=plain','--max-workers=2','--no-daemon',
   `-Dorg.gradle.jvmargs=${process.env.ACHARYA_GRADLE_JVM_ARGS || '-Xmx2048m -XX:MaxMetaspaceSize=1024m'}`];
-run('./gradlew',[':app:bundleRelease','-Pacharya.splitApks=false',...gradleArgs],path.join(root,'android'));
-run('./gradlew',[':app:assembleRelease','-Pacharya.splitApks=true',...gradleArgs],path.join(root,'android'));
+if (!apkOnly) run('./gradlew',[':app:bundleRelease','-Pacharya.splitApks=false',...gradleArgs],path.join(root,'android'));
+run('./gradlew',[':app:assembleRelease',...(apkOnly ? ['-Pacharya.splitApks=false', '-PreactNativeArchitectures=arm64-v8a'] : ['-Pacharya.splitApks=true']),...gradleArgs],path.join(root,'android'));
 fs.mkdirSync(path.join(root,'releases'), {recursive:true});
-const artifacts = [
+const artifacts = apkOnly ? [['apk/release/app-release.apk', `Acharya-AI-${version}-rag-arm64.apk`]] : [
   ['bundle/release/app-release.aab', `Acharya-AI-${version}${channel === 'staging' ? '-staging' : ''}.aab`],
   ['apk/release/app-universal-release.apk', `Acharya-AI-${version}${channel === 'staging' ? '-staging' : ''}-universal.apk`],
   ...['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'].map((abi) =>
@@ -52,7 +54,7 @@ for (const [source, target] of artifacts) {
   const bytes = fs.readFileSync(destination);
   fs.writeFileSync(`${destination}.sha256`, `${createHash('sha256').update(bytes).digest('hex')}  ${target}\n`);
 }
-for (const [source, target] of channel === 'staging' ? [] : [
+for (const [source, target] of channel === 'staging' || apkOnly ? [] : [
   [`Acharya-AI-${version}.aab`, 'Acharya-AI-closed-testing.aab'],
   [`Acharya-AI-${version}-universal.apk`, 'Acharya-AI-closed-testing.apk'],
 ]) fs.copyFileSync(path.join(root, 'releases', source), path.join(root, 'releases', target));
