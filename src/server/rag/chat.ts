@@ -193,6 +193,8 @@ export async function deleteConversationForTeacher(
   owner: string,
   id: string,
 ): Promise<boolean> {
+  const { endConversationVoice } = await import("../voice/sessions");
+  await endConversationVoice(owner,id);
   return (
     (
       await query(

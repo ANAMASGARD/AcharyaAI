@@ -37,6 +37,19 @@
       "tag": "0004_request_fingerprints",
       "breakpoints": true
     },
-    { "idx": 5, "version": "7", "when": 1793448000005, "tag": "0005_review_chat", "breakpoints": true }
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1793448000005,
+      "tag": "0005_review_chat",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793448000006,
+      "tag": "0006_voice_sessions",
+      "breakpoints": true
+    }
   ]
 }
