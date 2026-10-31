@@ -1,6 +1,8 @@
-import { and, eq, isNull } from 'drizzle-orm';
+import { addReportIndexSources, scheduleReportIndexing } from '@/lib/embeddings/indexing';
+import { validateVectorBatch, decodeStoredVector } from '@/lib/embeddings/sync-contract';
+import { and, eq, isNull, asc, sql } from 'drizzle-orm';
 import { readyLocalDb } from '@/db/ready';
-import { localReports, recordingSessions, reportSyncAccounts, reportSyncAcks } from '@/db/schema';
+import { localReports, recordingSessions, reportSyncAccounts, reportSyncAcks, reportVectors } from '@/db/schema';
 import { validateSyncedReport, type SyncedReport } from './sync-contract';
 
 type Token = () => Promise<string | null>;
@@ -12,6 +14,10 @@ export function cloudConfigured(): boolean { return !!process.env.EXPO_PUBLIC_NE
 export function stopReportSync(owner: string): void { flights.get(owner)?.abort(); }
 export async function reportSyncStatus(owner: string) {
   const db = await readyLocalDb();
+  const existing = db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get();
+  if (existing || !cloudConfigured()) return existing;
+  // New accounts sync automatically; a teacher's explicit Off choice persists.
+  db.insert(reportSyncAccounts).values({ owner, enabled: true }).onConflictDoNothing().run();
   return db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get();
 }
 export async function setReportSyncConsent(owner: string, enabled: boolean): Promise<void> {
@@ -33,20 +39,29 @@ async function request(getToken: Token, path: string, signal: AbortSignal, metho
   const base = process.env.EXPO_PUBLIC_NEON_FUNCTION_URL?.replace(/\/$/, '');
   if (!base || new URL(base).protocol !== 'https:') throw new Error('Cloud sync needs a configured HTTPS endpoint.');
   const token = await getToken();
-  signal.throwIfAborted();
+  if (signal.aborted) throw new Error('Sync cancelled');
   if (!token) throw new Error('Sign in again to synchronize.');
   const controller = new AbortController();
   const cancel = () => controller.abort();
   signal.addEventListener('abort', cancel, { once: true });
   const timer = setTimeout(cancel, 20_000);
   try {
-    const response = await fetch(`${base}${path}`, { method, signal: controller.signal,
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      ...(body ? { body: JSON.stringify(body) } : {}) });
-    if (!response.ok) throw new Error(response.status === 409 ? 'A report conflicts with its cloud copy. Your local report is safe.' : `Cloud sync failed (${response.status}). Your local reports are safe.`);
-    const value: unknown = await response.json();
-    signal.throwIfAborted();
-    return value;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      if (signal.aborted || controller.signal.aborted) throw new Error('Sync cancelled or timed out');
+      const response = await fetch(`${base}${path}`, { method, signal: controller.signal,
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        ...(body ? { body: JSON.stringify(body) } : {}) });
+      if (response.status === 429 && attempt < 3) {
+        const retry = Number(response.headers?.get?.('Retry-After'));
+        await pause(signal, Math.min(5000, Math.max(1000 * (attempt + 1), Number.isFinite(retry) ? retry * 1000 : 0)));
+        continue;
+      }
+      if (!response.ok) throw new Error(response.status === 409 ? 'A report conflicts with its cloud copy. Your local report is safe.' : `Cloud sync failed (${response.status}). Your local reports are safe.`);
+      const value: unknown = await response.json();
+      if (signal.aborted) throw new Error('Sync cancelled');
+      return value;
+    }
+    throw new Error('Sync is temporarily rate limited. Queued reports remain on this device.');
   } finally { clearTimeout(timer); signal.removeEventListener('abort', cancel); }
 }
 export async function deleteCloudAccount(getToken: Token): Promise<void> {
@@ -61,10 +76,10 @@ export async function syncReports(owner: string, getToken: Token): Promise<void>
   const signal = controller.signal;
   try {
     const db = await readyLocalDb();
-    const allowed = () => { signal.throwIfAborted(); if (!db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get()?.enabled) throw new Error('Sync paused'); };
+    const allowed = () => { if (signal.aborted) throw new Error('Sync cancelled'); if (!db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get()?.enabled) throw new Error('Sync paused'); };
     if (!(await reportSyncStatus(owner))?.enabled) return;
     const pending = db.select({ report: localReports }).from(localReports).leftJoin(reportSyncAcks, and(eq(reportSyncAcks.id, localReports.sessionId), eq(reportSyncAcks.owner, owner)))
-      .where(and(eq(localReports.ownerClerkId, owner), isNull(reportSyncAcks.id))).limit(20).all();
+      .where(and(eq(localReports.ownerClerkId, owner), isNull(reportSyncAcks.id))).orderBy(sql`local_reports.rowid`).limit(20).all();
     for (const { report: row } of pending) {
       allowed();
       const payload = validateSyncedReport({ id: row.sessionId, title: row.title, subject: row.subject, grade: row.grade,
@@ -73,6 +88,33 @@ export async function syncReports(owner: string, getToken: Token): Promise<void>
       allowed();
       if (!isObject(ack) || ack.id !== row.sessionId || !revision(ack.revision)) throw new Error('Invalid cloud acknowledgement');
       db.insert(reportSyncAcks).values({ owner, id: row.sessionId, revision: ack.revision }).onConflictDoNothing().run();
+      await pause(signal);
+    }
+    // Report acknowledgements precede their vector upload. Offline vectors stay queued.
+    // Persistent sequence makes FIFO explicit, independent of random IDs or row layout.
+    // A failed/unready head remains queued; younger vectors cannot overtake it.
+    for (let batch = 0; batch < 10; batch++) {
+      const pending = db.select().from(reportVectors).where(and(eq(reportVectors.owner, owner), eq(reportVectors.synced, false)))
+        .orderBy(asc(reportVectors.enqueueSequence)).limit(20).all();
+      if (!pending.length || pending[0].vector === null) break;
+      const reportId = pending[0].sessionId;
+      const group: typeof pending = [];
+      for (const row of pending) {
+        if (row.sessionId !== reportId || row.vector === null) break;
+        group.push(row);
+      }
+      const acked = db.select().from(reportSyncAcks).where(and(eq(reportSyncAcks.id, reportId), eq(reportSyncAcks.owner, owner))).get();
+      if (!acked) break;
+      allowed();
+      const payload = validateVectorBatch({ reportId, chunks: group.map(row => ({ id: row.id, kind: row.kind, chunkIndex: row.chunkIndex,
+        title: row.title, content: row.content, contract: row.contract, vector: decodeStoredVector(new Uint8Array(row.vector!)) })) });
+      const ack = await request(getToken, '/vectors', signal, 'POST', payload);
+      allowed();
+      if (!isObject(ack) || !Array.isArray(ack.ids) || ack.ids.length !== group.length || !group.every(row => (ack.ids as unknown[]).includes(row.id))) throw new Error('Invalid vector acknowledgement');
+      db.transaction(tx => {
+        allowed();
+        for (const row of group) tx.update(reportVectors).set({ synced: true }).where(and(eq(reportVectors.id, row.id), eq(reportVectors.owner, owner))).run();
+      });
       await pause(signal);
     }
     let cursor = db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get()?.cursor ?? '0';
@@ -103,7 +145,7 @@ export async function syncReports(owner: string, getToken: Token): Promise<void>
       const db = await readyLocalDb();
       if (!signal.aborted) db.update(reportSyncAccounts).set({ lastError: error instanceof Error ? error.message : 'Cloud sync failed. Your reports are safe.' }).where(eq(reportSyncAccounts.owner, owner)).run();
     }
-  } finally { if (flights.get(owner) === controller) flights.delete(owner); changed(); }
+  } finally { if (flights.get(owner) === controller) flights.delete(owner); changed(); void scheduleReportIndexing(owner).catch(() => {}); }
 }
 type Db = Awaited<ReturnType<typeof readyLocalDb>>;
 type Tx = Parameters<Parameters<Db['transaction']>[0]>[0];
@@ -120,16 +162,18 @@ function restoreReport(tx: Tx, owner: string, report: SyncedReport, rev: string)
     tx.insert(recordingSessions).values({ id: report.id, ownerClerkId: owner, title: report.title, subject: report.subject, grade: report.grade,
       startedAt: report.recordedAt, updatedAt: report.createdAt, durationMs: report.durationMs, expectedChunkCount: 0,
       status: 'complete', serverCreated: true, serverFinalized: true, error: null }).onConflictDoNothing().run();
-    tx.insert(localReports).values({ sessionId: report.id, ownerClerkId: owner, title: report.title, subject: report.subject, grade: report.grade,
-      recordedAt: report.recordedAt, durationMs: report.durationMs, reportJson: report.reportJson, classNotes: report.classNotes, model: report.model, createdAt: report.createdAt }).run();
+    const row = { sessionId: report.id, ownerClerkId: owner, title: report.title, subject: report.subject, grade: report.grade,
+      recordedAt: report.recordedAt, durationMs: report.durationMs, reportJson: report.reportJson, classNotes: report.classNotes, model: report.model, createdAt: report.createdAt };
+    tx.insert(localReports).values(row).run();
+    addReportIndexSources(tx, row);
   }
   tx.insert(reportSyncAcks).values({ id: report.id, owner, revision: rev }).onConflictDoNothing().run();
 }
-function pause(signal: AbortSignal): Promise<void> {
+function pause(signal: AbortSignal, milliseconds = 500): Promise<void> {
   return new Promise((resolve, reject) => {
-    signal.throwIfAborted();
+    if (signal.aborted) throw new Error('Sync cancelled');
     const abort = () => { clearTimeout(timer); reject(new Error('Sync cancelled')); };
-    const timer = setTimeout(() => { signal.removeEventListener('abort', abort); resolve(); }, 300);
+    const timer = setTimeout(() => { signal.removeEventListener('abort', abort); resolve(); }, milliseconds);
     signal.addEventListener('abort', abort, { once: true });
   });
 }

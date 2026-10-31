@@ -12,7 +12,66 @@ class AcharyaEmbeddingsModule : Module() {
   }
   override fun definition() = ModuleDefinition {
     Name("AcharyaEmbeddings")
-    Constants("contract" to EmbeddingContract.ID, "available" to false, "downloadsAvailable" to true)
+    Constants("contract" to EmbeddingContract.ID, "available" to true, "downloadsAvailable" to true, "recordingAvailable" to true)
+    AsyncFunction("startClassRecording") { owner: String, session: String ->
+      val context = requireNotNull(appContext.reactContext)
+      check(appContext.currentActivity?.hasWindowFocus() == true) { "Open Acharya before starting recording" }
+      check(ClassRecordingService.instance == null) { "A class is already recording" }
+      val dir = ClassRecordingService.directory(context.noBackupFilesDir, owner, session)
+      check(!dir.exists()) { "Capture session already exists" }
+      context.startForegroundService(android.content.Intent(context, ClassRecordingService::class.java).putExtra("owner", owner).putExtra("session", session))
+      for (attempt in 0 until 100) {
+        if (File(dir, "error").exists()) error(File(dir, "error").readText())
+        if (File(dir, "started").exists()) break
+        Thread.sleep(50)
+      }
+      check(File(dir, "started").exists()) { "Microphone did not start" }
+    }
+    AsyncFunction("stopClassRecording") { owner: String, session: String ->
+      ClassRecordingService.instance?.let {
+        check(it.owner == owner && it.session == session) { "Recording owner mismatch" }
+        it.stopCapture()
+      }
+    }
+    AsyncFunction("classRecordingStatus") { owner: String, session: String ->
+      val context = requireNotNull(appContext.reactContext)
+      val dir = ClassRecordingService.directory(context.noBackupFilesDir, owner, session)
+      mapOf("active" to (ClassRecordingService.instance?.let { it.owner == owner && it.session == session } == true),
+        "error" to File(dir, "error").takeIf { it.exists() }?.readText(),
+        "chunks" to dir.listFiles().orEmpty().filter { it.extension == "wav" }.sortedBy { it.nameWithoutExtension.toInt() }.map {
+          mapOf("index" to it.nameWithoutExtension.toInt(), "uri" to android.net.Uri.fromFile(it).toString(), "durationMs" to ((it.length() - 44) * 1000 / 32000))
+        })
+    }
+    AsyncFunction("ackClassChunk") { owner: String, session: String, index: Int ->
+      require(index >= 0)
+      val context = requireNotNull(appContext.reactContext)
+      val file = File(ClassRecordingService.directory(context.noBackupFilesDir, owner, session), "$index.wav")
+      check(!file.exists() || file.delete()) { "Could not acknowledge saved audio" }
+    }
+    AsyncFunction("clearClassCapture") { owner: String ->
+      require(owner.matches(Regex("[A-Za-z0-9_-]{1,128}")))
+      ClassRecordingService.instance?.takeIf { it.owner == owner }?.stopCapture()
+      val context = requireNotNull(appContext.reactContext)
+      File(context.noBackupFilesDir, "class-capture/$owner").deleteRecursively()
+    }
+    AsyncFunction("scheduleReportIndex") { owner: String, generation: String ->
+      require(owner.matches(Regex("[A-Za-z0-9_-]{1,128}")))
+      val context = requireNotNull(appContext.reactContext)
+      val work = androidx.work.OneTimeWorkRequestBuilder<ReportEmbeddingWorker>()
+        .setInputData(androidx.work.Data.Builder().putString("owner", owner).putString("generation", generation).build())
+        .setConstraints(androidx.work.Constraints.Builder().setRequiresBatteryNotLow(true).build())
+        .setBackoffCriteria(androidx.work.BackoffPolicy.EXPONENTIAL, 30, java.util.concurrent.TimeUnit.SECONDS).build()
+      androidx.work.WorkManager.getInstance(context).enqueueUniqueWork("report-index-$owner", androidx.work.ExistingWorkPolicy.KEEP, work)
+    }
+    AsyncFunction("getIndexingDiagnostic") { owner: String ->
+      val context = requireNotNull(appContext.reactContext)
+      val prefs = context.getSharedPreferences("acharya-index-status", android.content.Context.MODE_PRIVATE)
+      mapOf("state" to prefs.getString("$owner.state", "pending"), "error" to prefs.getString("$owner.error", null))
+    }
+    AsyncFunction("cancelReportIndex") { owner: String ->
+      val context = requireNotNull(appContext.reactContext)
+      androidx.work.WorkManager.getInstance(context).cancelUniqueWork("report-index-$owner").result.get(10, java.util.concurrent.TimeUnit.SECONDS)
+    }
     AsyncFunction("modelDownloaded") {
       val model = File(directory(), EmbeddingContract.FILE_NAME)
       model.exists() && runCatching { EmbeddingContract.verify(model) }.isSuccess

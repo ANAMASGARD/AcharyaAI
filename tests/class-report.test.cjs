@@ -11,18 +11,19 @@ function load(file, mocks = {}) {
 }
 const feedback = { classroomEnvironment: 'Only teacher speech is available.', whatWentWrong: 'No supported errors.', areasToImprove: 'Ask for an example.', topicSpecificFeedback: 'Fractions were introduced.', overallScore: 70 };
 const input = { transcript: 'one half plus one half is one. '.repeat(2200), topic: 'Fractions', subject: 'Math', classLevel: '6' };
-function setup(responses, credentialError) {
+function setup(responses, credentialError, selectedProvider = 'openai', selectedModel = 'gpt-6-luna') {
   const calls = [];
   const transport = load('src/lib/ai/transport.ts', {
     '@/lib/ai-keys/vault': { getProviderCredential: async (owner, provider) => {
-      assert.equal(owner, 'teacher'); assert.equal(provider, 'openai');
+      assert.equal(owner, 'teacher'); assert.equal(provider, selectedProvider);
       if (credentialError) throw Error(credentialError);
-      return { apiKey: 'private-test-key', baseUrl: 'https://api.openai.com/v1', model: 'old-model' };
+      return { apiKey: 'private-test-key', baseUrl: 'https://api.openai.com/v1', model: selectedModel };
     } },
     './cancellation': { registerAiRequest: () => () => {} },
     'expo/fetch': { fetch: async (url, options) => { calls.push({ url, options }); return responses.shift(); } },
   });
   const api = load('src/lib/ai/class-report.ts', {
+    '@/lib/ai-keys/vault': { getActiveProvider: async () => selectedProvider },
     './transport': transport,
     '@/lib/prompts/teaching-analysis': load('src/lib/prompts/teaching-analysis.ts'),
     '@/lib/prompts/class-notes': load('src/lib/prompts/class-notes.ts'),
@@ -79,4 +80,25 @@ test('notes failure is a failure of the complete report, with no automatic paid 
   const { api, calls } = setup([response(JSON.stringify(feedback)), response('', 'length')]);
   await assert.rejects(api.generateClassReport('teacher', input, new AbortController().signal, () => {}), /did not finish/);
   assert.equal(calls.length, 2);
+});
+
+
+test('reports honor the teacher-selected model instead of hard-coding Luna', async () => {
+  const h = setup([response(JSON.stringify(feedback)), response('Class notes')], null, 'openai', 'selected-model');
+  const result = await h.api.generateClassReport('teacher', input, new AbortController().signal, () => {});
+  assert.equal(result.model, 'selected-model');
+  assert.ok(h.calls.every(call => JSON.parse(call.options.body).model === 'selected-model'));
+});
+
+test('Gemini and Claude default providers produce both report and notes with their own keys', async () => {
+  for (const provider of ['gemini','claude']) {
+    const reply = text => Response.json(provider === 'gemini'
+      ? {candidates:[{finishReason:'STOP',content:{parts:[{text}]}}]}
+      : {stop_reason:'end_turn',content:[{type:'text',text}]});
+    const h = setup([reply(JSON.stringify(feedback)),reply('Class notes')],null,provider,'selected-model');
+    const result = await h.api.generateClassReport('teacher',input,new AbortController().signal,()=>{});
+    assert.equal(result.model,'selected-model'); assert.equal(result.report.overallScore,70);
+    assert.equal(h.calls.length,2);
+    assert.ok(h.calls.every(call => provider === 'gemini' ? call.url.includes('generativelanguage.googleapis.com') : call.url === 'https://api.anthropic.com/v1/messages'));
+  }
 });

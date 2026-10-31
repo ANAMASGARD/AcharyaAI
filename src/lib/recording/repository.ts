@@ -3,6 +3,7 @@ import { Directory, File, Paths } from 'expo-file-system';
 
 import { readyLocalDb as database } from '@/db/ready';
 import { recordingChunks, recordingSessions, localReports } from '@/db/schema';
+import { clearNativeCapture } from './native-capture';
 import { assertAcharyaId } from '@/lib/validate-id';
 import type { RecordingRepository } from './types';
 
@@ -80,5 +81,6 @@ export const recordingRepository: RecordingRepository = {
       tx.delete(recordingSessions).where(eq(recordingSessions.ownerClerkId, owner)).run();
     });
     if (directory.exists) directory.delete();
+    await clearNativeCapture(owner);
   }),
 };

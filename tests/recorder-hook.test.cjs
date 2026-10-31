@@ -4,7 +4,7 @@ const vm = require('node:vm');
 const test = require('node:test');
 const ts = require('typescript');
 
-function hookHarness(platform = 'android') {
+function hookHarness(platform = 'android', backgroundCapture = false) {
   let owner = 'teacher-a'; let cursor = 0; let focusCleanup; let appCallback;
   const slots = []; const effects = []; const controllers = []; const events = [];
   const draft = { topic: 'Fractions', subject: 'Math', classLevel: '7' };
@@ -26,6 +26,7 @@ function hookHarness(platform = 'android') {
   }
   let streamOptions;
   const mocks = {
+    '@/lib/recording/native-capture': { backgroundCaptureAvailable: backgroundCapture, createNativeCapture: () => ({ start: async () => events.push('service-start'), stop: async () => events.push('service-stop'), durable: true }) },
     '@/hooks/use-recorder-analysis': { useRecorderAnalysis: () => ({ canSend: false, isAnalyzing: false, report: null, classNotes: null, send: async () => {}, cancel: () => {} }) },
     '@/components/preview/preview-provider': { usePreviewFeature: () => [draft, () => {}] },
     '@/lib/id': { createId: () => 'id' }, '@/lib/recording/direct-api': { createDirectRecordingApi: () => ({}) },
@@ -55,7 +56,7 @@ function hookHarness(platform = 'android') {
   return { controllers, events,
     render: () => { cursor = 0; return exports.useRecorder(); },
     flush: async () => { while (effects.length) effects.shift()(); await new Promise(setImmediate); },
-    background: (state) => appCallback(state), blur: () => focusCleanup(),
+    background: (state) => appCallback(state), blur: () => focusCleanup?.(),
     owner: (value) => { owner = value; }, buffer: (value) => streamOptions.onBuffer(value),
   };
 }
@@ -64,13 +65,13 @@ const completed = (owner) => ({ hydrated: true, busy: false, error: null, snapsh
   chunks: [{ index: 0, status: 'done', transcript: 'Private classroom text' }],
 } });
 
-test('background and focus blur stop recording, returning active requires an explicit Record tap', async () => {
+test('unsupported builds stop on background while tab blur does not discard capture', async () => {
   const h = hookHarness(); h.render(); await h.flush(); let view = h.render();
   assert.equal(view.canStartRecording, true); view.toggleRecording();
   const controller = h.controllers[0]; assert.equal(controller.starts.length, 1);
   h.background('inactive'); h.background('background'); h.background('active'); h.blur();
-  assert.equal(controller.stops.length, 3);
-  assert.match(controller.stops[0], /foreground/); assert.match(controller.stops[2], /left the recorder/);
+  assert.equal(controller.stops.length, 2);
+  assert.match(controller.stops[0], /foreground/);
   assert.equal(controller.starts.length, 1, 'focus and active events must not automatically restart capture');
   controller.publish(completed('teacher-a')); view = h.render(); view.toggleRecording();
   assert.equal(controller.starts.length, 2); assert.equal(view.mergedTranscript, 'Private classroom text');
@@ -92,4 +93,16 @@ test('native audio buffers reach the active controller while web never creates o
   const web = hookHarness('web'); const view = web.render(); await web.flush();
   assert.equal(web.controllers.length, 0); assert.equal(view.canStartRecording, false);
   assert.match(view.statusMessage, /Android and iOS/);
+});
+
+
+test('Android native service keeps recording through screen lock, background and tab blur', async () => {
+  const h = hookHarness('android', true); h.render(); await h.flush(); h.render().toggleRecording();
+  const controller = h.controllers[0];
+  await controller.capture.start();
+  h.background('inactive'); h.background('background'); h.background('active'); h.blur();
+  assert.equal(controller.stops.length, 0);
+  assert.ok(h.events.includes('service-start'));
+  assert.equal(controller.capture.durable, true);
+  await controller.capture.stop(); assert.ok(h.events.includes('service-stop'));
 });

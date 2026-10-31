@@ -64,9 +64,11 @@ provider response bodies. Saving a replacement key preserves the previous value
 if the secure write fails. Selection and key writes are separate secure writes;
 retry save/select if selection fails after the key has saved.
 
-Explicit sign-out/deletion removes keys before ending authentication; secure
-storage failures are reported for retry. External Clerk account changes also
-attempt cleanup, but OS/storage failures can leave account-isolated entries.
+Normal app updates, explicit sign-out, and session changes retain encrypted keys
+under the same account-specific SecureStore names. Sign-out cancels pending AI
+requests and clears local drafts; another signed-in account cannot read the old
+account's keys. Explicit key removal and account deletion still erase credentials;
+secure storage failures are reported for retry.
 iOS Keychain can survive reinstall on the same device: remove keys before
 uninstalling. Removing a key here does not revoke it at its issuer. Temporary
 voice/read-aloud WAVs are deleted on normal completion/cancellation; process death

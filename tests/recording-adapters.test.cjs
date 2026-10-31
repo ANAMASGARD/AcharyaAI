@@ -91,6 +91,7 @@ function fileRepository(freeSpace = 100_000_000) {
     'drizzle-orm': {}, 'drizzle-orm/expo-sqlite/migrator': {},
     'expo-file-system': { File, Directory, Paths: { document: 'file:///documents', availableDiskSpace: freeSpace } },
     '@/db/ready': {}, '@/db/schema': {},
+    './native-capture': { clearNativeCapture: async () => {} },
     '@/lib/validate-id': { assertAcharyaId: value => { if (!/^[A-Za-z0-9_-]{21}$/.test(value)) throw Error('Invalid ID'); return value; } },
   });
   return { repo: recordingRepository, files };
@@ -157,6 +158,7 @@ test('actual repository enforces owner isolation and drains queued saves before 
     'drizzle-orm/expo-sqlite/migrator': { migrate: () => gate },
     'expo-file-system': { Directory: class { constructor(...parts) { this.uri = parts.join('/'); } exists = false; }, Paths: { document: 'file:///documents' } },
     '@/db/ready': { readyLocalDb: async () => { await gate; return db; } }, '@/db/schema': schema,
+    './native-capture': { clearNativeCapture: async () => {} },
     '@/lib/validate-id': { assertAcharyaId: value => value },
   }).recordingRepository;
   const session = { id: 's'.repeat(21), ownerClerkId: 'user_a', startedAt: 'now' };

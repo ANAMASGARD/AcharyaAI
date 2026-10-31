@@ -19,7 +19,7 @@ type SocialAuthButtonProps = Readonly<{
   onPress: () => void;
   disabled?: boolean;
   loading?: boolean;
-  variant?: 'google' | 'facebook' | 'email';
+  variant?: 'google' | 'facebook' | 'microsoft' | 'email';
   style?: StyleProp<ViewStyle>;
 }>;
 
@@ -56,6 +56,16 @@ function EmailIcon(): React.ReactElement {
   );
 }
 
+function MicrosoftIcon(): React.ReactElement {
+  return (
+    <View accessibilityLabel="Microsoft" style={styles.microsoftIcon}>
+      {['#F25022', '#7FBA00', '#00A4EF', '#FFB900'].map((color) => (
+        <View key={color} style={[styles.microsoftTile, { backgroundColor: color }]} />
+      ))}
+    </View>
+  );
+}
+
 export function SocialAuthButton({
   label,
   onPress,
@@ -75,13 +85,14 @@ export function SocialAuthButton({
       onPress={onPress}
       style={({ pressed }) => [
         styles.button,
-        (variant === 'google' || variant === 'facebook') && styles.googleButton,
+        variant !== 'email' && styles.googleButton,
         pressed && !isDisabled && styles.buttonPressed,
         isDisabled && styles.buttonDisabled,
         style,
       ]}>
       {variant === 'google' ? <GoogleIcon /> : null}
       {variant === 'facebook' ? <FacebookIcon /> : null}
+      {variant === 'microsoft' ? <MicrosoftIcon /> : null}
       {variant === 'email' ? <EmailIcon /> : null}
       <Text style={styles.buttonText}>{loading ? 'Please wait…' : label}</Text>
     </Pressable>
@@ -108,6 +119,8 @@ export function AuthCrossLink({ prompt, linkLabel, href }: AuthCrossLinkProps): 
 }
 
 const styles = StyleSheet.create({
+  microsoftIcon: { width: 24, height: 24, flexDirection: 'row', flexWrap: 'wrap', gap: 2 },
+  microsoftTile: { width: 11, height: 11 },
   button: {
     alignItems: 'center',
     backgroundColor: colors.primary,

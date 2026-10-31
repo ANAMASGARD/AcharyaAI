@@ -108,7 +108,7 @@ export function ProfileScreen(): React.ReactElement {
       >
         <ProfileHeader
           displayName={summary.displayName}
-          imageUrl={user.imageUrl}
+          imageUrl={user.hasImage ? user.imageUrl : user.externalAccounts.find(account => account.imageUrl)?.imageUrl ?? null}
           isUploadingPhoto={isUploading}
           onPickPhoto={() => {
             void pickAndUpload();

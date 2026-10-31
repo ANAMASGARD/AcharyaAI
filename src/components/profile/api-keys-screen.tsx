@@ -44,7 +44,7 @@ export function ApiKeysScreen(): React.ReactElement {
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDetails }} onPress={() => setShowDetails(!showDetails)} style={styles.detailsButton}>
           <Text style={styles.caption}>{showDetails ? 'Hide privacy details' : 'Privacy & billing details'}</Text>
         </Pressable>
-        {showDetails ? <Text style={styles.caption}>Keys never sync to Acharya. Sign-out removes saved keys. Provider usage charges apply. Green means saved locally, not verified access. iOS keys may survive reinstall—remove them before uninstalling. Device encryption cannot protect a compromised device.</Text> : null}
+        {showDetails ? <Text style={styles.caption}>Keys never sync to Acharya. Updates and sign-out keep keys encrypted for this account. Removing a key or deleting the account erases it. Provider usage charges apply. Green means saved locally, not verified access. iOS keys may survive reinstall—remove them before uninstalling. Device encryption cannot protect a compromised device.</Text> : null}
       </ScrollView>
     </KeyboardAvoidingView>
   </SafeAreaView>;

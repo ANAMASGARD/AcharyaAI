@@ -1,7 +1,7 @@
 {
   "name": "acharyaapp",
   "main": "expo-router/entry",
-  "version": "1.0.2",
+  "version": "1.0.7",
   "dependencies": {
     "@clerk/backend": "^3.23.2",
     "@clerk/expo": "^4.10.1",

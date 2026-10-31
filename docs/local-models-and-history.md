@@ -1,3 +1,5 @@
+> 1.0.4 update: normal Android builds now include automatic indexing as a device-test candidate. See [current recording and indexing notes](recorder-background-indexing.md). The historical gate evidence below remains unverified on a device.
+
 # Local model download and class history
 
 Settings → Run locally opens the EmbeddingGemma 2 download page. Android custom

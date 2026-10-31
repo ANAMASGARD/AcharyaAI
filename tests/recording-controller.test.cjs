@@ -34,7 +34,7 @@ function harness(options = {}) {
     finalize: async (session) => { events.push(['finalize', clone(session)]); },
     transcribe: async (chunk) => { events.push(['upload', chunk.id]); return { chunkId: chunk.id, chunkIndex: chunk.index, status: 'done', transcript: 'repeat' }; }, ...options.api,
   };
-  const capture = { start: async () => { captureStarts++; if (options.captureStart) await options.captureStart(); }, stop: () => events.push(['stop']) };
+  const capture = { start: async () => { captureStarts++; if (options.captureStart) await options.captureStart(); }, stop: () => events.push(['stop']), ...options.capture };
   const controller = new RecorderController('teacher', repository, api, capture, () => `id${++id}`);
   return { controller, events, api, RecordingApiError, starts: () => captureStarts,
     stall: async (ms) => { now += ms; for (const fn of intervals.values()) fn(); await settle(); },
@@ -232,5 +232,33 @@ test('new classroom clears only a finished view and waits for an explicit record
   assert.notEqual(h.controller.getSnapshot().snapshot.session.id, previousId);
   assert.equal(h.controller.getSnapshot().snapshot.chunks.length, 0);
   assert.equal(h.starts(), 2);
+  await h.controller.stop(); await settle(); await h.controller.close();
+});
+
+
+test('durable native capture does not use JS silence watchdog and Stop awaits its final file', async () => {
+  let h; let stopped = false;
+  h = harness({ capture: { durable: true, stop: async () => {
+    if (stopped) return;
+    stopped = true;
+    await new Promise(setImmediate);
+    await h.controller.ingestNativeChunk(0, new Uint8Array(44 + 32000), 1000);
+  } } });
+  await begin(h); await h.stall(60_000);
+  assert.equal(h.controller.getSnapshot().snapshot.session.status, 'recording');
+  await h.controller.stop(); await settle();
+  const { session, chunks } = h.controller.getSnapshot().snapshot;
+  assert.equal(chunks.length, 1); assert.equal(session.durationMs, 1000);
+  assert.equal(session.serverFinalized, true);
+  await h.controller.close();
+});
+
+test('native file ingestion is idempotent and refuses a gap without acknowledging it', async () => {
+  const h = harness({ capture: { durable: true } }); await begin(h);
+  const wav = new Uint8Array(44 + 960000);
+  await assert.rejects(h.controller.ingestNativeChunk(1, wav, 30000), /out-of-order/);
+  await h.controller.ingestNativeChunk(0, wav, 30000);
+  await h.controller.ingestNativeChunk(0, wav, 30000);
+  assert.equal(h.events.filter(event => event[0] === 'write').length, 1);
   await h.controller.stop(); await settle(); await h.controller.close();
 });

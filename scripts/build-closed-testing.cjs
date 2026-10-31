@@ -3,7 +3,9 @@
 const fs = require('node:fs');
 const path = require('node:path');
 const { spawnSync } = require('node:child_process');
+const { createHash } = require('node:crypto');
 const root = path.resolve(__dirname, '..');
+const version = require('../package.json').version;
 const secrets = path.join(require('node:os').homedir(), '.local/share/acharya');
 const signing = path.join(secrets, 'signing/com.acharya.app');
 const env = { ...process.env };
@@ -16,6 +18,8 @@ for (const line of fs.readFileSync(path.join(secrets, 'clerk-production.env'), '
 }
 if (!env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY?.startsWith('pk_live_')) throw new Error('Missing production publishable key');
 Object.assign(env, { EXPO_PUBLIC_APP_VARIANT: 'production', EXPO_PUBLIC_GOOGLE_AUTH_ENABLED: 'true', EXPO_PUBLIC_FACEBOOK_AUTH_ENABLED: 'true',
+  // Enable explicitly for a Microsoft validation candidate; default releases stay gated.
+  EXPO_PUBLIC_MICROSOFT_AUTH_ENABLED: process.env.EXPO_PUBLIC_MICROSOFT_AUTH_ENABLED === 'true' ? 'true' : 'false',
   EXPO_PUBLIC_NEON_FUNCTION_URL: 'https://br-icy-resonance-b3camzf0-acharya.compute.c-4.ap-southeast-1.aws.neon.tech',
   ACHARYA_KEYSTORE_PATH: path.join(signing, 'acharya-release.p12'), ACHARYA_KEY_ALIAS: 'acharya-release',
   ACHARYA_KEY_PASSWORD: fs.readFileSync(path.join(signing, 'keystore-password.txt'), 'utf8').trim(),
@@ -38,9 +42,25 @@ fs.writeFileSync(init, `gradle.beforeProject { app ->
   }
 }
 `);
-run('./gradlew',[':app:bundleRelease', ':app:assembleRelease','-I',init,'--console=plain','--max-workers=2'],path.join(root,'android'));
+// AGP resource shrinking cannot generate an AAB and multiple APKs in one run.
+const gradleArgs = ['-I',init,'--console=plain','--max-workers=2','--no-daemon'];
+run('./gradlew',[':app:bundleRelease','-Pacharya.splitApks=false',...gradleArgs],path.join(root,'android'));
+run('./gradlew',[':app:assembleRelease','-Pacharya.splitApks=true',...gradleArgs],path.join(root,'android'));
 fs.mkdirSync(path.join(root,'releases'), {recursive:true});
-for (const [source,target] of [['bundle/release/app-release.aab','Acharya-AI-closed-testing.aab'],['apk/release/app-release.apk','Acharya-AI-closed-testing.apk']]) {
-  fs.copyFileSync(path.join(root,'android/app/build/outputs',source),path.join(root,'releases',target));
+const artifacts = [
+  ['bundle/release/app-release.aab', `Acharya-AI-${version}.aab`],
+  ['apk/release/app-universal-release.apk', `Acharya-AI-${version}-universal.apk`],
+  ...['arm64-v8a', 'armeabi-v7a', 'x86', 'x86_64'].map((abi) =>
+    [`apk/release/app-${abi}-release.apk`, `Acharya-AI-${version}-${abi}.apk`]),
+];
+for (const [source, target] of artifacts) {
+  const destination = path.join(root, 'releases', target);
+  fs.copyFileSync(path.join(root, 'android/app/build/outputs', source), destination);
+  const bytes = fs.readFileSync(destination);
+  fs.writeFileSync(`${destination}.sha256`, `${createHash('sha256').update(bytes).digest('hex')}  ${target}\n`);
 }
-console.log('Signed candidates saved in releases/. Not submitted to Google Play.');
+for (const [source, target] of [
+  [`Acharya-AI-${version}.aab`, 'Acharya-AI-closed-testing.aab'],
+  [`Acharya-AI-${version}-universal.apk`, 'Acharya-AI-closed-testing.apk'],
+]) fs.copyFileSync(path.join(root, 'releases', source), path.join(root, 'releases', target));
+console.log(`Signed ${version} candidates saved in releases/. Use the arm64-v8a APK for modern ARM phones. Not submitted to Google Play.`);

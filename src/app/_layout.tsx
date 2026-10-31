@@ -69,7 +69,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkBootstrap.publishableKey} tokenCache={tokenCache}>
+    <ClerkProvider publishableKey={clerkBootstrap.publishableKey} tokenCache={tokenCache} telemetry={false}>
       <ThemeProvider value={navigationTheme}>
         <PreviewAuthCleanup />
         <AnimatedSplashOverlay />

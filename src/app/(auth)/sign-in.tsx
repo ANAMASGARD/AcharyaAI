@@ -16,6 +16,7 @@ import { colors } from '@/theme/colors';
 import { spacing } from '@/theme/tokens';
 import { useWarmUpBrowser } from '@/hooks/use-warm-up-browser';
 import { useSocialAuth } from '@/hooks/use-social-auth';
+import { SocialAuthCompletion } from '@/components/auth/social-auth-completion';
 import {
   resendSignInEmailOtp,
   startSignInEmailOtp,
@@ -37,6 +38,13 @@ export default function SignInScreen(): React.ReactElement {
     facebookAuthUnavailableReason,
     startFacebookAuth,
     isFacebookLoading,
+    isMicrosoftAuthAvailable,
+    microsoftAuthUnavailableReason,
+    startMicrosoftAuth,
+    isMicrosoftLoading,
+    pendingMicrosoftSignUp,
+    completeMicrosoftSignUp,
+    dismissMicrosoftSignUp,
     oauthError,
   } = useSocialAuth();
 
@@ -47,7 +55,7 @@ export default function SignInScreen(): React.ReactElement {
   const [isVerifying, setIsVerifying] = useState(false);
   const [isSendingCode, setIsSendingCode] = useState(false);
 
-  const isBusy = fetchStatus === 'fetching' || isSendingCode || isVerifying || isGoogleLoading || isFacebookLoading;
+  const isBusy = fetchStatus === 'fetching' || isSendingCode || isVerifying || isGoogleLoading || isFacebookLoading || isMicrosoftLoading || Boolean(pendingMicrosoftSignUp);
 
   const handleContinueWithEmail = async (): Promise<void> => {
     setFormError(null);
@@ -112,7 +120,6 @@ export default function SignInScreen(): React.ReactElement {
             prompt="Don't have an account?"
           />
         }
-        subtitle="Continue with Google, Facebook, or email."
         title="Sign in to your account">
         <AuthLabeledInput
           autoCapitalize="none"
@@ -153,6 +160,16 @@ export default function SignInScreen(): React.ReactElement {
             <Text style={styles.authHint}>{facebookAuthUnavailableReason}</Text>
           ) : null}
           <SocialAuthButton
+            disabled={isBusy || !isMicrosoftAuthAvailable}
+            label="Sign in with Microsoft"
+            loading={isMicrosoftLoading}
+            variant="microsoft"
+            onPress={() => { void startMicrosoftAuth(); }}
+          />
+          {!isMicrosoftAuthAvailable ? (
+            <Text style={styles.authHint}>{microsoftAuthUnavailableReason}</Text>
+          ) : null}
+          <SocialAuthButton
             disabled={isBusy}
             label="Continue with Email"
             loading={isSendingCode}
@@ -166,6 +183,9 @@ export default function SignInScreen(): React.ReactElement {
         <View nativeID="clerk-captcha" />
       </AuthScreenShell>
 
+      {pendingMicrosoftSignUp ? (
+        <SocialAuthCompletion signUp={pendingMicrosoftSignUp} onComplete={completeMicrosoftSignUp} onDismiss={dismissMicrosoftSignUp} />
+      ) : null}
       <VerificationCodeModal
         email={emailAddress}
         error={verificationError}

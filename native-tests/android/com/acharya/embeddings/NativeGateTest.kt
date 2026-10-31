@@ -7,6 +7,7 @@ import androidx.work.WorkManager
 import com.facebook.react.ReactApplication
 import expo.modules.sqlite.AcharyaSqliteConnection
 import java.io.File
+import java.nio.ByteBuffer
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import org.junit.Assert.*
@@ -18,6 +19,12 @@ import org.junit.runner.RunWith
 class NativeGateTest {
   private val instrumentation = InstrumentationRegistry.getInstrumentation()
   private val context = instrumentation.targetContext
+
+  private fun blobBytes(value: Any?): ByteArray = when (value) {
+    is ByteArray -> value
+    is ByteBuffer -> value.duplicate().let { buffer -> ByteArray(buffer.remaining()).also { buffer.get(it) } }
+    else -> error("Unexpected SQLite BLOB type")
+  }
 
   private fun assertHeadless() {
     check(context.packageName == "com.acharya.app.nativegate") { "Refusing to run against real app data" }
@@ -61,7 +68,7 @@ class NativeGateTest {
       val vector = EmbeddingContract.truncateAndNormalize(FloatArray(768) { (it + 1).toFloat() })
       val bytes = EmbeddingContract.encode(vector)
       first.query("UPDATE native_gate SET vector=? WHERE id=?", listOf(bytes, 1))
-      assertArrayEquals(bytes, first.query("SELECT vector FROM native_gate WHERE id=1").single().single() as ByteArray)
+      assertArrayEquals(bytes, blobBytes(first.query("SELECT vector FROM native_gate WHERE id=1").single().single()))
       assertEquals("ok", first.query("PRAGMA integrity_check").single().single())
     }
     // Explicit close/reopen exercises sqlite3_close, not only releasing JNI wrappers.

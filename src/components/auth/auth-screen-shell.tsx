@@ -18,7 +18,7 @@ import { borderWidths, radii, spacing } from '@/theme/tokens';
 
 type AuthScreenShellProps = Readonly<{
   title: string;
-  subtitle: string;
+  subtitle?: string;
   children: React.ReactNode;
   footer?: React.ReactNode;
 }>;
@@ -92,7 +92,7 @@ export function AuthScreenShell({
           showsVerticalScrollIndicator={false}>
           <View style={styles.header}>
             <Text style={styles.title}>{title}</Text>
-            <Text style={styles.subtitle}>{subtitle}</Text>
+            {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
           </View>
 
           <View style={styles.form}>{children}</View>
@@ -140,7 +140,7 @@ const styles = StyleSheet.create({
     marginTop: spacing.xl,
   },
   header: {
-    paddingTop: spacing.lg,
+    paddingTop: spacing.sm,
   },
   input: {
     backgroundColor: colors.input,

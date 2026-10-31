@@ -1,5 +1,6 @@
 import { cloudConfigured, deleteCloudAccount, stopReportSync } from '@/lib/reports/cloud';
 import { clearProviderCredentials } from '@/lib/ai-keys/vault';
+import { cancelAiRequests } from '@/lib/ai/cancellation';
 import { stopRecorderAccount } from '@/lib/recording/lifecycle';
 import { deleteRecordingAccount } from '@/lib/recording/api';
 import { useAuth, useClerk, useUser } from '@clerk/expo';
@@ -29,7 +30,7 @@ export function useAccountActions(): Readonly<{
     try {
       if (userId) stopReportSync(userId);
       if (userId) await stopRecorderAccount(userId);
-      if (userId) await clearProviderCredentials(userId);
+      if (userId) cancelAiRequests(userId);
       await clerkSignOut();
       try {
         if (userId) await clearUiPreviewAccount(userId);
@@ -45,7 +46,7 @@ export function useAccountActions(): Readonly<{
   }, [clerkSignOut, router, userId]);
 
   const signOut = useCallback((): void => {
-    void confirmAction('Sign out', 'Sign out and remove saved API keys and chat drafts? Class reports remain saved for this account on this device.', 'Sign out')
+    void confirmAction('Sign out', 'Sign out and remove chat drafts? Your API keys and class reports remain saved for this account on this device.', 'Sign out')
       .then((confirmed) => { if (confirmed) void performSignOut(); });
   }, [performSignOut]);
 

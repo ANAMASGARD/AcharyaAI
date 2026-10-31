@@ -3,11 +3,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const vm = require('node:vm');
 const ts = require('typescript');
-function setup({ go = false, os = 'android', failVerify = false } = {}) {
+function setup({ go = false, os = 'android', failVerify = false, downloaded = false } = {}) {
   const calls = []; let complete; let progress;
   const native = {
     downloadsAvailable: true, available: false,
-    modelDownloaded: async () => false,
+    modelDownloaded: async () => downloaded,
     prepareDownload: async () => { calls.push('prepare'); return 'file:///private/model.part'; },
     finishDownload: async () => { calls.push('verify'); if (failVerify) throw Error('Checksum'); },
     discardDownload: async () => { calls.push('discard'); }, removeModel: async () => { calls.push('remove'); },
@@ -48,4 +48,12 @@ test('Expo Go, iOS and web never try loading the custom module or downloading', 
     const h = setup(options); await h.api.downloadModel();
     assert.equal(h.api.modelDownloadsAvailable, false); assert.equal(h.calls.length, 0);
   }
+});
+
+test('a new app runtime recognizes an existing verified model without downloading or removing it', async () => {
+  const updatedApp = setup({ downloaded: true });
+  await updatedApp.api.checkModelDownload();
+  assert.equal(updatedApp.api.getModelDownloadState().status, 'downloaded');
+  await updatedApp.api.downloadModel();
+  assert.deepEqual(updatedApp.calls, ['native']);
 });

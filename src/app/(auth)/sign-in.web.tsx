@@ -26,7 +26,13 @@ export default function SignInWebScreen(): React.ReactElement {
       <SignIn
         appearance={{
           options: { socialButtonsVariant: 'blockButton', socialButtonsPlacement: 'top' },
-          elements: { socialButtons: { gridTemplateColumns: '1fr' } },
+          elements: {
+            headerSubtitle: { display: 'none' },
+            socialButtons: { gridTemplateColumns: '1fr' },
+            socialButtonsBlockButton__google: { order: 1 },
+            socialButtonsBlockButton__facebook: { order: 2 },
+            socialButtonsBlockButton__microsoft: { order: 3 },
+          },
         }}
         routing="path"
         path="/sign-in"

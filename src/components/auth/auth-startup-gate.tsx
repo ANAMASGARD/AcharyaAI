@@ -27,7 +27,7 @@ function PendingSignIn() {
       {timedOut ? (
         <>
           <Text accessibilityRole="header" style={[styles.title, { color: colors.foreground }]}>Unable to connect to sign-in</Text>
-          <Text style={[styles.message, { color: colors.foreground }]}>Check your connection. If you use Private DNS or an ad blocker, allow superacharya.com and its subdomains, then retry.</Text>
+          <Text style={[styles.message, { color: colors.foreground }]}>Check your connection. If you use Private DNS or an ad blocker, allow clerk.superacharya.com and accounts.superacharya.com, then retry.</Text>
           <NeoButton label="Retry" onPress={() => { void reloadAppAsync().catch(() => setRestartFailed(true)); }} />
           {restartFailed ? <Text style={{ color: colors.foreground }}>Close and reopen Acharya to retry.</Text> : null}
         </>

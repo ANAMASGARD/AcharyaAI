@@ -37,7 +37,7 @@ test('reachable UI permits only recorder and report SQLite while isolating serve
             if (fs.existsSync(base + suffix)) {
               const target = path.relative(root, base + suffix).replaceAll(path.sep, '/');
               if (target.startsWith('src/db/')) {
-                const allowed = (['src/lib/recording/repository.ts', 'src/lib/reports/history.ts', 'src/lib/reports/cloud.ts'].includes(relative) && ['src/db/ready.ts', 'src/db/schema.ts'].includes(target)) ||
+                const allowed = (['src/lib/recording/repository.ts', 'src/lib/reports/history.ts', 'src/lib/reports/cloud.ts', 'src/lib/embeddings/indexing.ts'].includes(relative) && ['src/db/ready.ts', 'src/db/schema.ts'].includes(target)) ||
                   (relative === 'src/db/ready.ts' && target === 'src/db/client.ts') ||
                   (relative === 'src/db/client.ts' && target === 'src/db/schema.ts');
                 assert.ok(allowed, `${relative} must not import ${target}`);

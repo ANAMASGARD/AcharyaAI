@@ -29,7 +29,7 @@ export function RecorderStatusLabel({
       {isStarting ? (
         <RecorderStartingLabel />
       ) : (
-        <Text style={styles.label}>{message}</Text>
+        message ? <Text style={styles.label}>{message}</Text> : null
       )}
 
       {analysisError ? (

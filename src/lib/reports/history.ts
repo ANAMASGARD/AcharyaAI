@@ -1,3 +1,4 @@
+import { addReportIndexSources, scheduleReportIndexing } from '@/lib/embeddings/indexing';
 import { and, desc, eq } from 'drizzle-orm';
 import { readyLocalDb } from '@/db/ready';
 import { localReports, recordingSessions } from '@/db/schema';
@@ -19,12 +20,15 @@ export async function saveReportHistory(owner: string, session: RecordingSession
     const existing = tx.select().from(localReports).where(eq(localReports.sessionId, session.id)).get();
     if (existing && existing.ownerClerkId !== owner) throw new Error('Report owner mismatch');
     // First acknowledgement wins. Retrying a local save must not duplicate history.
-    tx.insert(localReports).values({ sessionId: session.id, ownerClerkId: owner,
+    const row = { sessionId: session.id, ownerClerkId: owner,
       title: session.title, subject: session.subject, grade: session.grade,
       recordedAt: session.startedAt, durationMs: session.durationMs,
       reportJson: JSON.stringify(result.report), classNotes: result.classNotes, model: result.model,
-      createdAt: new Date().toISOString() }).onConflictDoNothing().run();
+      createdAt: new Date().toISOString() };
+    tx.insert(localReports).values(row).onConflictDoNothing().run();
+    if (!existing) addReportIndexSources(tx, row);
   });
+  void scheduleReportIndexing(owner).catch(() => {});
 }
 
 function sessionFromRow(row: typeof localReports.$inferSelect): CalendarSession {

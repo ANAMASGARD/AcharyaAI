@@ -1,4 +1,5 @@
 import { usePreviewFeature } from '@/components/preview/preview-provider';
+import { backgroundCaptureAvailable, createNativeCapture } from '@/lib/recording/native-capture';
 import { createId } from '@/lib/id';
 import { createDirectRecordingApi } from '@/lib/recording/direct-api';
 import { setRecorderMicrophoneActive } from '@/lib/recording/audio-focus';
@@ -8,8 +9,7 @@ import { recordingRepository } from '@/lib/recording/repository';
 import { useRecorderAnalysis } from '@/hooks/use-recorder-analysis';
 import { useAuth } from '@clerk/expo';
 import { requestRecordingPermissionsAsync, setAudioModeAsync, useAudioStream } from 'expo-audio';
-import { useFocusEffect } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, Platform } from 'react-native';
 
 type RecorderDraft = { topic: string; subject: string; classLevel: string };
@@ -37,8 +37,17 @@ export function useRecorder() {
       setRecorderMicrophoneActive(false);
       void setAudioModeAsync({ allowsRecording: false, playsInSilentMode: false, shouldPlayInBackground: false, interruptionMode: 'mixWithOthers' }).catch(() => {});
     };
+    const nativeCapture = createNativeCapture(userId, () => controller);
     const controller = new RecorderController(userId, recordingRepository,
-      createDirectRecordingApi(userId), {
+      createDirectRecordingApi(userId), backgroundCaptureAvailable ? { ...nativeCapture,
+        start: async () => {
+          const permission = await requestRecordingPermissionsAsync();
+          if (!permission.granted) throw new Error('Allow microphone access to record your class.');
+          setRecorderMicrophoneActive(true);
+          try { await nativeCapture.start(); } catch (error) { setRecorderMicrophoneActive(false); throw error; }
+        },
+        stop: async () => { try { await nativeCapture.stop(); } finally { setRecorderMicrophoneActive(false); } },
+      } : {
         start: async () => {
           const epoch = ++captureEpoch.current;
           setRecorderMicrophoneActive(true);
@@ -57,7 +66,7 @@ export function useRecorder() {
       if (alive) setView({ ...EMPTY_VIEW, error: 'Could not remove previous recording data. Sign out and try again.' });
     });
     const appState = AppState.addEventListener('change', (state) => {
-      if (state !== 'active') void controller.stop('Recording stopped when the app left the foreground.');
+      if (!backgroundCaptureAvailable && state !== 'active') void controller.stop('Recording stopped when the app left the foreground.');
     });
     return () => {
       alive = false;
@@ -67,9 +76,6 @@ export function useRecorder() {
     };
   }, [native, userId, stream]);
 
-  useFocusEffect(useCallback(() => () => {
-    void controllerRef.current?.stop('Recording stopped when you left the recorder.');
-  }, []));
 
   const snapshot = view.snapshot;
   const session = snapshot?.session;
@@ -101,7 +107,7 @@ export function useRecorder() {
   else if (isTranscribing) statusMessage = `Finishing transcription… (${pending} pending)`;
   else if (failed || status === 'partial') statusMessage = failed || !session?.serverFinalized ? 'Partial transcript — retry unfinished segments' : 'Recording stopped early · saved transcript';
   else if (status === 'complete') statusMessage = 'Transcription complete';
-  else if (canStartRecording) statusMessage = 'Ready to record · English–Hindi mixed';
+  else if (canStartRecording) statusMessage = '';
   const patch = (next: Partial<RecorderDraft>) => setDraft((current) => ({ ...current, ...next }));
 
   return {

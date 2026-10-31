@@ -52,7 +52,13 @@ class GateWorker(context: Context, parameters: WorkerParameters) : Worker(contex
           db.query("CREATE TABLE IF NOT EXISTS native_gate_vectors (id INTEGER PRIMARY KEY, vector BLOB NOT NULL)")
           val vector = EmbeddingContract.encode(english)
           db.transaction { it.query("INSERT OR REPLACE INTO native_gate_vectors VALUES (?, ?)", listOf(1, vector)) }
-          check((db.query("SELECT vector FROM native_gate_vectors WHERE id=1").single().single() as ByteArray).contentEquals(vector))
+          val stored = db.query("SELECT vector FROM native_gate_vectors WHERE id=1").single().single()
+          val storedBytes = when (stored) {
+            is ByteArray -> stored
+            is ByteBuffer -> stored.duplicate().let { buffer -> ByteArray(buffer.remaining()).also { buffer.get(it) } }
+            else -> error("Unexpected SQLite BLOB type")
+          }
+          check(storedBytes.contentEquals(vector))
           check(db.query("PRAGMA integrity_check").single().single() == "ok")
         }
         Log.i("AcharyaNativeGate", "abi=${Build.SUPPORTED_ABIS.joinToString()} sdk=${Build.VERSION.SDK_INT} loadMs=${(loaded-started)/1000000} totalMs=${(System.nanoTime()-started)/1000000} pssKb=${Debug.getPss()} dimensions=256")

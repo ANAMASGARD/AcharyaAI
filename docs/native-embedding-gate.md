@@ -1,3 +1,5 @@
+> 1.0.6 update: normal Android builds include automatic indexing and FIFO vector sync. Both minified release native tests passed offline on the RMX5110 on 15 October. See [current recording and indexing evidence](recorder-background-indexing.md). The historical evidence below predates this result; the full debug/4 GB/16 KB gate remains incomplete.
+
 # Native embedding gate
 
 Gate 1 is a stop/go check, not a shipped offline-AI feature. Existing recorder,

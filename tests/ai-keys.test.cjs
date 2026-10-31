@@ -7,15 +7,15 @@ const ts = require('typescript');
 function load(file, mocks = {}) {
   const exports = {};
   const code = ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
-  vm.runInNewContext(code, { exports, URL, require: (name) => {
+  vm.runInNewContext(code, { exports, URL, process: { env: {} }, require: (name) => {
     if (!(name in mocks)) throw Error(`Unexpected dependency: ${name}`);
     return mocks[name];
   } });
   return exports;
 }
 const providers = load('src/lib/ai-keys/providers.ts');
-function harness({ platform = 'ios', available = true, set, remove, get } = {}) {
-  const values = new Map();
+function harness({ platform = 'ios', available = true, set, remove, get, persistedValues } = {}) {
+  const values = persistedValues ?? new Map();
   const calls = [];
   const vault = load('src/lib/ai-keys/vault.ts', {
     './providers': providers,
@@ -105,9 +105,82 @@ test('settings credential modules have no network, logs, public secrets, or plai
   assert.match(card, /secureTextEntry/);
   assert.match(card, /autoComplete="off"/);
   const actions = fs.readFileSync('src/hooks/use-account-actions.ts', 'utf8');
-  assert.ok(actions.indexOf('await clearProviderCredentials(userId)') < actions.indexOf('await clerkSignOut()'));
   assert.ok(actions.indexOf('await clearProviderCredentials(user.id)') < actions.indexOf('await user.delete()'));
   assert.match(fs.readFileSync('src/lib/ui-preview/account.ts', 'utf8'), /clearProviderCredentials\(owner\)/);
+});
+
+test('a fresh app runtime reads the same encrypted credentials and selected provider', async () => {
+  const first = harness({ platform: 'android' });
+  await first.vault.saveProviderCredential('alice', 'gemini', { apiKey: 'saved-key', model: 'gemini-model' });
+  await first.vault.saveProviderCredential('bob', 'gnani', { apiKey: 'other-account-key' });
+  const updatedApp = harness({ platform: 'android', persistedValues: first.values });
+  assert.equal((await updatedApp.vault.getProviderCredential('alice', 'gemini')).apiKey, 'saved-key');
+  assert.equal(await updatedApp.vault.getActiveProvider('alice'), 'gemini');
+  assert.equal((await updatedApp.vault.getProviderSummary('bob', 'gemini')).configured, false);
+  assert.equal(updatedApp.calls.some(({ kind }) => kind === 'delete' || kind === 'save'), false);
+});
+
+test('sign-out/session cleanup retains encrypted keys; account deletion removes only its own keys', async () => {
+  const keys = new Set(['alice', 'bob']);
+  const calls = [];
+  const account = load('src/lib/ui-preview/account.ts', {
+    '@/lib/embeddings/indexing': { stopReportIndexing: async (owner) => calls.push(['stop-index', owner]) },
+    '@/lib/reports/cloud': { stopReportSync: (owner) => calls.push(['stop', owner]), clearReportSync: async (owner) => calls.push(['clear-sync', owner]) },
+    '@/lib/ai-keys/vault': { clearProviderCredentials: async (owner) => { keys.delete(owner); calls.push(['erase-keys', owner]); } },
+    '@/lib/ai/cancellation': { cancelAiRequests: (owner) => calls.push(['cancel-ai', owner]) },
+    '@/lib/recording/lifecycle': { clearRecorderAccount: async (owner) => calls.push(['clear-recordings', owner]) },
+    './lifecycle': { createPreviewLifecycle: (clear) => ({ clear }) },
+    './storage': { previewStorage: { clearAccount: async (owner, preferences) => calls.push(['clear-drafts', owner, preferences]) } },
+  });
+  await account.clearUiPreviewAccount('alice');
+  assert.equal(keys.has('alice'), true);
+  assert.equal(keys.has('bob'), true);
+  assert.ok(calls.some(([kind, owner]) => kind === 'cancel-ai' && owner === 'alice'));
+  assert.ok(calls.some(([kind, , preferences]) => kind === 'clear-drafts' && preferences === false));
+  await account.clearUiPreviewAccount('alice', true);
+  assert.equal(keys.has('alice'), false);
+  assert.equal(keys.has('bob'), true);
+  assert.ok(calls.some(([kind, owner]) => kind === 'clear-recordings' && owner === 'alice'));
+});
+
+function accountActionsHarness() {
+  const calls = [];
+  const keys = new Set(['alice', 'bob']);
+  const actions = load('src/hooks/use-account-actions.ts', {
+    '@/lib/reports/cloud': { cloudConfigured: () => false, deleteCloudAccount: async () => assert.fail('No configured cloud'), stopReportSync() {} },
+    '@/lib/ai-keys/vault': { clearProviderCredentials: async (owner) => { keys.delete(owner); calls.push('erase-keys'); } },
+    '@/lib/ai/cancellation': { cancelAiRequests: () => calls.push('cancel-ai') },
+    '@/lib/recording/lifecycle': { stopRecorderAccount: async () => {} },
+    '@/lib/recording/api': { deleteRecordingAccount: async () => assert.fail('No legacy backend') },
+    '@clerk/expo': {
+      useAuth: () => ({ isSignedIn: true, userId: 'alice', getToken: async () => '' }),
+      useClerk: () => ({ signOut: async () => calls.push('sign-out') }),
+      useUser: () => ({ user: { id: 'alice', delete: async () => calls.push('delete-user') } }),
+    },
+    'expo-router': { useRouter: () => ({ replace() {} }) },
+    react: { useCallback: (fn) => fn, useState: (initial) => [initial, () => {}] },
+    '@/lib/confirm-action': { confirmAction: async () => true },
+    '@/lib/ui-preview/account': { clearUiPreviewAccount: async () => {} },
+  });
+  return { actions: actions.useAccountActions(), calls, keys };
+}
+
+test('explicit sign-out cancels pending AI work and keeps both accounts encrypted keys', async () => {
+  const h = accountActionsHarness();
+  h.actions.signOut();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.deepEqual([...h.keys], ['alice', 'bob']);
+  assert.ok(h.calls.indexOf('cancel-ai') < h.calls.indexOf('sign-out'));
+  assert.equal(h.calls.includes('erase-keys'), false);
+});
+
+test('explicit account deletion still erases its keys before deleting the Clerk account', async () => {
+  const h = accountActionsHarness();
+  h.actions.deleteAccount();
+  await new Promise((resolve) => setImmediate(resolve));
+  assert.equal(h.keys.has('alice'), false);
+  assert.equal(h.keys.has('bob'), true);
+  assert.ok(h.calls.indexOf('erase-keys') < h.calls.indexOf('delete-user'));
 });
 
 test('saved keys can be explicitly revealed and the last saved reasoning provider becomes active', async () => {

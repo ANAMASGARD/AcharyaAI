@@ -1,7 +1,7 @@
 import { PcmChunker, type PcmBuffer } from './pcm';
 import { RecordingApiError, type RecordingApi, type RecordingChunk, type RecordingRepository, type RecordingSession, type RecordingSnapshot } from './types';
 
-type Capture = { start: () => Promise<void>; stop: () => void };
+type Capture = { start: () => Promise<void>; stop: () => void | Promise<void>; durable?: boolean; recover?: () => Promise<void> };
 export type RecorderView = { snapshot: RecordingSnapshot | null; busy: boolean; error: string | null; hydrated: boolean };
 const RETRIES = [1000, 4000, 16000];
 const terminal = (chunk: RecordingChunk) => chunk.status === 'done' || chunk.status === 'empty' || chunk.status === 'failed';
@@ -63,10 +63,11 @@ export class RecorderController {
       if (this.closed) return;
       if (saved) {
         this.publish(saved);
+        await this.capture.recover?.();
         const interrupted = ['starting', 'recording', 'stopping'].includes(saved.session.status);
         if (interrupted) {
           this.captureError = 'Recording was interrupted. Saved segments are available; audio after the last saved segment may be missing.';
-          await this.persistSession({ status: 'finishing', expectedChunkCount: saved.chunks.length, error: this.captureError });
+          await this.persistSession({ status: 'finishing', expectedChunkCount: this.view.snapshot!.chunks.length, error: this.captureError });
         } else {
           this.captureError = saved.session.status === 'partial' ? saved.session.error : null;
           if (!saved.session.serverFinalized && saved.session.status !== 'finishing') {
@@ -128,7 +129,7 @@ export class RecorderController {
       await this.capture.start();
       if (this.closed || generation !== this.generation || !this.accepting) { this.capture.stop(); return; }
       await this.persistSession({ status: 'recording', startedAt: new Date().toISOString() });
-      this.watchdog = setInterval(() => {
+      if (!this.capture.durable) this.watchdog = setInterval(() => {
         if (this.accepting && Date.now() - this.lastBufferAt > 5000) void this.stop('Microphone capture was interrupted. Tap Record to start a new recording.');
       }, 1000);
       this.publish(undefined, null, false);
@@ -142,6 +143,25 @@ export class RecorderController {
     if (!this.accepting || this.closed) return;
     this.lastBufferAt = Date.now();
     try { this.chunker?.push(buffer); } catch (error) { void this.stop(message(error)); }
+  }
+
+  async ingestNativeChunk(index: number, wav: Uint8Array, durationMs: number): Promise<void> {
+    const snapshot = this.view.snapshot;
+    if (!snapshot || this.closed) throw new Error('Recording is no longer available');
+    if (snapshot.chunks.some(chunk => chunk.index === index)) return;
+    if (index !== snapshot.chunks.length || durationMs < 1 || durationMs > 30_100 || Math.floor((wav.byteLength - 44) / 32) !== durationMs) {
+      throw new Error('Invalid or out-of-order captured audio');
+    }
+    const chunk: RecordingChunk = { id: this.id(), sessionId: snapshot.session.id, index,
+      startMs: index * 30_000, durationMs, localUri: '', status: 'pending', transcript: '', attempts: 0, nextAttemptAt: null, error: null };
+    await this.enqueueWrite(async () => {
+      chunk.localUri = await this.repository.writeAudio(this.owner, chunk.id, wav);
+      await this.repository.saveChunk(this.owner, chunk);
+      this.updateChunk(chunk);
+      await this.repository.saveSession(this.updateSession({ durationMs: chunk.startMs + durationMs, expectedChunkCount: index + 1 }));
+    });
+    // Restoration must finish before dispatching transcription of recovered files.
+    if (this.view.hydrated) void this.pump();
   }
 
   private acceptChunk(wav: Uint8Array, startMs: number, durationMs: number): void {
@@ -176,11 +196,12 @@ export class RecorderController {
     ++this.generation;
     if (this.view.snapshot.session.status === 'starting') this.request?.abort();
     // Stop native capture first, then flush all buffers delivered to this controller.
-    this.capture.stop(); this.accepting = false;
+    this.accepting = false;
     if (this.watchdog) clearInterval(this.watchdog);
     this.watchdog = null;
     this.publish(undefined, this.captureError, true);
     try {
+      await this.capture.stop();
       await this.persistSession({ status: 'stopping' });
       this.chunker?.flush(); this.chunker = null;
       await this.writes;
@@ -309,7 +330,7 @@ export class RecorderController {
     this.request?.abort();
     await this.stop();
     this.closed = true; ++this.generation; this.accepting = false;
-    this.capture.stop(); this.request?.abort();
+    await this.capture.stop(); this.request?.abort();
     if (this.watchdog) clearInterval(this.watchdog);
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.listeners.clear();

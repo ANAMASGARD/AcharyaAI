@@ -17,7 +17,7 @@ if (process.env.EAS_BUILD_PROFILE === 'production' || process.env.EXPO_PUBLIC_AP
 const config: ExpoConfig = {
   name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.2',
+  version: '1.0.7',
   orientation: 'portrait',
   icon: './assets/images/acharya-app-icon.png',
   scheme: 'acharyaapp',
@@ -28,7 +28,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 3,
+    versionCode: 8,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -57,13 +57,14 @@ const config: ExpoConfig = {
         },
       },
     ],
-    ['expo-audio', { microphonePermission: 'Allow Acharya to record and transcribe your class while the recorder is open.', recordAudioAndroid: true, enableBackgroundPlayback: false, enableBackgroundRecording: false }],
+    ['expo-audio', { microphonePermission: 'Allow Acharya to record and transcribe your class, including with the screen locked on Android.', recordAudioAndroid: true, enableBackgroundPlayback: false, enableBackgroundRecording: false }],
     'expo-secure-store',
     '@clerk/expo',
     'expo-web-browser',
     'expo-status-bar',
     'expo-sqlite',
     './plugins/with-android-build-compatibility.cjs',
+    './plugins/with-compact-android-release.cjs',
     './plugins/with-native-embedding-gate.cjs',
   ],
   experiments: {
