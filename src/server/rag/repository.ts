@@ -401,6 +401,8 @@ export async function deleteSource(owner: string, id: string): Promise<void> {
     [id, owner],
   );
   if (!d) return;
+  const { endSourceVoice } = await import("../voice/sessions");
+  await endSourceVoice(owner,d.source_id);
   const sql = sqlClient();
   await sql.transaction([
     sql.query(

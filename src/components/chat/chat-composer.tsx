@@ -26,6 +26,7 @@ type Props = Readonly<{
   onSend: () => void;
   onAttach?: () => void;
   onVoiceAgent: () => void;
+  onDictate: () => void;
   voiceInputStatus: VoiceInputStatus;
   disabled?: boolean;
 }>;
@@ -36,6 +37,7 @@ export function ChatComposer({
   onSend,
   onAttach,
   onVoiceAgent,
+  onDictate,
   voiceInputStatus,
   disabled = false,
 }: Props): React.ReactElement {
@@ -50,7 +52,6 @@ export function ChatComposer({
 
   const isRecording = voiceInputStatus === "recording";
   const isTranscribing = voiceInputStatus === "transcribing";
-  const voiceDisabled = disabled || isTranscribing;
   const canSend =
     draftText.trim().length > 0 && !disabled && !isTranscribing && !isRecording;
 
@@ -95,7 +96,7 @@ export function ChatComposer({
               isRecording ? "Stop voice" : "Voice message"
             }
             disabled={disabled || isTranscribing}
-            onPress={() => { Keyboard.dismiss(); onVoiceAgent(); }}
+            onPress={() => { Keyboard.dismiss(); onDictate(); }}
             style={({ pressed }) => [
               styles.micCircle,
               isRecording && styles.micRecording,
@@ -113,19 +114,17 @@ export function ChatComposer({
             )}
           </Pressable>
 
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={hasText ? "Send message" : isRecording ? "Stop voice message" : "Start voice message"}
-            disabled={hasText ? !canSend || uploads.busy : voiceDisabled}
-            onPress={hasText ? onSend : onVoiceAgent}
-            style={({ pressed }) => [
-              styles.sendCircle,
-              (hasText ? !canSend || uploads.busy : voiceDisabled) && styles.sendDisabled,
-              pressed && !voiceDisabled ? styles.pressed : null,
-            ]}
-          >
-            {hasText ? <MaterialCommunityIcons color={colors.onAccent} name="arrow-up" size={24} /> : <VoiceWaveformIcon color={colors.onAccent} height={22} /> }
+          <Pressable accessibilityRole="button" accessibilityLabel="Start live voice conversation"
+            disabled={disabled || isTranscribing || isRecording}
+            onPress={() => { Keyboard.dismiss(); onVoiceAgent(); }}
+            style={[styles.sendCircle,(disabled || isTranscribing || isRecording) && styles.sendDisabled]}>
+            <VoiceWaveformIcon color={colors.onAccent} height={22} />
           </Pressable>
+          {hasText ? <Pressable accessibilityRole="button" accessibilityLabel="Send message"
+            disabled={!canSend || uploads.busy} onPress={onSend}
+            style={[styles.micCircle,(!canSend || uploads.busy) && styles.sendDisabled]}>
+            <MaterialCommunityIcons color={colors.onAccent} name="arrow-up" size={24} />
+          </Pressable> : null}
         </View>
       </View>
     </View>

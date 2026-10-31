@@ -9,6 +9,8 @@ import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
   Easing,
+  cancelAnimation,
+  useReducedMotion,
   interpolate,
   useAnimatedStyle,
   useSharedValue,
@@ -95,9 +97,10 @@ function ThinkingDots(): React.ReactElement {
   );
 }
 
-function MascotPulse({ size }: Readonly<{ size: number }>): React.ReactElement {
+export function MascotPulse({ size, active = true, label = "Acharya is thinking" }: Readonly<{ size: number; active?: boolean; label?: string }>): React.ReactElement {
   const styles = useThemeStyles(createStyles);
 
+  const reducedMotion = useReducedMotion();
   const mascotScale = useSharedValue(1);
   const mascotFloat = useSharedValue(0);
   const glowScale = useSharedValue(1);
@@ -106,6 +109,7 @@ function MascotPulse({ size }: Readonly<{ size: number }>): React.ReactElement {
   const outerGlowOpacity = useSharedValue(0.15);
 
   useEffect(() => {
+    if (!active || reducedMotion) { mascotScale.value=1; mascotFloat.value=0; glowScale.value=1; outerGlowScale.value=1; glowOpacity.value=0.3; outerGlowOpacity.value=0.15; return; }
     mascotScale.value = withRepeat(
       withSequence(
         withTiming(1.08, { duration: 650, easing: Easing.inOut(Easing.ease) }),
@@ -154,7 +158,9 @@ function MascotPulse({ size }: Readonly<{ size: number }>): React.ReactElement {
       -1,
       false,
     );
+    return () => { [mascotScale,mascotFloat,glowScale,glowOpacity,outerGlowScale,outerGlowOpacity].forEach(cancelAnimation); };
   }, [
+    active, reducedMotion,
     glowOpacity,
     glowScale,
     mascotFloat,
@@ -209,7 +215,7 @@ function MascotPulse({ size }: Readonly<{ size: number }>): React.ReactElement {
       />
       <Animated.View style={mascotStyle}>
         <Image
-          accessibilityLabel="Acharya is thinking"
+          accessibilityLabel={label}
           contentFit="contain"
           source={images.mascotLogo}
           style={{ height: size, width: size }}

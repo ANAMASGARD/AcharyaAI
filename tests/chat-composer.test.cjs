@@ -5,7 +5,7 @@ const test = require('node:test');
 const ts = require('typescript');
 const { colors } = require('../src/theme/colors.ts');
 
-function composer(draftText) {
+function composer(draftText, voiceInputStatus = 'idle') {
   const exports = {};
   const calls = [];
   const native = Object.fromEntries(['ActivityIndicator', 'Pressable', 'Text', 'TextInput', 'View'].map((name) => [name, name]));
@@ -32,7 +32,7 @@ function composer(draftText) {
     compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX },
   }).outputText;
   vm.runInNewContext(code, { exports, require: (name) => { assert.ok(name in mocks, name); return mocks[name]; } });
-  const tree = exports.ChatComposer({ draftText, onChangeText() {}, onSend: () => calls.push('send'), onVoiceAgent: () => calls.push('voice'), voiceInputStatus: 'idle' });
+  const tree = exports.ChatComposer({ draftText, onChangeText() {}, onSend: () => calls.push('send'), onVoiceAgent: () => calls.push('voice'), onDictate: () => calls.push('dictate'), voiceInputStatus });
   const nodes = [];
   function walk(node) {
     if (!node || typeof node !== 'object') return;
@@ -43,17 +43,39 @@ function composer(draftText) {
   return { nodes, calls };
 }
 
-test('empty and whitespace drafts offer voice; typing switches to send', () => {
+test('dictation and live voice stay independent; text adds a separate send control', () => {
   for (const text of ['', '   ', 'Hello']) {
     const { nodes, calls } = composer(text);
-    const hasText = Boolean(text.trim());
-    const button = nodes.find((node) => node.props?.accessibilityLabel === (hasText ? 'Send message' : 'Start voice message'));
-    assert.ok(button);
-    assert.equal(button.props.disabled, false);
-    button.props.onPress();
-    assert.deepEqual(calls, [hasText ? 'send' : 'voice']);
-    assert.ok(nodes.some((node) => hasText ? node.props?.name === 'arrow-up' : node.type === 'Wave'));
-    assert.ok(nodes.some((node) => node.props?.accessibilityLabel === 'Add attachment'));
-    assert.ok(nodes.some((node) => node.props?.accessibilityLabel === 'Voice message'));
+    const voice = nodes.find(node => node.props?.accessibilityLabel === 'Start live voice conversation');
+    const mic = nodes.find(node => node.props?.accessibilityLabel === 'Voice message');
+    const send = nodes.find(node => node.props?.accessibilityLabel === 'Send message');
+    assert.ok(voice);
+    assert.ok(mic);
+    assert.equal(voice.props.disabled, false);
+    assert.equal(mic.props.disabled, false);
+    voice.props.onPress();
+    mic.props.onPress();
+    assert.deepEqual(calls, ['voice', 'dictate']);
+    assert.equal(Boolean(send), Boolean(text.trim()));
+    if (send) {
+      assert.equal(send.props.disabled, false);
+      send.props.onPress();
+      assert.deepEqual(calls, ['voice', 'dictate', 'send']);
+    }
+    assert.ok(nodes.some(node => node.props?.accessibilityLabel === 'Add attachment'));
+  }
+});
+
+test('dictation owns the microphone until recording and transcription finish', () => {
+  for (const status of ['recording', 'transcribing']) {
+    const { nodes } = composer('Draft', status);
+    const voice = nodes.find(node => node.props?.accessibilityLabel === 'Start live voice conversation');
+    const send = nodes.find(node => node.props?.accessibilityLabel === 'Send message');
+    assert.equal(voice.props.disabled, true);
+    assert.equal(send.props.disabled, true);
+    if (status === 'recording') {
+      const stop = nodes.find(node => node.props?.accessibilityLabel === 'Stop voice');
+      assert.equal(stop.props.disabled, false);
+    }
   }
 });

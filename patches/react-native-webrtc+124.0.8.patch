@@ -1,0 +1,7 @@
+diff --git a/node_modules/react-native-webrtc/lib/typescript/vendor/event-target-shim.d.ts b/node_modules/react-native-webrtc/lib/typescript/vendor/event-target-shim.d.ts
+new file mode 100644
+index 0000000..7758765
+--- /dev/null
++++ b/node_modules/react-native-webrtc/lib/typescript/vendor/event-target-shim.d.ts
+@@ -0,0 +1 @@
++export * from '../../../src/vendor/event-target-shim';

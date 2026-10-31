@@ -205,7 +205,8 @@ export function ChatScreen(): React.ReactElement {
                 draftText={draftText}
                 onChangeText={setDraftText}
                 onSend={handleSend}
-                onVoiceAgent={handleToggleMic}
+                onDictate={handleToggleMic}
+                onVoiceAgent={() => { voiceInput.cancel(); voiceOutput.stop(); router.push('/voice'); }}
                 voiceInputStatus={voiceInput.status}
               />
             </View>

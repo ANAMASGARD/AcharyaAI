@@ -41,7 +41,9 @@ function ProductStack(): React.ReactElement {
           <Stack
             screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.cream } }}
             screenLayout={({ children, route }) => route.name === '(tabs)' ? children : <AcharyaBlurTarget>{children}</AcharyaBlurTarget>}
-          />
+          >
+            <Stack.Screen name="voice" options={{ presentation: "fullScreenModal", animation: "slide_from_bottom", gestureEnabled: false }} />
+          </Stack>
         </AcharyaBlurProvider>
   );
 }

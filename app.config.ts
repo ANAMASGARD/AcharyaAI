@@ -34,7 +34,7 @@ if (process.env.EXPO_PUBLIC_APP_VARIANT === 'production' && !['staging', 'produc
 const config: ExpoConfig = {
   name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.12',
+  version: '1.0.13',
   // Native changes require a new app version and store build before OTA publication.
   runtimeVersion: { policy: 'appVersion' },
   updates: {
@@ -56,7 +56,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 13,
+    versionCode: 14,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -72,6 +72,7 @@ const config: ExpoConfig = {
   },
   plugins: [
     'expo-router',
+    ['@config-plugins/react-native-webrtc', { microphonePermission: 'Allow Acharya to listen during your voice conversation.' }],
     'expo-asset',
     [
       'expo-splash-screen',
