@@ -2,6 +2,7 @@ import { Platform, StyleSheet, Text, type TextProps } from 'react-native';
 
 import { Fonts, ThemeColor } from '@/constants/theme';
 import { useTheme } from '@/hooks/use-theme';
+import { typography } from '@/theme/typography';
 
 export type ThemedTextProps = TextProps & {
   type?: keyof typeof styles;
@@ -13,11 +14,7 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 
   return (
     <Text
-      style={[
-        { color: theme[themeColor ?? 'text'] },
-        styles[type],
-        style,
-      ]}
+      style={[{ color: theme[themeColor ?? 'text'] }, styles[type], style]}
       {...rest}
     />
   );
@@ -25,41 +22,48 @@ export function ThemedText({ style, type = 'default', themeColor, ...rest }: The
 
 const styles = StyleSheet.create({
   small: {
-    fontSize: 14,
-    lineHeight: 20,
+    fontSize: typography.caption.fontSize,
+    lineHeight: typography.caption.lineHeight,
+    fontFamily: Fonts?.sans,
     fontWeight: 500,
   },
   smallBold: {
-    fontSize: 14,
-    lineHeight: 20,
-    fontWeight: 700,
+    fontSize: typography.caption.fontSize,
+    lineHeight: typography.caption.lineHeight,
+    fontFamily: Fonts?.sansBold,
+    fontWeight: '700',
   },
   default: {
-    fontSize: 16,
-    lineHeight: 24,
+    fontSize: typography.body.fontSize,
+    lineHeight: typography.body.lineHeight,
+    fontFamily: Fonts?.sans,
     fontWeight: 500,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 600,
-    lineHeight: 52,
+    fontSize: typography.h1.fontSize,
+    lineHeight: typography.h1.lineHeight,
+    fontFamily: Fonts?.head,
+    fontWeight: '800',
   },
   subtitle: {
-    fontSize: 32,
-    lineHeight: 44,
-    fontWeight: 600,
+    fontSize: typography.h2.fontSize,
+    lineHeight: typography.h2.lineHeight,
+    fontFamily: Fonts?.head,
+    fontWeight: '800',
   },
   link: {
     lineHeight: 30,
     fontSize: 14,
+    fontFamily: Fonts?.sansBold,
   },
   linkPrimary: {
     lineHeight: 30,
     fontSize: 14,
+    fontFamily: Fonts?.sansBold,
     color: '#3c87f7',
   },
   code: {
-    fontFamily: Fonts.mono,
+    fontFamily: Fonts?.mono,
     fontWeight: Platform.select({ android: 700 }) ?? 500,
     fontSize: 12,
   },

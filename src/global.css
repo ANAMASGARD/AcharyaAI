@@ -1,9 +1,38 @@
 :root {
-  --font-display:
-    Spline Sans, Inter, ui-sans-serif, system-ui, sans-serif, Apple Color Emoji, Segoe UI Emoji,
-    Segoe UI Symbol, Noto Color Emoji;
-  --font-mono:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, Liberation Mono, Courier New, monospace;
-  --font-rounded: 'SF Pro Rounded', 'Hiragino Maru Gothic ProN', Meiryo, 'MS PGothic', sans-serif;
+  --background: #fff8e7;
+  --foreground: #000000;
+  --card: #ffffff;
+  --primary: #ffdb33;
+  --primary-hover: #ffcc00;
+  --primary-foreground: #000000;
+  --secondary: #000000;
+  --secondary-foreground: #ffffff;
+  --muted: #aeaeae;
+  --muted-foreground: #5a5a5a;
+  --accent: #fae583;
+  --destructive: #e63946;
+  --border: #000000;
+  --input: #ffffff;
+
+  --acharya-mint: #b8e5e1;
+  --acharya-sky: #a8d5e5;
+  --acharya-coral: #ffb5a7;
+  --acharya-lime: #c5e99b;
+  --acharya-lavender: #e0d4f7;
+  --acharya-cream: #fff8e7;
+
+  --font-head: ArchivoBlack-Regular, system-ui, sans-serif;
+  --font-sans: SpaceGrotesk-Regular, system-ui, sans-serif;
+  --font-sans-medium: SpaceGrotesk-Medium, system-ui, sans-serif;
+  --font-sans-bold: SpaceGrotesk-Bold, system-ui, sans-serif;
   --font-serif: Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: var(--font-sans);
+  --font-rounded: var(--font-sans-medium);
+}
+
+body {
+  background-color: var(--acharya-cream);
+  color: var(--foreground);
+  font-family: var(--font-sans);
 }

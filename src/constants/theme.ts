@@ -1,26 +1,36 @@
 /**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
+ * App shell theme (tabs, starter screens). Auth and product UI use `@/theme/*` tokens.
  */
 
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
+import { colors } from '@/theme/colors';
+import { fontFamilies } from '@/theme/typography';
+
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: colors.foreground,
+    background: colors.cream,
+    backgroundElement: colors.mint,
+    backgroundSelected: colors.sky,
+    textSecondary: colors.mutedForeground,
+    primary: colors.primary,
+    border: colors.border,
+    card: colors.card,
+    destructive: colors.destructive,
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
+    text: colors.secondaryForeground,
+    background: colors.secondary,
     backgroundElement: '#212225',
     backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    textSecondary: colors.muted,
+    primary: colors.primary,
+    border: colors.border,
+    card: '#212225',
+    destructive: colors.destructive,
   },
 } as const;
 
@@ -28,26 +38,28 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
-    sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
+    sans: fontFamilies.sans,
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
-    rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
+    rounded: fontFamilies.sansMedium,
     mono: 'ui-monospace',
+    head: fontFamilies.head,
+    sansBold: fontFamilies.sansBold,
   },
   default: {
-    sans: 'normal',
+    sans: fontFamilies.sans,
     serif: 'serif',
-    rounded: 'normal',
+    rounded: fontFamilies.sansMedium,
     mono: 'monospace',
+    head: fontFamilies.head,
+    sansBold: fontFamilies.sansBold,
   },
   web: {
-    sans: 'var(--font-display)',
+    sans: 'var(--font-sans)',
     serif: 'var(--font-serif)',
-    rounded: 'var(--font-rounded)',
+    rounded: 'var(--font-sans-medium)',
     mono: 'var(--font-mono)',
+    head: 'var(--font-head)',
+    sansBold: 'var(--font-sans-bold)',
   },
 });
 

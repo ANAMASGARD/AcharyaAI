@@ -1,0 +1,37 @@
+import { useAuth } from '@clerk/expo';
+import { SignUp } from '@clerk/expo/web';
+import { Redirect } from 'expo-router';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
+
+import { colors } from '@/theme/colors';
+
+export default function SignUpWebScreen(): React.ReactElement {
+  const { isLoaded, isSignedIn } = useAuth();
+
+  if (!isLoaded) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
+
+  if (isSignedIn) {
+    return <Redirect href="/" />;
+  }
+
+  return (
+    <View style={styles.centered}>
+      <SignUp routing="path" path="/sign-up" signInUrl="/sign-in" />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  centered: {
+    alignItems: 'center',
+    backgroundColor: colors.cream,
+    flex: 1,
+    justifyContent: 'center',
+  },
+});
