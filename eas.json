@@ -11,8 +11,12 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "development"
-      }
+        "EXPO_PUBLIC_APP_VARIANT": "development",
+        "ACHARYA_UPDATE_CHANNEL": "development",
+        "EXPO_NO_DOTENV": "1"
+      },
+      "channel": "development",
+      "environment": "development"
     },
     "preview": {
       "distribution": "internal",
@@ -20,8 +24,12 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "preview"
-      }
+        "EXPO_PUBLIC_APP_VARIANT": "preview",
+        "ACHARYA_UPDATE_CHANNEL": "preview",
+        "EXPO_NO_DOTENV": "1"
+      },
+      "channel": "preview",
+      "environment": "preview"
     },
     "production": {
       "autoIncrement": true,
@@ -29,7 +37,24 @@
         "buildType": "app-bundle"
       },
       "env": {
-        "EXPO_PUBLIC_APP_VARIANT": "production"
+        "EXPO_PUBLIC_APP_VARIANT": "production",
+        "ACHARYA_UPDATE_CHANNEL": "production",
+        "EXPO_NO_DOTENV": "1"
+      },
+      "channel": "production",
+      "environment": "production"
+    },
+    "staging": {
+      "extends": "production",
+      "channel": "staging",
+      "environment": "production",
+      "distribution": "internal",
+      "autoIncrement": false,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "ACHARYA_UPDATE_CHANNEL": "staging"
       }
     }
   },

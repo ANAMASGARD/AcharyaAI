@@ -14,10 +14,29 @@ if (process.env.EAS_BUILD_PROFILE === 'production' || process.env.EXPO_PUBLIC_AP
  * Same branding as /home/linux/Downloads/acharya-app (production-hardening).
  * Icon paths are explicit so Expo Go picks up Acharya art, not the Expo template.
  */
+const updateChannel = process.env.ACHARYA_UPDATE_CHANNEL ?? 'preview';
+if (!['development', 'preview', 'staging', 'production'].includes(updateChannel)) {
+  throw new Error('Unknown ACHARYA_UPDATE_CHANNEL');
+}
+if (process.env.EXPO_PUBLIC_APP_VARIANT === 'production' && !['staging', 'production'].includes(updateChannel)) {
+  throw new Error('Production configuration requires an explicit staging or production update channel.');
+}
+
 const config: ExpoConfig = {
   name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.7',
+  version: '1.0.8',
+  // Native changes require a new app version and store build before OTA publication.
+  runtimeVersion: { policy: 'appVersion' },
+  updates: {
+    url: 'https://u.expo.dev/b9e06999-942a-4f0a-8429-633865958f1b',
+    checkAutomatically: 'ON_LOAD',
+    fallbackToCacheTimeout: 0,
+    useEmbeddedUpdate: true,
+    requestHeaders: {
+      'expo-channel-name': updateChannel,
+    },
+  },
   orientation: 'portrait',
   icon: './assets/images/acharya-app-icon.png',
   scheme: 'acharyaapp',
@@ -28,7 +47,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 8,
+    versionCode: 9,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',
