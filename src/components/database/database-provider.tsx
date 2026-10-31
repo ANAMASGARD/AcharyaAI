@@ -1,14 +1,10 @@
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
-import { type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
-import { getLocalDb } from '@/db/client';
+import { readyLocalDb } from '@/db/ready';
 import { ThemedText } from '@/components/themed-text';
-import migrations from '../../../drizzle/expo/migrations';
-
-const db = getLocalDb();
 
 type DatabaseProviderProps = {
   children: ReactNode;
@@ -18,7 +14,13 @@ export function DatabaseProvider({ children }: DatabaseProviderProps) {
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
-  const { success, error } = useMigrations(db, migrations);
+  const [success, setSuccess] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+  useEffect(() => {
+    let active = true;
+    void readyLocalDb().then(() => { if (active) setSuccess(true); }, () => { if (active) setError(new Error('Could not prepare local storage. Restart the app to retry.')); });
+    return () => { active = false; };
+  }, []);
 
   if (error) {
     return (

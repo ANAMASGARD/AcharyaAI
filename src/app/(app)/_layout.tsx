@@ -8,6 +8,7 @@ import { KeyboardProvider } from 'react-native-keyboard-controller';
 
 import { UiPreviewProvider } from '@/components/preview/preview-provider';
 import { AcharyaBlurProvider, AcharyaBlurTarget } from '@/components/ui/acharya-blur';
+import { ReportSyncLifecycle } from '@/components/profile/cloud-sync-settings';
 import { SIGN_IN_ROUTE } from '@/lib/routes';
 
 export default function AppLayout(): React.ReactElement {
@@ -22,6 +23,7 @@ export default function AppLayout(): React.ReactElement {
   return <GestureHandlerRootView style={styles.root}>
     <KeyboardProvider>
       <UiPreviewProvider key={userId} owner={userId}>
+        <ReportSyncLifecycle />
         <ProductStack />
       </UiPreviewProvider>
     </KeyboardProvider>

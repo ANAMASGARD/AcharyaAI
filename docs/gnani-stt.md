@@ -3,8 +3,9 @@
 The recorder uses Gnani STT on Android and iOS while its screen is open. Topic,
 subject and class are required. Text appears in **Class Transcribe** after each
 30-second segment finishes; Stop submits the nonempty remainder. English–Hindi
-mixed speech is requested with Latin-script output. Send remains disabled because
-report generation is outside this milestone. Web recording is unavailable.
+mixed speech is requested with Latin-script output. After transcription finishes,
+Send generates class notes and teaching feedback through OpenAI GPT-6 Luna using
+the saved OpenAI key. Web recording is unavailable. See [class reports](class-reports.md).
 
 ## Current default: direct BYOK
 

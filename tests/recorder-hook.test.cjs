@@ -26,6 +26,7 @@ function hookHarness(platform = 'android') {
   }
   let streamOptions;
   const mocks = {
+    '@/hooks/use-recorder-analysis': { useRecorderAnalysis: () => ({ canSend: false, isAnalyzing: false, report: null, classNotes: null, send: async () => {}, cancel: () => {} }) },
     '@/components/preview/preview-provider': { usePreviewFeature: () => [draft, () => {}] },
     '@/lib/id': { createId: () => 'id' }, '@/lib/recording/direct-api': { createDirectRecordingApi: () => ({}) },
     '@/lib/recording/audio-focus': { setRecorderMicrophoneActive: () => {} },

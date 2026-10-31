@@ -11,7 +11,13 @@ type Props = Readonly<{
   transcript?: string;
   isTranscribing?: boolean;
   disabled?: boolean;
+  isAnalyzing?: boolean;
+  progress?: string | null;
+  error?: string | null;
+  reportReady?: boolean;
+  onCancel?: () => void;
   onSend?: () => void;
+  onNewClassroom?: () => void;
 }>;
 
 export function RecorderTranscriptPanel({
@@ -19,12 +25,13 @@ export function RecorderTranscriptPanel({
   isTranscribing = false,
   disabled = false,
   onSend,
+  isAnalyzing = false, progress, error, reportReady = false, onCancel, onNewClassroom,
 }: Props): React.ReactElement {
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
   const hasTranscript = Boolean(transcript?.trim());
-  const sendDisabled = disabled || !hasTranscript || isTranscribing;
+  const sendDisabled = disabled || !hasTranscript || isTranscribing || isAnalyzing;
 
   let bodyContent: React.ReactNode;
 
@@ -40,7 +47,7 @@ export function RecorderTranscriptPanel({
   } else {
     bodyContent = (
       <Text style={[styles.body, styles.placeholder]}>
-        Text appears after each 30-second segment is processed. Audio is sent directly to Gnani using your saved API key.
+        Your class transcript appears here.
       </Text>
     );
   }
@@ -60,11 +67,19 @@ export function RecorderTranscriptPanel({
         {bodyContent}
       </ScrollView>
 
-      <Text style={[styles.loadingText, { marginHorizontal: spacing.lg, marginTop: spacing.md }]}>Teaching reports will be available in a later milestone.</Text>
+      {isAnalyzing ? <View accessibilityLiveRegion="polite" style={styles.progress}>
+        <ActivityIndicator color={colors.foreground} />
+        <Text style={styles.loadingText}>{progress}</Text>
+        <Pressable accessibilityRole="button" accessibilityLabel="Cancel report generation" onPress={onCancel} style={styles.cancelButton}>
+          <Text style={styles.body}>Cancel</Text>
+        </Pressable>
+      </View> : null}
+      {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+      <View style={styles.actions}>
       <Pressable
-        accessibilityLabel="Send transcript"
+        accessibilityLabel={reportReady ? "Report ready" : "Send transcript"}
         accessibilityRole="button"
-        accessibilityState={{ disabled: sendDisabled }}
+        accessibilityState={{ disabled: sendDisabled, busy: isAnalyzing }}
         disabled={sendDisabled}
         onPress={onSend}
         style={({ pressed }) => [
@@ -75,16 +90,29 @@ export function RecorderTranscriptPanel({
       >
         <MaterialCommunityIcons
           color={colors.primaryForeground}
-          name="send"
+          name={reportReady ? "check" : "send"}
           size={20}
         />
-        <Text style={[styles.sendLabel, { color: colors.onAccent }]}>Send</Text>
+        <Text style={[styles.sendLabel, { color: colors.onAccent }]}>{isAnalyzing ? 'Generating…' : reportReady ? 'Report ready' : 'Send'}</Text>
       </Pressable>
+      {reportReady ? <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Start a new classroom"
+        accessibilityHint="Clears the recorder form so you can record another class"
+        onPress={onNewClassroom}
+        style={({ pressed }) => [styles.newButton, pressed && styles.sendButtonPressed]}
+      >
+        <MaterialCommunityIcons name="plus" size={26} color={colors.onAccent} />
+      </Pressable> : null}
+      </View>
     </RecorderNeoCard>
   );
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  progress: { alignItems: 'center', gap: spacing.sm, padding: spacing.md },
+  cancelButton: { minHeight: 44, justifyContent: 'center', paddingHorizontal: spacing.lg },
+  error: { color: colors.destructive, paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, fontFamily: fontFamilies.sans, fontSize: 14 },
   body: {
     color: colors.foreground,
     fontFamily: fontFamilies.sans,
@@ -136,7 +164,14 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     color: colors.mutedForeground,
     fontStyle: "italic",
   },
+  actions: { flexDirection: 'row', gap: spacing.sm, margin: spacing.lg, marginTop: spacing.sm },
+  newButton: {
+    alignItems: 'center', justifyContent: 'center', minWidth: spacing.touch, minHeight: spacing.touch,
+    backgroundColor: colors.primary, borderColor: colors.border, borderRadius: radii.md,
+    borderWidth: borderWidths.default, ...shadows.sm,
+  },
   sendButton: {
+    flex: 1,
     alignItems: "center",
     backgroundColor: colors.primary,
     borderColor: colors.border,
@@ -145,8 +180,6 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     flexDirection: "row",
     gap: spacing.sm,
     justifyContent: "center",
-    margin: spacing.lg,
-    marginTop: spacing.sm,
     minHeight: spacing.touch,
     ...shadows.sm,
   },

@@ -90,6 +90,17 @@ export class RecorderController {
     }
   }
 
+  prepareNewSession(): boolean {
+    const snapshot = this.view.snapshot;
+    if (this.closed || this.closing || !this.view.hydrated || this.view.busy || this.accepting || this.worker ||
+      !snapshot?.session.serverFinalized || !['complete', 'partial'].includes(snapshot.session.status) ||
+      snapshot.chunks.some((chunk) => chunk.status !== 'done' && chunk.status !== 'empty')) return false;
+    this.generation++;
+    this.captureError = null;
+    this.publish(null, null, false);
+    return true;
+  }
+
   async start(metadata: { title: string; subject: string; grade: string }): Promise<void> {
     if (this.closed || this.closing || !this.view.hydrated || this.view.busy || this.accepting || this.worker ||
       this.view.snapshot?.chunks.some((chunk) => !terminal(chunk) || chunk.status === 'failed') ||

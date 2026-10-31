@@ -1,13 +1,13 @@
 export const aiProviders = [
   { id: 'gnani', keyUrl: 'https://app.gnani.ai/voice/', name: 'Gnani AI', description: 'Speech-to-text & read aloud' },
-  { id: 'openai', keyUrl: 'https://platform.openai.com/api-keys', name: 'OpenAI / compatible', description: 'Text chat · compatible APIs' },
+  { id: 'openai', keyUrl: 'https://platform.openai.com/api-keys', name: 'OpenAI / compatible', description: 'Chat & class reports' },
   { id: 'gemini', keyUrl: 'https://aistudio.google.com/apikey', name: 'Google Gemini', description: 'Text chat · Google' },
   { id: 'claude', keyUrl: 'https://platform.claude.com/settings/keys', name: 'Anthropic Claude', description: 'Text chat · Anthropic' },
 ] as const;
 
 export type AiProvider = typeof aiProviders[number]['id'];
 export type ReasoningProvider = Exclude<AiProvider, 'gnani'>;
-export const defaultModels: Record<ReasoningProvider, string> = { openai: 'gpt-4.1-mini', gemini: 'gemini-3.8-flash', claude: 'claude-sonnet-5-5' };
+export const defaultModels: Record<ReasoningProvider, string> = { openai: 'gpt-6-luna', gemini: 'gemini-3.8-flash', claude: 'claude-sonnet-5-5' };
 export type ProviderCredential = Readonly<{ apiKey: string; baseUrl?: string; model?: string }>;
 export type ProviderSummary = Readonly<{ configured: boolean; baseUrl?: string; model?: string }>;
 export const defaultOpenAiUrl = 'https://api.openai.com/v1';

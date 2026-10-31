@@ -1,0 +1,20 @@
+{
+  "user_model": {
+    "first_name": {
+      "enabled": true,
+      "required": false
+    }
+  },
+  "auth_email": {
+    "required_for_sign_up": true,
+    "used_for_sign_in": true,
+    "used_for_sign_up": true,
+    "verify_at_sign_up": true,
+    "sign_in_strategies": ["email_code", "email_link"],
+    "verification_strategies": ["email_code", "email_link"]
+  },
+  "auth_password": {
+    "enabled": false,
+    "required": false
+  }
+}

@@ -10,6 +10,7 @@ import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { PreviewAuthCleanup } from '@/components/preview/preview-auth-cleanup';
+import { AuthStartupGate } from '@/components/auth/auth-startup-gate';
 import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -22,7 +23,6 @@ import {
 } from '@/lib/clerk-config';
 import { configureClerkDevLogBox } from '@/lib/clerk-logbox';
 import { fontAssets } from '@/theme/fonts';
-import { colors } from '@/theme/colors';
 
 type ClerkBootstrap =
   | { status: 'ready'; publishableKey: string }
@@ -73,7 +73,7 @@ export default function RootLayout() {
       <ThemeProvider value={navigationTheme}>
         <PreviewAuthCleanup />
         <AnimatedSplashOverlay />
-        <Slot />
+        <AuthStartupGate><Slot /></AuthStartupGate>
       </ThemeProvider>
     </ClerkProvider>
   );
@@ -83,12 +83,9 @@ function ClerkConfigError({ message }: { message: string }) {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea}>
-        <ThemedText type="title">Clerk setup</ThemedText>
-        <ThemedText>{message}</ThemedText>
-        <ThemedText type="small">
-          Local dev: use pk_test_ in .env. Play Store builds: set pk_live_ with EAS Secrets on the
-          production profile. CLERK_SECRET_KEY stays server-only (no EXPO_PUBLIC_ prefix).
-        </ThemedText>
+        <ThemedText type="title">Unable to start Acharya</ThemedText>
+        <ThemedText>This installation is missing its sign-in configuration. Please install the updated app.</ThemedText>
+        {__DEV__ ? <ThemedText type="small">{message}</ThemedText> : null}
       </SafeAreaView>
     </ThemedView>
   );
@@ -97,7 +94,6 @@ function ClerkConfigError({ message }: { message: string }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: colors.cream,
   },
   safeArea: {
     flex: 1,

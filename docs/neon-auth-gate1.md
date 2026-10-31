@@ -1,3 +1,5 @@
+> Superseded on 13 October 2026: retain Clerk Auth. This document is historical evidence, not a migration instruction. Preserve the isolated test project. See clerk-neon-production.md.
+
 # Neon authentication migration — Gate 1 evidence
 
 13 October 2026. **Blocked before application migration. No public release.**

@@ -1,3 +1,4 @@
+import { CloudSyncSettings } from './cloud-sync-settings';
 import { Pressable } from '@/components/feedback/pressable';
 import { AppearanceToggle } from "@/components/profile/appearance-toggle";
 import { useColorMode, useThemeColors, useThemeStyles } from '@/theme/use-theme';
@@ -125,6 +126,13 @@ export function ProfileScreen(): React.ReactElement {
               subtitle="Bring your own keys · encrypted on this device"
               onPress={() => router.push("/profile/api-keys")}
             />
+            <ProfileMenuRow
+              icon="download-outline"
+              label="Run locally"
+              subtitle="EmbeddingGemma 2 · 165 MB"
+              onPress={() => router.push('/profile/local-models')}
+            />
+            <CloudSyncSettings />
             <AppearanceToggle />
             <ProfileToggleRow
               icon="volume-high"
@@ -219,7 +227,7 @@ export function ProfileScreen(): React.ReactElement {
             />
             <ProfileMenuRow
               icon="shield-lock-outline"
-              label="Security & 2FA"
+              label="Account security"
               onPress={goToAccount}
               showDivider
             />

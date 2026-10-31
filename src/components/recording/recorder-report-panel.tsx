@@ -19,7 +19,7 @@ export function RecorderReportPanel({
   report,
   classNotes,
 }: Props): React.ReactElement {
-  const [activeView, setActiveView] = useState<SessionDetailView>("reflection");
+  const [activeView, setActiveView] = useState<SessionDetailView>("notes");
 
   return (
     <RecorderNeoCard style={styles.card}>

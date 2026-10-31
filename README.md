@@ -1,3 +1,5 @@
+> Current release architecture: Clerk Production + Neon Functions/Data API/PostgreSQL. See [deployment and release gates](docs/clerk-neon-production.md). The old Managed Auth experiment is stopped; Vercel is not the mobile API backend.
+
 # AcharyaApp
 
 Expo Router app for Android, iOS, and web, using Expo SDK 57 and React Native 0.86.
@@ -5,9 +7,22 @@ Expo Router app for Android, iOS, and web, using Expo SDK 57 and React Native 0.
 ## Development
 
 ```bash
-npm ci
-npm start
+npx expo start
 ```
+
+Scan the QR code with **Expo Go compatible with SDK 57**, with your phone and
+computer on the same Wi-Fi. Use email sign-in in Expo Go; Google/Facebook sign-in
+requires a development build. On a fresh checkout, run `npm ci` once and configure
+the Clerk publishable key in `.env` as described below. Provider features need
+internet access and your saved API keys; they do not need a separate AI backend.
+
+On-device EmbeddingGemma and native background indexing require a custom native
+build and are not available in Expo Go. Normal startup does not load the native
+gate or download a model. The opt-in [native gate](docs/native-embedding-gate.md)
+is a separate test workflow and remains unverified on-device.
+See Expo's [startup guide](https://docs.expo.dev/get-started/start-developing/),
+[OAuth limitation](https://docs.expo.dev/guides/authentication/), and
+[native-code limitation](https://docs.expo.dev/workflow/customizing/).
 
 Routes live in `src/app/`; shared components, hooks, and theme constants live
 outside the route directory. Use `npx expo install` for SDK-compatible packages.
@@ -23,7 +38,9 @@ stale **AcharyaApp** entry from Recent, clear Expo Go cache, and run
 Open **Profile → App settings → AI API keys** to save Gnani, OpenAI-compatible,
 Gemini, and Claude keys in encrypted device storage. Gnani powers class transcription, voice messages, and read aloud. Saving a text
 provider selects it for chat; its model ID is editable. The eye button reveals
-typed or saved keys. Local models remain coming later.
+typed or saved keys. Settings → Run locally downloads the verified 165 MB
+EmbeddingGemma 2 artifact in custom Android builds. Automatic embeddings remain
+behind the native device gate. See [local models and history](docs/local-models-and-history.md).
 See [storage, scope, and device checks](docs/byok-settings.md).
 
 ## Design system
@@ -91,7 +108,8 @@ npm run db:generate:expo  # after SQLite schema changes
 The foreground recorder captures 30-second segments and displays Gnani transcripts
 while recording. See [Gnani STT setup and device acceptance](docs/gnani-stt.md) for
 direct device keys, retry behavior, and current verification limits. No custom AI
-backend is needed for these direct calls.
+backend is needed for these direct calls. After transcription, **Send** creates
+class notes and teaching feedback with OpenAI GPT-6 Luna. See [class reports](docs/class-reports.md).
 
 ## Validation
 

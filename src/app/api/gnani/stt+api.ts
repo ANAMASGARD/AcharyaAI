@@ -9,6 +9,7 @@ import { transcribeWithGnani } from '@/server/recording/provider';
 export async function POST(request: Request): Promise<Response> {
   try {
     const owner = await recordingOwner(request);
+    if (process.env.APP_ENV === 'production') throw new SttError('FUNDED_AI_DISABLED', 'Use your own API key in Settings.', 403);
     const body = await readRecordingBody(request, 980000);
     let form: { get(name: string): unknown };
     try { form = await new Response(body, { headers: { 'Content-Type': request.headers.get('Content-Type') ?? '' } }).formData() as unknown as { get(name: string): unknown }; }

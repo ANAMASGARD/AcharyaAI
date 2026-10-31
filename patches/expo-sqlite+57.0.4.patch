@@ -1,0 +1,86 @@
+diff --git a/node_modules/expo-sqlite/android/src/main/java/expo/modules/sqlite/AcharyaSqliteConnection.kt b/node_modules/expo-sqlite/android/src/main/java/expo/modules/sqlite/AcharyaSqliteConnection.kt
+new file mode 100644
+--- /dev/null
++++ b/node_modules/expo-sqlite/android/src/main/java/expo/modules/sqlite/AcharyaSqliteConnection.kt
+@@ -0,0 +1,81 @@
++package expo.modules.sqlite
++
++import java.io.Closeable
++import java.io.File
++
++/** App-owned compatibility facade, not an upstream Expo API. Uses Expo's JNI/SQLite only.
++ * One connection per worker; synchronous calls must stay off the UI thread.
++ * Drizzle owns migrations. This facade deliberately cannot create a missing database.
++ */
++class AcharyaSqliteConnection private constructor(private val db: NativeDatabaseBinding) : Closeable {
++  private var closed = false
++
++  @Synchronized
++  fun query(sql: String, parameters: List<Any?> = emptyList()): List<List<Any?>> {
++    check(!closed) { "SQLite connection closed" }
++    require(parameters.all { it == null || it is String || it is Long || it is Int || it is Double || it is Boolean || it is ByteArray })
++    val statement = NativeStatementBinding()
++    try {
++      checkCode(db.sqlite3_prepare_v2(sql, statement))
++      parameters.forEachIndexed { index, value -> checkCode(statement.bindStatementParam(index + 1, value)) }
++      val rows = mutableListOf<List<Any?>>()
++      while (true) {
++        when (val code = statement.sqlite3_step()) {
++          NativeDatabaseBinding.SQLITE_ROW -> rows.add(statement.getColumnValues().toList())
++          NativeDatabaseBinding.SQLITE_DONE -> return rows
++          else -> throw SqliteFailure(code)
++        }
++      }
++    } finally {
++      // sqlite3_finalize destroys the sqlite statement; resetNative releases its JNI holder.
++      // Finalize may repeat the last step error; it still destroys the statement.
++      statement.sqlite3_finalize()
++      statement.close()
++    }
++  }
++
++  @Synchronized
++  fun <T> transaction(block: (AcharyaSqliteConnection) -> T): T {
++    query("BEGIN IMMEDIATE")
++    try {
++      val result = block(this)
++      query("COMMIT")
++      return result
++    } catch (error: Throwable) {
++      try { query("ROLLBACK") } catch (rollback: Throwable) { error.addSuppressed(rollback) }
++      throw error
++    }
++  }
++
++  @Synchronized
++  override fun close() {
++    if (closed) return
++    checkCode(db.sqlite3_close())
++    db.close()
++    closed = true
++  }
++
++  class SqliteFailure(val sqliteCode: Int) : IllegalStateException("SQLite error code $sqliteCode")
++
++  companion object {
++    private fun checkCode(code: Int) {
++      if (code != NativeDatabaseBinding.SQLITE_OK) throw SqliteFailure(code)
++    }
++
++    fun openExisting(file: File): AcharyaSqliteConnection {
++      require(file.isFile) { "Database must be initialized by the app first" }
++      val binding = NativeDatabaseBinding()
++      try {
++        checkCode(binding.sqlite3_open(file.canonicalPath))
++        val connection = AcharyaSqliteConnection(binding)
++        connection.query("PRAGMA busy_timeout = 1500")
++        connection.query("PRAGMA foreign_keys = ON")
++        return connection
++      } catch (error: Throwable) {
++        binding.sqlite3_close()
++        binding.close()
++        throw error
++      }
++    }
++  }
++}

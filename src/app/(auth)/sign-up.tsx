@@ -31,10 +31,9 @@ export default function SignUpScreen(): React.ReactElement {
   const { isSignedIn } = useAuth();
   const { signUp, fetchStatus } = useSignUp();
   const {
+    isSocialAuthAvailable,
     startGoogleAuth,
-    startFacebookAuth,
     isGoogleLoading,
-    isFacebookLoading,
     oauthError,
   } = useSocialAuth();
 
@@ -123,7 +122,7 @@ export default function SignUpScreen(): React.ReactElement {
             prompt="Already have an account?"
           />
         }
-        subtitle="A secured mobile app built for teachers."
+        subtitle="Continue with your email."
         title="Create your account">
         <AuthLabeledInput
           autoCapitalize="words"
@@ -147,24 +146,20 @@ export default function SignUpScreen(): React.ReactElement {
         {oauthError ? <Text style={styles.formError}>{oauthError}</Text> : null}
 
         <View style={styles.buttonStack}>
-          <SocialAuthButton
-            disabled={isBusy}
-            label="Continue with Google"
-            loading={isGoogleLoading}
-            variant="google"
-            onPress={() => {
-              void startGoogleAuth();
-            }}
-          />
-          <SocialAuthButton
-            disabled={isBusy}
-            label="Continue with Facebook"
-            loading={isFacebookLoading}
-            variant="facebook"
-            onPress={() => {
-              void startFacebookAuth();
-            }}
-          />
+          {isSocialAuthAvailable ? (
+            <>
+              <SocialAuthButton
+                disabled={isBusy}
+                label="Continue with Google"
+                loading={isGoogleLoading}
+                variant="google"
+                onPress={() => {
+                  void startGoogleAuth();
+                }}
+              />
+
+            </>
+          ) : null}
           <SocialAuthButton
             disabled={isBusy}
             label="Continue with Email"

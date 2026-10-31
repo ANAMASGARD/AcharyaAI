@@ -12,7 +12,7 @@ function sourceFiles(directory) {
   });
 }
 
-test('reachable UI permits only recorder SQLite while isolating server, sync, and AI secrets', () => {
+test('reachable UI permits only recorder and report SQLite while isolating server, sync, and AI secrets', () => {
   const pending = [path.join(root, 'src/app/_layout.tsx'), ...sourceFiles(path.join(root, 'src/app/(app)'))];
   const visited = new Set();
   while (pending.length) {
@@ -21,7 +21,7 @@ test('reachable UI permits only recorder SQLite while isolating server, sync, an
     visited.add(filename);
     const relative = path.relative(root, filename).replaceAll(path.sep, '/');
     assert.doesNotMatch(relative, /^src\/(?:server|lib\/sync|components\/(?:database|sync))\//, relative);
-    if (relative.startsWith('src/db/')) assert.ok(['src/db/client.ts', 'src/db/schema.ts'].includes(relative), relative);
+    if (relative.startsWith('src/db/')) assert.ok(['src/db/client.ts', 'src/db/schema.ts', 'src/db/ready.ts'].includes(relative), relative);
     const text = fs.readFileSync(filename, 'utf8');
     assert.doesNotMatch(text, /process\.env\.(?:GNANI_API_KEY|GEMINI_API_KEY|CLERK_SECRET_KEY|DATABASE_URL)\b/, `${relative}: server secret`);
     const tree = ts.createSourceFile(filename, text, ts.ScriptTarget.Latest, true, filename.endsWith('tsx') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
@@ -37,7 +37,8 @@ test('reachable UI permits only recorder SQLite while isolating server, sync, an
             if (fs.existsSync(base + suffix)) {
               const target = path.relative(root, base + suffix).replaceAll(path.sep, '/');
               if (target.startsWith('src/db/')) {
-                const allowed = (relative === 'src/lib/recording/repository.ts' && ['src/db/client.ts', 'src/db/schema.ts'].includes(target)) ||
+                const allowed = (['src/lib/recording/repository.ts', 'src/lib/reports/history.ts', 'src/lib/reports/cloud.ts'].includes(relative) && ['src/db/ready.ts', 'src/db/schema.ts'].includes(target)) ||
+                  (relative === 'src/db/ready.ts' && target === 'src/db/client.ts') ||
                   (relative === 'src/db/client.ts' && target === 'src/db/schema.ts');
                 assert.ok(allowed, `${relative} must not import ${target}`);
               }

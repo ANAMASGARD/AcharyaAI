@@ -1,3 +1,4 @@
+import { cloudConfigured, deleteCloudAccount, stopReportSync } from '@/lib/reports/cloud';
 import { clearProviderCredentials } from '@/lib/ai-keys/vault';
 import { stopRecorderAccount } from '@/lib/recording/lifecycle';
 import { deleteRecordingAccount } from '@/lib/recording/api';
@@ -26,6 +27,7 @@ export function useAccountActions(): Readonly<{
     setActionError(null);
     setIsSigningOut(true);
     try {
+      if (userId) stopReportSync(userId);
       if (userId) await stopRecorderAccount(userId);
       if (userId) await clearProviderCredentials(userId);
       await clerkSignOut();
@@ -43,7 +45,7 @@ export function useAccountActions(): Readonly<{
   }, [clerkSignOut, router, userId]);
 
   const signOut = useCallback((): void => {
-    void confirmAction('Sign out', 'Sign out of Acharya and remove saved API keys, local drafts and copied files? Your preferences are kept for this account.', 'Sign out')
+    void confirmAction('Sign out', 'Sign out and remove saved API keys and chat drafts? Class reports remain saved for this account on this device.', 'Sign out')
       .then((confirmed) => { if (confirmed) void performSignOut(); });
   }, [performSignOut]);
 
@@ -55,11 +57,13 @@ export function useAccountActions(): Readonly<{
     setActionError(null);
     setIsDeletingAccount(true);
     try {
+      stopReportSync(user.id);
       await stopRecorderAccount(user.id);
       // Retain cleanup for an explicitly configured legacy backend; direct BYOK needs none.
-      if (process.env.EXPO_PUBLIC_API_URL) await deleteRecordingAccount(getToken);
+      if (cloudConfigured()) await deleteCloudAccount(getToken);
+      else if (process.env.EXPO_PUBLIC_API_URL) await deleteRecordingAccount(getToken);
       await clearProviderCredentials(user.id);
-      await user.delete();
+      if (!cloudConfigured()) await user.delete();
       try {
         await clearUiPreviewAccount(user.id, true);
       } finally {

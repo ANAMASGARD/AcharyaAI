@@ -8,6 +8,7 @@ import { RecorderTranscriptPanel } from "@/components/recording/recorder-transcr
 import { useRecorder } from "@/hooks/use-recorder";
 import { spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
+import { useRef } from "react";
 import { StatusBar } from "expo-status-bar";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -15,6 +16,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function RecorderScreen(): React.ReactElement {
+  const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
   const colorMode = useColorMode();
   const styles = useThemeStyles(createStyles);
 
@@ -27,6 +29,10 @@ export function RecorderScreen(): React.ReactElement {
     isRecording,
     isStarting,
     isTranscribing,
+    isAnalyzing,
+    reportProgress,
+    reportError,
+    cancelAnalysis,
     timerLabel,
     canStartRecording,
     canSend,
@@ -41,6 +47,7 @@ export function RecorderScreen(): React.ReactElement {
     setClassLevel,
     toggleRecording,
     sendForAnalysis,
+    newClassroom,
     confirmPartialSend,
     retryAnalysis,
   } = useRecorder();
@@ -51,6 +58,7 @@ export function RecorderScreen(): React.ReactElement {
     <SafeAreaView style={styles.safeArea} edges={["top"]}>
       <StatusBar style={colorMode === "dark" ? "light" : "dark"} />
       <KeyboardAwareScrollView
+        ref={scrollRef}
         contentContainerStyle={[styles.scrollContent, { paddingBottom: dockClearance }]}
         keyboardShouldPersistTaps="handled"
         showsVerticalScrollIndicator={false}
@@ -85,6 +93,14 @@ export function RecorderScreen(): React.ReactElement {
           <RecorderTranscriptPanel
             disabled={!canSend}
             isTranscribing={isTranscribing}
+            isAnalyzing={isAnalyzing}
+            progress={reportProgress}
+            error={reportError}
+            reportReady={Boolean(report)}
+            onCancel={cancelAnalysis}
+            onNewClassroom={() => {
+              if (newClassroom()) scrollRef.current?.scrollTo({ y: 0, animated: true });
+            }}
             transcript={mergedTranscript}
             onSend={() => {
               void sendForAnalysis();

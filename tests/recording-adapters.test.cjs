@@ -90,7 +90,7 @@ function fileRepository(freeSpace = 100_000_000) {
   const { recordingRepository } = moduleFrom('src/lib/recording/repository.ts', {
     'drizzle-orm': {}, 'drizzle-orm/expo-sqlite/migrator': {},
     'expo-file-system': { File, Directory, Paths: { document: 'file:///documents', availableDiskSpace: freeSpace } },
-    '../../../drizzle/expo/migrations': {}, '@/db/client': {}, '@/db/schema': {},
+    '@/db/ready': {}, '@/db/schema': {},
     '@/lib/validate-id': { assertAcharyaId: value => { if (!/^[A-Za-z0-9_-]{21}$/.test(value)) throw Error('Invalid ID'); return value; } },
   });
   return { repo: recordingRepository, files };
@@ -128,12 +128,13 @@ test('token refresh cancellation is bounded and auth rejection is not retried', 
 });
 
 test('actual repository enforces owner isolation and drains queued saves before account cleanup', async () => {
-  const tables = { sessions: [], chunks: [] };
+  const tables = { sessions: [], chunks: [], reports: [] };
   const schema = {};
   for (const [name, fields] of [['recordingSessions', ['id', 'ownerClerkId', 'startedAt']], ['recordingChunks', ['id', 'sessionId', 'index']]]) {
     schema[name] = { name: name === 'recordingSessions' ? 'sessions' : 'chunks' };
     for (const key of fields) schema[name][key] = key;
   }
+  schema.localReports = { name: 'reports', ownerClerkId: 'ownerClerkId' };
   const db = {
     select() {
       let rows;
@@ -155,7 +156,7 @@ test('actual repository enforces owner isolation and drains queued saves before 
     'drizzle-orm': { eq: (key, value) => row => row[key] === value, and: (...filters) => row => filters.every(fn => fn(row)), asc: value => value, desc: value => value },
     'drizzle-orm/expo-sqlite/migrator': { migrate: () => gate },
     'expo-file-system': { Directory: class { constructor(...parts) { this.uri = parts.join('/'); } exists = false; }, Paths: { document: 'file:///documents' } },
-    '../../../drizzle/expo/migrations': {}, '@/db/client': { getLocalDb: () => db }, '@/db/schema': schema,
+    '@/db/ready': { readyLocalDb: async () => { await gate; return db; } }, '@/db/schema': schema,
     '@/lib/validate-id': { assertAcharyaId: value => value },
   }).recordingRepository;
   const session = { id: 's'.repeat(21), ownerClerkId: 'user_a', startedAt: 'now' };

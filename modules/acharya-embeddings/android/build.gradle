@@ -1,0 +1,40 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+group = 'com.acharya'
+version = '0.1.0'
+def nativeGate = findProperty('acharyaNativeGate') == 'true'
+android {
+  namespace 'com.acharya.embeddings'
+  sourceSets.main {
+    if (nativeGate) {
+      java.srcDir 'src/gate/java'
+    }
+  }
+  defaultConfig {
+    versionCode 1
+    versionName '0.1.0'
+    consumerProguardFiles 'consumer-rules.pro'
+  }
+}
+dependencies {
+  implementation project(':expo-sqlite')
+  if (nativeGate) {
+    implementation 'com.facebook.react:react-android'
+    implementation 'com.google.ai.edge.litertlm:litertlm-android:0.18.0'
+    implementation 'androidx.work:work-runtime:2.11.2'
+  }
+}
+
+// Clerk's installed Gradle script adds this flag to every subproject. The gate
+// must expose incompatible Kotlin metadata instead of silently accepting it.
+if (nativeGate) {
+  gradle.projectsEvaluated {
+    tasks.withType(org.jetbrains.kotlin.gradle.tasks.KotlinCompile).configureEach {
+      compilerOptions.freeCompilerArgs.set(
+        compilerOptions.freeCompilerArgs.get().findAll { it != '-Xskip-metadata-version-check' }
+      )
+    }
+  }
+}

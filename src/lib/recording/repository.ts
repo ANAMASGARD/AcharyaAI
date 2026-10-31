@@ -1,25 +1,16 @@
 import { and, asc, desc, eq } from 'drizzle-orm';
-import { migrate } from 'drizzle-orm/expo-sqlite/migrator';
 import { Directory, File, Paths } from 'expo-file-system';
 
-import migrations from '../../../drizzle/expo/migrations';
-import { getLocalDb } from '@/db/client';
-import { recordingChunks, recordingSessions } from '@/db/schema';
+import { readyLocalDb as database } from '@/db/ready';
+import { recordingChunks, recordingSessions, localReports } from '@/db/schema';
 import { assertAcharyaId } from '@/lib/validate-id';
 import type { RecordingRepository } from './types';
 
-let ready: Promise<void> | null = null;
 let tail: Promise<unknown> = Promise.resolve();
 function serialized<T>(operation: () => Promise<T>): Promise<T> {
   const next = tail.then(operation);
   tail = next.catch(() => {});
   return next;
-}
-async function database() {
-  const db = getLocalDb();
-  ready ??= migrate(db, migrations).catch((error: unknown) => { ready = null; throw error; });
-  await ready;
-  return db;
 }
 function ownerDirectory(owner: string): Directory {
   if (!/^[A-Za-z0-9_-]{1,128}$/.test(owner)) throw new Error('Invalid recording owner');
@@ -83,6 +74,7 @@ export const recordingRepository: RecordingRepository = {
     const db = await database();
     // Explicit child deletion also works if another connection disabled SQLite FK enforcement.
     db.transaction((tx) => {
+      tx.delete(localReports).where(eq(localReports.ownerClerkId, owner)).run();
       const sessions = tx.select({ id: recordingSessions.id }).from(recordingSessions).where(eq(recordingSessions.ownerClerkId, owner)).all();
       for (const session of sessions) tx.delete(recordingChunks).where(eq(recordingChunks.sessionId, session.id)).run();
       tx.delete(recordingSessions).where(eq(recordingSessions.ownerClerkId, owner)).run();

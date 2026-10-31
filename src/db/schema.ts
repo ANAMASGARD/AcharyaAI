@@ -62,3 +62,23 @@ export const recordingChunks = sqliteTable('recording_chunks', {
   transcript: text('transcript').notNull(), attempts: integer('attempts').notNull(),
   nextAttemptAt: integer('next_attempt_at'), error: text('error'),
 }, (table) => [uniqueIndex('recording_chunks_sequence_idx').on(table.sessionId, table.index)]);
+
+// Local report history stores generated notes/reflection, never a second raw transcript copy.
+export const localReports = sqliteTable('local_reports', {
+  sessionId: text('session_id').primaryKey().references(() => recordingSessions.id, { onDelete: 'cascade' }),
+  ownerClerkId: text('owner_clerk_id').notNull(),
+  title: text('title').notNull(), subject: text('subject').notNull(), grade: text('grade').notNull(),
+  recordedAt: text('recorded_at').notNull(), durationMs: integer('duration_ms').notNull(),
+  reportJson: text('report_json').notNull(), classNotes: text('class_notes').notNull(),
+  model: text('model').notNull(), createdAt: text('created_at').notNull(),
+}, (table) => [index('local_reports_owner_date_idx').on(table.ownerClerkId, table.recordedAt)]);
+
+// A saved immutable report is its durable queue item until an acknowledgement exists.
+export const reportSyncAccounts = sqliteTable('report_sync_accounts', {
+  owner: text('owner').primaryKey(), enabled: integer('enabled', { mode: 'boolean' }).notNull().default(false),
+  cursor: text('cursor').notNull().default('0'), lastError: text('last_error'),
+});
+export const reportSyncAcks = sqliteTable('report_sync_acks', {
+  id: text('id').primaryKey().references(() => localReports.sessionId, { onDelete: 'cascade' }),
+  owner: text('owner').notNull(), revision: text('revision').notNull(),
+});

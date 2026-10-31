@@ -5,7 +5,7 @@ import { setRecorderMicrophoneActive } from '@/lib/recording/audio-focus';
 import { RecorderController, type RecorderView } from '@/lib/recording/controller';
 import { registerRecorder, waitForRecorderCleanup } from '@/lib/recording/lifecycle';
 import { recordingRepository } from '@/lib/recording/repository';
-import type { TeachingReport } from '@/types/recorder';
+import { useRecorderAnalysis } from '@/hooks/use-recorder-analysis';
 import { useAuth } from '@clerk/expo';
 import { requestRecordingPermissionsAsync, setAudioModeAsync, useAudioStream } from 'expo-audio';
 import { useFocusEffect } from 'expo-router';
@@ -90,7 +90,8 @@ export function useRecorder() {
   const mergedTranscript = chunks.map((chunk) => chunk.status === 'done' ? chunk.transcript.trim()
     : chunk.status === 'empty' ? '[inaudible]' : chunk.status === 'failed' ? `[Segment ${chunk.index + 1} failed — retry transcription]` : '')
     .filter(Boolean).join('\n\n');
-  const canStartRecording = native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
+  const analysis = useRecorderAnalysis(userId, snapshot, view.busy || isRecording || isStarting || isTranscribing);
+  const canStartRecording = !analysis.isAnalyzing && native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
     !(chunks.length && !session?.serverFinalized) && Boolean(draft.topic.trim() && draft.subject && draft.classLevel);
   let statusMessage = 'Fill topic, subject, and class to start';
   if (!native) statusMessage = 'Class recording is available on Android and iOS.';
@@ -106,8 +107,9 @@ export function useRecorder() {
   return {
     ...draft, isRecording, isStarting, isTranscribing,
     timerLabel: `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`,
-    canStartRecording, canSend: false, statusMessage, mergedTranscript,
-    report: null as TeachingReport | null, classNotes: null as string | null,
+    canStartRecording, canSend: analysis.canSend, statusMessage, mergedTranscript,
+    report: analysis.report, classNotes: analysis.classNotes,
+    isAnalyzing: analysis.isAnalyzing, reportProgress: analysis.reportProgress, reportError: analysis.reportError, cancelAnalysis: analysis.cancel,
     analysisError: view.error ?? session?.error ?? (failed ? 'Some segments could not be transcribed. Their saved audio is retained for retry.' : null),
     canRetry: native && !isRecording && !isStarting && !isTranscribing && !view.busy && Boolean(failed || (session && !session.serverFinalized && chunks.length)),
     allowPartialSend: false,
@@ -117,7 +119,12 @@ export function useRecorder() {
       if (isRecording) void controllerRef.current?.stop();
       else if (canStartRecording) void controllerRef.current?.start({ title: draft.topic.trim(), subject: draft.subject, grade: draft.classLevel });
     },
-    sendForAnalysis: async () => {}, confirmPartialSend: () => {},
+    newClassroom: () => {
+      if (!analysis.report || analysis.isAnalyzing || !controllerRef.current?.prepareNewSession()) return false;
+      setDraft(INITIAL);
+      return true;
+    },
+    sendForAnalysis: analysis.send, confirmPartialSend: () => {},
     retryAnalysis: async () => { await controllerRef.current?.retry(); },
   };
 }

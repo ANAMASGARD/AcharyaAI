@@ -43,7 +43,7 @@ export function getClerkPublishableKey(): string {
 }
 
 /**
- * Release builds (EAS production/preview or non-dev native) must not ship with pk_test_.
+ * Store-bound production builds must not ship with pk_test_. Internal APKs may use the test instance.
  */
 export function assertClerkKeyAllowedForRelease(isReleaseBuild: boolean, key: string): void {
   if (!isReleaseBuild) {
@@ -57,17 +57,9 @@ export function assertClerkKeyAllowedForRelease(isReleaseBuild: boolean, key: st
   }
 }
 
-/** True for store-bound EAS profiles and release native builds (not Metro dev). */
+/** Metro inlines EXPO_PUBLIC_* values; EAS_BUILD_PROFILE is not available in the APK.
+ * Optimization (__DEV__ === false) does not mean the app targets the Play Store.
+ */
 export function isClerkReleaseBuild(): boolean {
-  if (__DEV__) {
-    return false;
-  }
-
-  const easProfile = process.env.EAS_BUILD_PROFILE;
-  if (easProfile === 'production' || easProfile === 'preview' || easProfile === 'standalone') {
-    return true;
-  }
-
-  // Local release binary (expo run:android --variant release) without EAS profile
-  return easProfile !== 'development';
+  return process.env.EXPO_PUBLIC_APP_VARIANT === 'production';
 }

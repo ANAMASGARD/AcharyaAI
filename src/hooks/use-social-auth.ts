@@ -1,40 +1,44 @@
 import { useSSO } from '@clerk/expo';
 import type { OAuthStrategy } from '@clerk/shared/types';
 import * as AuthSession from 'expo-auth-session';
+import { isRunningInExpoGo } from 'expo';
 import { useRouter } from 'expo-router';
 
 import { SIGNED_IN_HOME } from '@/lib/routes';
 import { useCallback, useState } from 'react';
+
+const isSocialAuthAvailable = !isRunningInExpoGo() && process.env.EXPO_PUBLIC_GOOGLE_AUTH_ENABLED === 'true';
 
 const REDIRECT_URL = AuthSession.makeRedirectUri({
   scheme: 'acharyaapp',
   path: '/',
 });
 
-type SocialProvider = 'google' | 'facebook';
+type SocialProvider = 'google';
 
 const STRATEGY_BY_PROVIDER: Record<SocialProvider, OAuthStrategy> = {
   google: 'oauth_google',
-  facebook: 'oauth_facebook',
 };
 
 export function useSocialAuth(): Readonly<{
   startGoogleAuth: () => Promise<void>;
-  startFacebookAuth: () => Promise<void>;
+  isSocialAuthAvailable: boolean;
   isGoogleLoading: boolean;
-  isFacebookLoading: boolean;
   oauthError: string | null;
   clearOauthError: () => void;
 }> {
   const router = useRouter();
   const { startSSOFlow } = useSSO();
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const [isFacebookLoading, setIsFacebookLoading] = useState(false);
   const [oauthError, setOauthError] = useState<string | null>(null);
 
   const startProviderAuth = useCallback(
     async (provider: SocialProvider): Promise<void> => {
-      const setLoading = provider === 'google' ? setIsGoogleLoading : setIsFacebookLoading;
+      if (!isSocialAuthAvailable) {
+        setOauthError('Use email to sign in with Expo Go.');
+        return;
+      }
+      const setLoading = setIsGoogleLoading;
 
       setOauthError(null);
       setLoading(true);
@@ -72,10 +76,9 @@ export function useSocialAuth(): Readonly<{
   );
 
   return {
+    isSocialAuthAvailable,
     startGoogleAuth: () => startProviderAuth('google'),
-    startFacebookAuth: () => startProviderAuth('facebook'),
     isGoogleLoading,
-    isFacebookLoading,
     oauthError,
     clearOauthError: () => setOauthError(null),
   };

@@ -37,10 +37,10 @@ export function ApiKeysScreen(): React.ReactElement {
         {Platform.OS === 'web' ? <Text style={styles.text}>API key setup is available in the Android and iOS app. Keys are never saved in browser storage.</Text>
           : active && userId ? aiProviders.map((provider) => <ProviderKeyCard key={`${userId}.${provider.id}`} owner={userId} provider={provider} />)
             : <Text style={styles.text}>Return to this screen to manage your keys.</Text>}
-        <View style={styles.local}>
-          <Text accessibilityRole="header" style={styles.title}>Run locally</Text>
-          <Text style={styles.text}>Coming later · on-device models</Text>
-        </View>
+        <Pressable accessibilityRole="button" accessibilityLabel="Run locally" onPress={() => router.push('/profile/local-models')} style={styles.local}>
+          <Text accessibilityRole="header" style={styles.title}>Run locally →</Text>
+          <Text style={styles.caption}>Download EmbeddingGemma 2 · 165 MB</Text>
+        </Pressable>
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDetails }} onPress={() => setShowDetails(!showDetails)} style={styles.detailsButton}>
           <Text style={styles.caption}>{showDetails ? 'Hide privacy details' : 'Privacy & billing details'}</Text>
         </Pressable>

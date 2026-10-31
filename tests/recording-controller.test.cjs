@@ -215,3 +215,22 @@ test('one sample past the 30-second boundary keeps nonzero tail timing', async (
   assert.equal(chunks.length, 2); assert.equal(chunks[1].startMs, 30000); assert.equal(chunks[1].durationMs, 1);
   assert.equal(session.durationMs, 30001); await h.controller.close();
 });
+
+test('new classroom clears only a finished view and waits for an explicit recording start', async () => {
+  const h = harness(); await begin(h);
+  assert.equal(h.controller.prepareNewSession(), false);
+  push(h.controller, 1); await h.controller.stop(); await settle();
+  const previousId = h.controller.getSnapshot().snapshot.session.id;
+  const eventCount = h.events.length;
+  assert.equal(h.controller.prepareNewSession(), true);
+  assert.equal(h.controller.getSnapshot().snapshot, null);
+  assert.equal(h.controller.getSnapshot().hydrated, true);
+  assert.equal(h.starts(), 1);
+  assert.equal(h.events.length, eventCount, 'preparing a new class must not modify saved data');
+  assert.equal(h.controller.prepareNewSession(), false);
+  await h.controller.start({ ...metadata, title: 'Next class' });
+  assert.notEqual(h.controller.getSnapshot().snapshot.session.id, previousId);
+  assert.equal(h.controller.getSnapshot().snapshot.chunks.length, 0);
+  assert.equal(h.starts(), 2);
+  await h.controller.stop(); await settle(); await h.controller.close();
+});

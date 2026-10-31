@@ -1,13 +1,23 @@
 import type { ExpoConfig } from 'expo/config';
 
+// Catch misconfigured store artifacts at build time, before an APK reaches a teacher.
+if (process.env.EAS_BUILD_PROFILE === 'production' || process.env.EXPO_PUBLIC_APP_VARIANT === 'production') {
+  if (process.env.EXPO_PUBLIC_APP_VARIANT !== 'production') {
+    throw new Error('Production builds require EXPO_PUBLIC_APP_VARIANT=production.');
+  }
+  if (!/^pk_live_[a-zA-Z0-9]+$/.test(process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY?.trim() ?? '')) {
+    throw new Error('Production builds require a live Clerk publishable key. Use the preview profile for internal test APKs.');
+  }
+}
+
 /**
  * Same branding as /home/linux/Downloads/acharya-app (production-hardening).
  * Icon paths are explicit so Expo Go picks up Acharya art, not the Expo template.
  */
 const config: ExpoConfig = {
-  name: 'Acharya',
+  name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.0',
+  version: '1.0.2',
   orientation: 'portrait',
   icon: './assets/images/acharya-app-icon.png',
   scheme: 'acharyaapp',
@@ -18,7 +28,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 1,
+    versionCode: 3,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -53,6 +63,8 @@ const config: ExpoConfig = {
     'expo-web-browser',
     'expo-status-bar',
     'expo-sqlite',
+    './plugins/with-android-build-compatibility.cjs',
+    './plugins/with-native-embedding-gate.cjs',
   ],
   experiments: {
     typedRoutes: true,

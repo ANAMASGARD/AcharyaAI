@@ -24,7 +24,8 @@ Open **Profile → App settings → AI API keys** on Android or iOS.
 Chat sends text history (up to the last 30 messages, at most 60,000 characters)
 to the selected provider. Provider replies are saved in local chat history.
 Attachments are not processed: remove them before sending. No curriculum RAG or
-teaching-report generation is implied. Chat replies arrive as one response, not
+automatic report generation is implied. Recorder reports are generated separately
+when you tap Send, using the saved OpenAI key and GPT-6 Luna; see [class reports](class-reports.md). Chat replies arrive as one response, not
 streaming tokens. Short voice messages automatically stop by 30 seconds; unlike
 class recording they are transient and must be re-recorded after failure. Read
 aloud uses Gnani Timbre v2.5 with Poorvi (Hinglish); up to 2,000 characters per
