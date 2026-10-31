@@ -1,0 +1,79 @@
+{
+  "ncert-english-class-2-marigold": {
+    "title": "Mridang",
+    "edition": "2026-27",
+    "evidencePdf": "class-2/english/marigold/bemr1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-3-marigold": {
+    "title": "Santoor",
+    "edition": "2026-27",
+    "evidencePdf": "class-3/english/marigold/cesa1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-4-marigold": {
+    "title": "Santoor",
+    "edition": "2026-27",
+    "evidencePdf": "class-4/english/marigold/desa1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-5-marigold": {
+    "title": "Marigold",
+    "edition": "2024-25",
+    "evidencePdf": "class-5/english/marigold/eeen1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-science-class-6-curiosity": {
+    "title": "Curiosity",
+    "edition": "2026-27",
+    "evidencePdf": "class-6/science/curiosity/fecu1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-7-an-alien-hand": {
+    "title": "An Alien Hand",
+    "edition": "2024-25",
+    "evidencePdf": "class-7/english/an-alien-hand/geah1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-8-honeydew": {
+    "title": "Honeydew",
+    "edition": "2024-25",
+    "evidencePdf": "class-8/english/honeydew/hehd1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-9-beehive": {
+    "title": "Kaveri",
+    "edition": "First edition January 2026",
+    "evidencePdf": "class-9/english/beehive/iebe1dd/iebe1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-10-first-flight": {
+    "title": "First Flight",
+    "edition": "2026-27",
+    "evidencePdf": "class-10/english/first-flight/jeff1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-11-hornbill": {
+    "title": "Hornbill",
+    "edition": "2026-27",
+    "evidencePdf": "class-11/english/hornbill/kehb1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  },
+  "ncert-english-class-12-flamingo": {
+    "title": "Flamingo",
+    "edition": "2026-27",
+    "evidencePdf": "class-12/english/flamingo/lefl1ps.pdf",
+    "evidencePage": 1,
+    "note": "Title checked against local PDF cover; original catalog key retained. Edition may differ between chapter PDFs."
+  }
+}

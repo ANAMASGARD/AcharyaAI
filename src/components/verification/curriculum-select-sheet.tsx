@@ -1,21 +1,13 @@
 import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
-import { usePreviewAttachments, usePreviewFeature } from "@/components/preview/preview-provider";
-import type { PreviewAttachment } from "@/lib/ui-preview/types";
-import {
-  ACCEPTED_NOTE_MIMES,
-  isAcceptedNotesFile,
-  isWithinSizeLimit,
-  normalizePickerAsset,
-} from "@/lib/notes-file-validation";
+import { useRouter } from 'expo-router';
 import { borderWidths, radii, shadows, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { useCurriculumAvailability } from "@/hooks/use-curriculum-availability";
 import type { CurriculumClass, CurriculumSelection } from "@/types/curriculum";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { AcharyaBlurView as BlurView } from "@/components/ui/acharya-blur";
-import * as DocumentPicker from "expo-document-picker";
 import { useEffect, useState } from "react";
 import {
   useWindowDimensions,
@@ -71,23 +63,18 @@ export function CurriculumSelectSheet({
   classes,
   expandedClassId,
   selection,
-  uploadedBookName,
   onClose,
   onToggleClass,
   onSelectSubject,
-  onUploadedBook,
   onOpenTeachingClasses,
 }: Props): React.ReactElement | null {
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
   const insets = useSafeAreaInsets();
-  const { saveAttachment, removeAttachment } = usePreviewAttachments();
-  const [bookAttachment, setBookAttachment] = usePreviewFeature<PreviewAttachment | null>("curriculum-book", null);
+  const router = useRouter();
   const [mounted, setMounted] = useState(visible);
-  const [isUploadingBook, setIsUploadingBook] = useState(false);
-  const [uploadError, setUploadError] = useState<string | null>(null);
-  const { isReady: isCurriculumReady, isLoading: isAvailabilityLoading } =
+  const { isReady: isCurriculumReady, isLoading: isAvailabilityLoading, error: availabilityError, refresh } =
     useCurriculumAvailability(visible);
 
   const { height } = useWindowDimensions();
@@ -147,46 +134,9 @@ export function CurriculumSelectSheet({
     intensity: backdropProgress.value * BLUR_INTENSITY,
   }));
 
-  const handleUploadBook = async (): Promise<void> => {
-    if (isUploadingBook) {
-      return;
-    }
-
-    setIsUploadingBook(true);
-    setUploadError(null);
-
-    try {
-      const result = await DocumentPicker.getDocumentAsync({
-        type: [...ACCEPTED_NOTE_MIMES],
-        copyToCacheDirectory: true,
-        multiple: false,
-      });
-
-      if (result.canceled || !result.assets?.[0]) {
-        return;
-      }
-
-      const normalized = normalizePickerAsset(result.assets[0]);
-
-      if (!isAcceptedNotesFile(normalized.name, normalized.mimeType)) {
-        setUploadError("Please upload a PDF or Word document.");
-        return;
-      }
-
-      if (!isWithinSizeLimit(normalized.sizeBytes)) {
-        setUploadError("Choose a PDF or Word document up to 10 MB.");
-        return;
-      }
-
-      const saved = await saveAttachment({ ...normalized, mimeType: normalized.mimeType ?? undefined, sizeBytes: normalized.sizeBytes ?? undefined });
-      if (bookAttachment) await removeAttachment(bookAttachment.id);
-      setBookAttachment(saved);
-      onUploadedBook(normalized.name);
-    } catch {
-      setUploadError("Could not open the file picker. Please try again.");
-    } finally {
-      setIsUploadingBook(false);
-    }
+  const handleUploadBook = (): void => {
+    onClose();
+    router.push('/(app)/notes/upload');
   };
 
   if (!mounted) {
@@ -289,14 +239,13 @@ export function CurriculumSelectSheet({
             )}
 
             <Pressable
-              accessibilityLabel="Upload curriculum book"
-              disabled={isUploadingBook}
+              accessibilityLabel="Manage curriculum book library"
               onPress={() => {
                 void handleUploadBook();
               }}
               style={({ pressed }) => [
                 styles.uploadBookRow,
-                pressed && !isUploadingBook ? styles.uploadBookRowPressed : null,
+                pressed ? styles.uploadBookRowPressed : null,
               ]}
             >
               <MaterialCommunityIcons
@@ -305,12 +254,14 @@ export function CurriculumSelectSheet({
                 size={20}
               />
               <Text numberOfLines={1} style={styles.uploadBookLabel}>
-                {uploadedBookName ? `Uploaded: ${uploadedBookName}` : "Upload book"}
+                Manage book library
               </Text>
             </Pressable>
 
-            {uploadError ? (
-              <Text style={styles.uploadError}>{uploadError}</Text>
+            {availabilityError ? (
+              <Pressable onPress={() => void refresh()} accessibilityRole="button">
+                <Text style={styles.uploadError}>{availabilityError} · Tap to retry</Text>
+              </Pressable>
             ) : null}
 
             {isAvailabilityLoading ? (

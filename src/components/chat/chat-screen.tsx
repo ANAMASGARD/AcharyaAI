@@ -1,5 +1,11 @@
 import { Pressable } from '@/components/feedback/pressable';
-import { useRouter } from 'expo-router';
+import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useAuth } from '@clerk/expo';
+import { PaperScoreCard } from "@/components/rag/paper-score-card";
+import { RagWorkspace } from '@/components/rag/rag-workspace';
+import { useChatStore } from '@/store/chat-store';
+import { apiFetch } from '@/lib/api-client';
+import type { Verification } from '@/types/rag';
 import { useVoiceOutput } from '@/hooks/use-voice-output';
 import { useThemeColors, useColorMode, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -14,8 +20,8 @@ import { useVoiceInput } from "@/hooks/use-voice-input";
 import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StatusBar } from "expo-status-bar";
-import { useCallback, useMemo, useState } from "react";
-import { StyleSheet, Text, View } from "react-native";
+import { useCallback, useMemo, useState, useEffect } from "react";
+import { Modal, ScrollView, StyleSheet, Text, View } from "react-native";
 import {
   KeyboardStickyView,
 } from "react-native-keyboard-controller";
@@ -29,6 +35,14 @@ export function ChatScreen(): React.ReactElement {
   const colorMode = useColorMode();
   const styles = useThemeStyles(createStyles);
 
+  const [paperReport, setPaperReport] = useState<{owner:string;report:Verification} | null>(null);
+  const [reportOpen, setReportOpen] = useState(false);
+  const [libraryOpen, setLibraryOpen] = useState(false);
+  const selections = useChatStore(s => s.selections);
+  const setSelections = useChatStore(s => s.setSelections);
+  const verificationId = useChatStore(s => s.verificationId);
+  const { review } = useLocalSearchParams<{ review?: string }>();
+  const { getToken, userId } = useAuth();
   const [composerHeight, setComposerHeight] = useState(96);
   const insets = useSafeAreaInsets();
   const tabBarOverlayHeight = getTabBarOverlayHeight(insets.bottom);
@@ -48,6 +62,48 @@ export function ChatScreen(): React.ReactElement {
   } = useChat();
 
   const router = useRouter();
+  useEffect(() => {
+    if (!review || !userId) return;
+    const controller = new AbortController();
+    useChatStore.getState().resetTabData();
+    void (async () => {
+      try {
+        const token = await getToken();
+        const result = await apiFetch<{ verification: Verification }>(
+          `/api/rag/verify?id=${encodeURIComponent(review)}`,
+          { token, signal: controller.signal },
+        );
+        if (controller.signal.aborted) return;
+        if (
+          result.verification.status !== "completed" ||
+          result.verification.historical
+        )
+          throw new Error(
+            "Complete a current paper review before discussing it.",
+          );
+        setPaperReport({owner:userId,report:result.verification});
+        useChatStore.setState({
+          verificationId: review,
+          selections: result.verification.selections,
+          draftText:
+            "Which questions are outside the book's scope or need review?",
+          lastFetchedAt: Date.now(),
+        });
+        router.setParams({ review: undefined });
+      } catch (error) {
+        if (!controller.signal.aborted)
+          useChatStore
+            .getState()
+            .setError(
+              error instanceof Error
+                ? error.message
+                : "Could not open the paper review.",
+            );
+      }
+    })();
+    return () => controller.abort();
+  }, [review, userId, getToken, router]);
+
   const history = useChatHistory();
   const voiceOutput = useVoiceOutput();
   const voiceInput = useVoiceInput((text) => setDraftText(draftText.trim() ? `${draftText.trim()} ${text}` : text));
@@ -93,10 +149,12 @@ export function ChatScreen(): React.ReactElement {
           }}
         />
 
-        <Pressable accessibilityRole="button" accessibilityLabel="Configure AI provider" onPress={() => router.push('/profile/api-keys')}>
-          <Text style={styles.previewHint}>Direct AI · text goes to your selected provider; voice goes to Gnani. Configure API keys →</Text>
+        <Pressable accessibilityRole="button" onPress={() => setLibraryOpen(true)}>
+          <Text style={styles.previewHint}>OpenAI cloud chat · {selections.length} book/notes sources selected · Manage library</Text>
         </Pressable>
-        <Text style={styles.previewHint}>Voice messages: up to 30 seconds. Text chat only; attachments are not sent.</Text>
+        {paperReport && paperReport.owner === userId && paperReport.report.id === verificationId ? <Pressable accessibilityRole="button" onPress={() => setReportOpen(true)} style={{minHeight:44,justifyContent:'center'}}><Text style={styles.previewHint}>View curriculum fit & question summary</Text></Pressable> : null}
+        {verificationId ? <Pressable accessibilityRole="button" onPress={() => void startNewChat()}><Text style={styles.previewHint}>Discussing a saved paper review · Start a new book chat</Text></Pressable> : null}
+        <Pressable accessibilityRole="button" onPress={() => router.push('/profile/api-keys')}><Text style={styles.previewHint}>Voice uses your Gnani key · Configure voice keys</Text></Pressable>
         {lastReply ? <Pressable accessibilityRole="button" onPress={() => {
           if (voiceOutput.status !== 'idle') voiceOutput.stop();
           else void voiceOutput.speak(lastReply.content);
@@ -142,6 +200,7 @@ export function ChatScreen(): React.ReactElement {
               style={styles.composerDock}
             >
               <ChatComposer
+                onAttach={() => setLibraryOpen(true)}
                 disabled={isStreaming}
                 draftText={draftText}
                 onChangeText={setDraftText}
@@ -154,6 +213,20 @@ export function ChatScreen(): React.ReactElement {
         </View>
       </SafeAreaView>
 
+      <Modal visible={libraryOpen} animationType="slide" onRequestClose={() => setLibraryOpen(false)}>
+        <SafeAreaView style={{ flex: 1, backgroundColor: colors.cream }}>
+          <Pressable accessibilityRole="button" onPress={() => setLibraryOpen(false)} style={{ minHeight: 44, padding: 16 }}><Text style={{ color: colors.foreground }}>Done · Return to Chat</Text></Pressable>
+          {libraryOpen ? <RagWorkspace selections={selections} onSelections={setSelections} onDiscuss={() => setLibraryOpen(false)} /> : null}
+        </SafeAreaView>
+      </Modal>
+      <Modal visible={reportOpen && paperReport?.owner === userId && paperReport?.report.id === verificationId} animationType="slide" onRequestClose={() => setReportOpen(false)}>
+        <SafeAreaView style={{flex:1,backgroundColor:colors.cream}}>
+          <Pressable accessibilityRole="button" onPress={() => setReportOpen(false)} style={{minHeight:44,padding:16}}><Text style={{color:colors.foreground}}>Return to Chat</Text></Pressable>
+          <ScrollView contentContainerStyle={{padding:16,gap:16}}>
+            {paperReport && paperReport.owner === userId ? <><PaperScoreCard report={paperReport.report} />{paperReport.report.questions.map((q,i)=><View key={i} style={{padding:16,borderWidth:2,borderColor:colors.border,borderRadius:12,gap:8}}><Text style={{color:colors.foreground,fontWeight:'800'}}>Question {q.number} · {q.status.replaceAll('_',' ')}</Text><Text style={{color:colors.foreground}}>{q.explanation}</Text>{q.suggestion?<Text style={{color:colors.foreground}}>{q.suggestion}</Text>:null}</View>)}</>:null}
+          </ScrollView>
+        </SafeAreaView>
+      </Modal>
       <ChatHistoryDrawer
         conversations={history.conversations}
         error={history.error}

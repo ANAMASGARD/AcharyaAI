@@ -106,7 +106,7 @@ export function QuestionPaperGenerateScreen(): React.ReactElement {
       </View>
 
       <ScrollView contentContainerStyle={styles.scrollContent}>
-        <Text style={styles.hint}>Local preview · curriculum and paper generation are not connected yet.</Text>
+        <Text style={styles.hint}>OpenAI generates a draft from your selected books. Review every question and proposed mark before use.</Text>
         {selection ? (
           <Text style={styles.selectionText}>
             {selection.classLabel} · {selection.subjectLabel}

@@ -4,12 +4,12 @@ export type ClerkAuthResult =
   | { ok: true; clerkUserId: string }
   | { ok: false; response: Response };
 
-export async function requireClerkUserId(request: Request): Promise<ClerkAuthResult> {
-  const secretKey = process.env.CLERK_SECRET_KEY;
-  const issuer = process.env.CLERK_ISSUER;
-  const parties = process.env.CLERK_AUTHORIZED_PARTIES?.split(',').map((value) => value.trim()).filter(Boolean);
+export async function requireClerkUserId(request: Request, configuration: Readonly<Record<string, string | undefined>> = process.env): Promise<ClerkAuthResult> {
+  const secretKey = configuration.CLERK_SECRET_KEY;
+  const issuer = configuration.CLERK_ISSUER;
+  const parties = configuration.CLERK_AUTHORIZED_PARTIES?.split(',').map((value) => value.trim()).filter(Boolean);
   if (!secretKey || !issuer || !parties?.length ||
-      (process.env.APP_ENV === 'production' && (!secretKey.startsWith('sk_live_') || issuer !== 'https://clerk.superacharya.com'))) {
+      (configuration.APP_ENV === 'production' && (!secretKey.startsWith('sk_live_') || issuer !== 'https://clerk.superacharya.com'))) {
     return {
       ok: false,
       response: Response.json({ error: 'Server auth is not configured' }, { status: 500 }),

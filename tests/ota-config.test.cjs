@@ -60,12 +60,15 @@ test('release export excludes inherited backend settings and secrets', () => {
   const module = { exports: {} };
   vm.runInNewContext(fs.readFileSync('scripts/release-environment.cjs', 'utf8'), {
     module,
-    process: { env: { EXPO_PUBLIC_API_URL: 'https://old.invalid', CLERK_SECRET_KEY: 'private', IMAGEKIT_PRIVATE_KEY: 'private-media-key', COMMUNITY_CLEANUP_SECRET: 'private-cleanup-key', ACHARYA_IMAGEKIT_PRIVATE_KEY: 'private-release-key', EXPO_PUBLIC_MICROSOFT_AUTH_ENABLED: 'true' } },
+    process: { env: { EXPO_PUBLIC_API_URL: 'https://old.invalid', CLERK_SECRET_KEY: 'private', RAG_OPENAI_API_KEY: 'private-rag-key', RAG_DATABASE_URL: 'private-db', IMAGEKIT_PRIVATE_KEY: 'private-media-key', COMMUNITY_CLEANUP_SECRET: 'private-cleanup-key', ACHARYA_IMAGEKIT_PRIVATE_KEY: 'private-release-key', EXPO_PUBLIC_MICROSOFT_AUTH_ENABLED: 'true' } },
     require: (name) => name === 'node:fs' ? { readFileSync: () => 'EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_live_example' } : require(name),
   });
   const env = module.exports('staging');
   assert.equal(env.EXPO_PUBLIC_API_URL, undefined);
   assert.equal(env.CLERK_SECRET_KEY, undefined);
+  assert.equal(env.RAG_OPENAI_API_KEY, undefined);
+  assert.equal(env.RAG_DATABASE_URL, undefined);
+  assert.equal(env.EXPO_PUBLIC_RAG_API_URL, 'https://acharya-app--rag-desktop.expo.app');
   assert.equal(env.IMAGEKIT_PRIVATE_KEY, undefined);
   assert.equal(env.COMMUNITY_CLEANUP_SECRET, undefined);
   assert.equal(env.ACHARYA_IMAGEKIT_PRIVATE_KEY, undefined);

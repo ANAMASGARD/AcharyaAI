@@ -1,0 +1,17 @@
+{
+  "apk": "/home/linux/Desktop/AcharyaApp/release/Acharya-AI-1.0.9-rag-arm64.apk",
+  "bytes": 71346093,
+  "abis": [
+    "arm64-v8a"
+  ],
+  "pdfFiles": 0,
+  "credentialMatches": 0,
+  "configuredRagUrl": true,
+  "connectedCatalog": true,
+  "version": "1.0.9",
+  "versionCode": 10,
+  "package": "com.acharya.app",
+  "sha256": "c4a902c10774f8242f3d5cfe6f1700572f8337fb0b4953e20e58c19882a59973",
+  "signingCertificateSha256": "283a27206f94e1ed2da49fc0a8a0f842422876d7ab0188a7c243688db13fe733",
+  "sameCertificateAsPreviousRelease": true
+}

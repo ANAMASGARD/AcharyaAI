@@ -24,6 +24,7 @@ type Props = Readonly<{
   draftText: string;
   onChangeText: (value: string) => void;
   onSend: () => void;
+  onAttach?: () => void;
   onVoiceAgent: () => void;
   voiceInputStatus: VoiceInputStatus;
   disabled?: boolean;
@@ -33,6 +34,7 @@ export function ChatComposer({
   draftText,
   onChangeText,
   onSend,
+  onAttach,
   onVoiceAgent,
   voiceInputStatus,
   disabled = false,
@@ -61,7 +63,7 @@ export function ChatComposer({
 
   return (
     <View style={styles.wrap}>
-      {uploads.attachments.length > 0 && <ChatAttachments files={uploads.attachments} onRemove={(id) => { void uploads.remove(id); }} />}
+      {!onAttach && uploads.attachments.length > 0 && <ChatAttachments files={uploads.attachments} onRemove={(id) => { void uploads.remove(id); }} />}
       {uploads.error && <Text accessibilityRole="alert" style={{ color: colors.destructive, padding: 8 }}>{uploads.error}</Text>}
       <ChatAttachmentMenu visible={menuOpen} onClose={() => setMenuOpen(false)} onSelect={(source) => { setMenuOpen(false); void uploads.pick(source); }} />
       <TextInput
@@ -81,7 +83,7 @@ export function ChatComposer({
       />
 
       <View style={styles.toolbar}>
-        <Pressable accessibilityRole="button" accessibilityLabel="Add attachment" disabled={disabled || uploads.busy} onPress={() => { Keyboard.dismiss(); setMenuOpen(true); }} style={[styles.attachmentCircle, uploads.busy && styles.sendDisabled]}>
+        <Pressable accessibilityRole="button" accessibilityLabel="Add attachment" disabled={disabled || uploads.busy} onPress={() => { Keyboard.dismiss(); if (onAttach) onAttach(); else setMenuOpen(true); }} style={[styles.attachmentCircle, uploads.busy && styles.sendDisabled]}>
           {uploads.busy ? <ActivityIndicator color={colors.onAccent} /> : <MaterialCommunityIcons name="plus" size={26} color={colors.onAccent} />}
         </Pressable>
 
