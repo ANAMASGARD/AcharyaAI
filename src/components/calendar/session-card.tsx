@@ -60,6 +60,7 @@ export function SessionCard({
       </View>
 
       <Text style={styles.topic}>{session.topic}</Text>
+      {session.stateLabel ? <Text style={styles.stateLabel}>{session.stateLabel}</Text> : null}
 
       <View style={styles.tagRow}>
         <View
@@ -157,6 +158,7 @@ const createStyles = (colors: ThemeColors) => StyleSheet.create({
     letterSpacing: 0.3,
     lineHeight: 14,
   },
+  stateLabel: { color: colors.foreground, fontFamily: fontFamilies.sans, fontSize: 14, marginBottom: 8 },
   scoreBadge: {
     alignItems: "center",
     borderColor: colors.border,

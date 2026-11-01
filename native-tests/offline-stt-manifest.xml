@@ -1,0 +1,5 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
+  <application android:label="Acharya STT Gate" tools:replace="android:label">
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false" tools:replace="android:value" />
+  </application>
+</manifest>

@@ -1,6 +1,7 @@
 import '@/lib/entry-polyfills';
 
 import { ClerkProvider } from '@clerk/expo';
+import { resourceCache } from '@clerk/expo/resource-cache';
 import { tokenCache } from '@clerk/expo/token-cache';
 import { DarkTheme, DefaultTheme, Slot, ThemeProvider } from 'expo-router';
 import { useFonts } from 'expo-font';
@@ -69,7 +70,7 @@ export default function RootLayout() {
   }
 
   return (
-    <ClerkProvider publishableKey={clerkBootstrap.publishableKey} tokenCache={tokenCache} telemetry={false}>
+    <ClerkProvider publishableKey={clerkBootstrap.publishableKey} tokenCache={tokenCache} __experimental_resourceCache={resourceCache} telemetry={false}>
       <ThemeProvider value={navigationTheme}>
         <PreviewAuthCleanup />
         <AnimatedSplashOverlay />

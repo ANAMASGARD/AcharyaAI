@@ -5,7 +5,7 @@ import { borderWidths, radii, spacing } from "@/theme/tokens";
 import { fontFamilies } from "@/theme/typography";
 import { StyleSheet, Text, View } from "react-native";
 
-export type SessionDetailView = "reflection" | "notes";
+export type SessionDetailView = "transcript" | "reflection" | "notes";
 
 type Props = Readonly<{
   value: SessionDetailView;
@@ -28,6 +28,7 @@ export function SessionDetailViewToggle({
 }: Props): React.ReactElement {
   const colors = useThemeColors();
   const OPTIONS: readonly ToggleOption[] = [
+  { id: "transcript", label: "Transcript", activeBg: colors.card },
   { id: "reflection", label: "Reflection", activeBg: colors.card },
   { id: "notes", label: "Notes", activeBg: colors.sky },
 ];

@@ -1,4 +1,5 @@
-import { saveReportHistory } from '@/lib/reports/history';
+import { useNetInfo } from '@react-native-community/netinfo';
+import { readSavedReportResult, saveReportHistory } from '@/lib/reports/history';
 import { usePreviewFeature } from '@/components/preview/preview-provider';
 import { generateClassReport, type ClassReportResult, type ReportPhase } from '@/lib/ai/class-report';
 import type { RecordingSnapshot } from '@/lib/recording/types';
@@ -9,6 +10,9 @@ import { AppState } from 'react-native';
 type SavedReport = ClassReportResult & { owner: string; sessionId: string; transcript: string; createdAt: string };
 
 export function useRecorderAnalysis(owner: string | null | undefined, snapshot: RecordingSnapshot | null, recorderBusy: boolean) {
+  const network = useNetInfo();
+  const offline = network.isConnected === false || network.isInternetReachable === false;
+  const [durable, setDurable] = useState<SavedReport | null>(null);
   const [saved, setSaved] = usePreviewFeature<SavedReport | null>('recorderAnalysis', null);
   const request = useRef<AbortController | null>(null);
   const unsaved = useRef<{ owner: string; sessionId: string; transcript: string; result: ClassReportResult } | null>(null);
@@ -20,7 +24,15 @@ export function useRecorderAnalysis(owner: string | null | undefined, snapshot: 
   const ready = Boolean(owner && sessionId && snapshot?.session.ownerClerkId === owner && snapshot.session.serverFinalized &&
     ['complete', 'partial'].includes(snapshot.session.status) && !recorderBusy && hasSpeech &&
     snapshot.chunks.every((chunk) => chunk.status === 'done' || chunk.status === 'empty'));
-  const result = saved && saved.owner === owner && saved.sessionId === sessionId && saved.transcript === transcript ? saved : null;
+  const preview = saved && saved.owner === owner && saved.sessionId === sessionId && saved.transcript === transcript ? saved : null;
+  const result = durable && durable.owner === owner && durable.sessionId === sessionId && durable.transcript === transcript ? durable : preview;
+  useFocusEffect(useCallback(() => {
+    let active = true;
+    if (owner && sessionId) void readSavedReportResult(owner, sessionId).then(value => {
+      if (active && value) setDurable({ ...value, owner, sessionId, transcript, createdAt: new Date().toISOString() });
+    }).catch(() => { if (active) setError('Could not open saved report. Reopen this class to retry.'); });
+    return () => { active = false; };
+  }, [owner, sessionId, transcript]));
   const cancel = useCallback(() => {
     const active = request.current;
     request.current = null;
@@ -44,7 +56,7 @@ export function useRecorderAnalysis(owner: string | null | undefined, snapshot: 
 
 
   const send = async () => {
-    if (!ready || !owner || !snapshot || request.current || result) return;
+    if (offline || !ready || !owner || !snapshot || request.current || result) return;
     const controller = new AbortController();
     request.current = controller;
     setError(null); setPhase('feedback');
@@ -69,6 +81,6 @@ export function useRecorderAnalysis(owner: string | null | undefined, snapshot: 
     }
   };
   return { report: result?.report ?? null, classNotes: result?.classNotes ?? null,
-    isAnalyzing: phase !== null, canSend: ready && !phase && !result, send, cancel,
-    reportError: error, reportProgress: phase === 'feedback' ? 'Acharya AI is analyzing your classroom…' : phase === 'notes' ? 'Acharya AI is creating your class summary…' : null };
+    isAnalyzing: phase !== null, canSend: ready && !offline && !phase && !result, send, cancel,
+    reportError: error ?? (ready && offline && !result ? 'Transcript saved. Connect to the internet to generate a report.' : null), reportProgress: phase === 'feedback' ? 'Acharya AI is analyzing your classroom…' : phase === 'notes' ? 'Acharya AI is creating your class summary…' : null };
 }

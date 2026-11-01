@@ -27,6 +27,14 @@ function ownedAudio(owner: string, uri: string): File {
 }
 
 export const recordingRepository: RecordingRepository = {
+  loadById: (owner, id) => serialized(async () => {
+    ownerDirectory(owner); assertAcharyaId(id);
+    const db = await database();
+    const [session] = await db.select().from(recordingSessions).where(and(eq(recordingSessions.ownerClerkId, owner), eq(recordingSessions.id, id))).limit(1);
+    if (!session) return null;
+    const chunks = await db.select().from(recordingChunks).where(eq(recordingChunks.sessionId, id)).orderBy(asc(recordingChunks.index));
+    return { session, chunks };
+  }),
   loadLatest: (owner) => serialized(async () => {
     ownerDirectory(owner);
     const db = await database();

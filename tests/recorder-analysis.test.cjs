@@ -7,13 +7,14 @@ const report = { classroomEnvironment: 'Unknown', whatWentWrong: 'None evidenced
 const generated = { report, classNotes: '## Quick Summary\nFractions', model: 'gpt-6-luna' };
 const snapshot = () => ({ session: { id: 'session1', ownerClerkId: 'alice', title: 'Fractions', subject: 'Math', grade: '6', status: 'complete', serverFinalized: true }, chunks: [{ status: 'done', transcript: 'A half plus a half is one.' }] });
 function harness(saveHistory = async () => {}) {
-  const slots = []; const effects = []; const calls = []; let cursor = 0; let saved = null; let listener; let focusCleanup;
+  const slots = []; const effects = []; const calls = []; let cursor = 0; let saved = null; let listener; const focusCleanups = [];
   let owner = 'alice'; let recording = snapshot(); let busy = false;
   const mocks = {
+    '@react-native-community/netinfo': { useNetInfo: () => ({ isConnected: true, isInternetReachable: true }) },
     '@/components/preview/preview-provider': { usePreviewFeature: () => [saved, (value) => { saved = value; }] },
-    '@/lib/reports/history': { saveReportHistory: saveHistory },
+    '@/lib/reports/history': { saveReportHistory: saveHistory, readSavedReportResult: async () => null },
     '@/lib/ai/class-report': { generateClassReport: (account, input, signal, onPhase) => new Promise((resolve, reject) => calls.push({ account, input, signal, onPhase, resolve, reject })) },
-    'expo-router': { useFocusEffect: (fn) => { focusCleanup ??= fn(); } },
+    'expo-router': { useFocusEffect: (fn) => { focusCleanups.push(fn()); } },
     'react-native': { AppState: { addEventListener: (_, fn) => { listener = fn; return { remove() {} }; } } },
     react: {
       useRef: (value) => slots[cursor++] ??= { current: value },
@@ -27,7 +28,7 @@ function harness(saveHistory = async () => {}) {
     { exports, AbortController, Date, Error, require: (name) => { assert.ok(name in mocks, name); return mocks[name]; } });
   return { calls, render: () => { cursor = 0; return exports.useRecorderAnalysis(owner, recording, busy); },
     flush: () => { while (effects.length) effects.shift()(); },
-    background: () => listener('background'), blur: () => focusCleanup(), getSaved: () => saved,
+    background: () => listener('background'), blur: () => focusCleanups.forEach(fn => fn?.()), getSaved: () => saved,
     switchOwner: () => { owner = 'bob'; recording = null; }, setSnapshot: (value) => { recording = value; }, setBusy: (value) => { busy = value; },
   };
 }

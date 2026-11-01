@@ -50,6 +50,9 @@ export const recordingSessions = sqliteTable('recording_sessions', {
   status: text('status').$type<import('../lib/recording/types').RecordingStatus>().notNull(),
   serverCreated: integer('server_created', { mode: 'boolean' }).notNull(),
   serverFinalized: integer('server_finalized', { mode: 'boolean' }).notNull(),
+  sttBackend: text('stt_backend').$type<'gnani' | 'whisper'>().notNull().default('gnani'),
+  sttModelId: text('stt_model_id'),
+  sttLanguage: text('stt_language').notNull().default('en-IN'),
   error: text('error'),
 }, (table) => [index('recording_sessions_owner_idx').on(table.ownerClerkId)]);
 
@@ -61,6 +64,7 @@ export const recordingChunks = sqliteTable('recording_chunks', {
   status: text('status').$type<import('../lib/recording/types').ChunkStatus>().notNull(),
   transcript: text('transcript').notNull(), attempts: integer('attempts').notNull(),
   nextAttemptAt: integer('next_attempt_at'), error: text('error'),
+  detectedLanguage: text('detected_language'),
 }, (table) => [uniqueIndex('recording_chunks_sequence_idx').on(table.sessionId, table.index)]);
 
 // Local report history stores generated notes/reflection, never a second raw transcript copy.

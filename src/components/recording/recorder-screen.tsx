@@ -1,3 +1,4 @@
+import { useRouter } from 'expo-router';
 import { useColorMode, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
 import { getTabBarOverlayHeight } from "@/components/navigation/tab-bar-constants";
@@ -16,6 +17,7 @@ import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context"
 const TAB_BAR_CLEARANCE = 100;
 
 export function RecorderScreen(): React.ReactElement {
+  const router = useRouter();
   const scrollRef = useRef<React.ElementRef<typeof KeyboardAwareScrollView>>(null);
   const colorMode = useColorMode();
   const styles = useThemeStyles(createStyles);
@@ -36,6 +38,8 @@ export function RecorderScreen(): React.ReactElement {
     timerLabel,
     canStartRecording,
     canSend,
+    canNewClassroom,
+    engineLabel,
     canRetry,
     statusMessage,
     mergedTranscript,
@@ -65,6 +69,8 @@ export function RecorderScreen(): React.ReactElement {
         style={styles.scroll}
       >
         <Text style={styles.title}>Record Class Session</Text>
+        <Text style={styles.engine}>{engineLabel}</Text>
+        <Text style={styles.engine} onPress={() => router.push("/(app)/profile/local-models")}>Change transcription in Run locally →</Text>
 
         <View style={styles.sessionGap}>
           <RecorderSessionCard
@@ -97,6 +103,7 @@ export function RecorderScreen(): React.ReactElement {
             progress={reportProgress}
             error={reportError}
             reportReady={Boolean(report)}
+            canNewClassroom={canNewClassroom}
             onCancel={cancelAnalysis}
             onNewClassroom={() => {
               if (newClassroom()) scrollRef.current?.scrollTo({ y: 0, animated: true });
@@ -119,6 +126,7 @@ export function RecorderScreen(): React.ReactElement {
 }
 
 const createStyles = (colors: ThemeColors) => StyleSheet.create({
+  engine: { color: colors.foreground, fontFamily: fontFamilies.sans, paddingTop: 8, minHeight: 44 },
   safeArea: {
     backgroundColor: colors.cream,
     flex: 1,

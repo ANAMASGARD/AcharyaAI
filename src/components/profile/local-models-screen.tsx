@@ -1,4 +1,5 @@
 import { Pressable } from '@/components/feedback/pressable';
+import { OfflineSttSettings } from './offline-stt-settings';
 import { NeoButton } from '@/components/ui/neo-button';
 import { cancelModelDownload, checkModelDownload, downloadModel, getModelDownloadState, MODEL_CARD,
   modelDownloadsAvailable, modelInferenceAvailable, removeModelDownload, subscribeModelDownload } from '@/lib/embeddings/download';
@@ -30,6 +31,7 @@ export function LocalModelsScreen(): React.ReactElement {
     <ScrollView contentContainerStyle={styles.content}>
       <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back}><Text style={styles.text}>← Back</Text></Pressable>
       <Text accessibilityRole="header" style={styles.title}>Run locally</Text>
+      <OfflineSttSettings />
       <View style={styles.card}>
         <Text accessibilityRole="header" style={styles.heading}>EmbeddingGemma 2</Text>
         <Text style={styles.text}>Text only · INT4 · 165 MB</Text>

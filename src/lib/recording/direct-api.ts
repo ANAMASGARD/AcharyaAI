@@ -9,7 +9,7 @@ export function createDirectRecordingApi(owner: string): RecordingApi {
   return {
     async create(_session, signal) { checkAborted(signal); await getProviderCredential(owner, 'gnani'); checkAborted(signal); },
     async finalize(_session, signal) { checkAborted(signal); },
-    async transcribe(chunk, signal) {
+    async transcribe(_session, chunk, signal) {
       try {
         if (!chunk.localUri) throw new RecordingApiError('Saved audio is missing for this segment', false);
         const audio = new File(chunk.localUri);

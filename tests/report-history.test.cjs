@@ -60,3 +60,25 @@ test('cancelled and deleted sessions cannot recreate report history', async () =
     assert.equal(h.sqlite.prepare('SELECT count(*) AS n FROM report_vectors').get().n, 0);
   } finally { h.close(); }
 });
+
+test('two transcript-only classes reopen by owner, then gain one report without replacing transcripts', async () => {
+  const h = setup();
+  try {
+    const columns = 'id,owner_clerk_id,title,subject,grade,started_at,updated_at,duration_ms,expected_chunk_count,status,server_created,server_finalized';
+    h.sqlite.prepare(`INSERT INTO recording_sessions (${columns}) VALUES (?,?,?,?,?,?,?,?,?,?,?,?)`).run('b'.repeat(21), 'alice', 'Fractions', 'Math', '6', '2026-10-12T11:00:00Z', '2026-10-12T11:01:00Z', 5000, 1, 'complete', 1, 1);
+    const insert = h.sqlite.prepare('INSERT INTO recording_chunks (id,session_id,chunk_index,start_ms,duration_ms,local_uri,status,transcript,attempts) VALUES (?,?,?,?,?,?,?,?,?)');
+    insert.run('c'.repeat(21), h.session.id, 0, 0, 30000, '', 'done', 'Plants make food.', 1);
+    insert.run('d'.repeat(21), 'b'.repeat(21), 0, 0, 5000, '', 'done', 'One half.', 1);
+    const before = await h.history.listClassHistory('alice'); assert.equal(before.length, 2); assert.ok(before.every(s => s.score === undefined));
+    assert.equal((await h.history.listClassHistory('bob')).length, 0);
+    assert.equal(await h.history.readClassHistory('bob', h.session.id), null);
+    for (const id of [h.session.id, 'b'.repeat(21)]) {
+      const detail = await h.history.readClassHistory('alice', id); assert.equal(detail.report, null); assert.ok(detail.transcript); assert.equal(detail.recording.session.sttBackend, 'gnani');
+    }
+    await h.history.saveReportHistory('alice', h.session, result, new AbortController().signal);
+    assert.equal((await h.history.listClassHistory('alice')).length, 2);
+    const after = await h.history.readClassHistory('alice', h.session.id);
+    assert.equal(after.transcript, 'Plants make food.'); assert.equal(after.report.overallScore, 70);
+    assert.equal(h.sqlite.prepare('SELECT count(*) AS n FROM recording_chunks').get().n, 2);
+  } finally { h.close(); }
+});

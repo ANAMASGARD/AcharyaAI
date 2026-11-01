@@ -1,0 +1,14 @@
+diff --git a/node_modules/whisper.rn/src/index.ts b/node_modules/whisper.rn/src/index.ts
+--- a/node_modules/whisper.rn/src/index.ts
++++ b/node_modules/whisper.rn/src/index.ts
+@@ -169,7 +169,9 @@
+   return coreMLModelAsset.assets
+     .map((asset) => {
+       if (typeof asset === 'number') {
+-        const { uri } = Image.resolveAssetSource(asset)
++        const resolved = Image.resolveAssetSource(asset)
++        if (!resolved) return undefined
++        const { uri } = resolved
+         const filepath = coreMLModelAssetPaths.find((path) =>
+           uri.includes(path),
+         )

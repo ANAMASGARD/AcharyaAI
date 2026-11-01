@@ -115,7 +115,7 @@ test('direct recorder keeps chunk identity and has no session server dependency'
   await api.create({}, signal()); await api.finalize({}, signal());
   assert.equal(fetches, 0);
   const chunk = { id: 'chunk', index: 2, localUri: 'file:///chunk.wav' };
-  const result = await api.transcribe(chunk, signal());
+  const result = await api.transcribe({}, chunk, signal());
   assert.equal(result.chunkId, 'chunk'); assert.equal(result.chunkIndex, 2); assert.equal(result.transcript, 'text text');
 });
 

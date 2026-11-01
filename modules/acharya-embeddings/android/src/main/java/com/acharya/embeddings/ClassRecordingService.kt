@@ -16,11 +16,50 @@ import java.io.File
 import java.io.RandomAccessFile
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
+import java.util.concurrent.TimeUnit
 
 /** Native capture and disk writes continue independently of React/Activity and JS timers. */
 class ClassRecordingService : Service() {
   companion object {
     @Volatile var instance: ClassRecordingService? = null
+    private val writers = ConcurrentHashMap<String, Semaphore>()
+    private fun writer(dir: File) = writers.getOrPut(dir.absolutePath) { Semaphore(1) }
+    fun anyWriterActive() = writers.values.any { it.availablePermits() == 0 }
+    fun awaitStopped(dir: File) {
+      val lock = writer(dir)
+      check(lock.tryAcquire(3, TimeUnit.SECONDS)) { "Microphone is still stopping" }
+      lock.release()
+    }
+    fun writerActive(dir: File) = writer(dir).availablePermits() == 0
+    fun recoverPartials(dir: File) {
+      val lock = writer(dir)
+      if (!lock.tryAcquire()) return
+      try {
+        for (part in dir.listFiles().orEmpty().filter { it.extension == "part" }) {
+          val index = part.nameWithoutExtension.toIntOrNull()
+          check(index != null && index in 0..240 && part.name == "$index.part") { "Invalid saved audio index" }
+          val payload = part.length() - 44
+          // Process death while creating the placeholder header has not captured any PCM yet.
+          if (payload <= 0) { check(part.delete()); continue }
+          check(payload in 0..CHUNK_BYTES.toLong()) { "Invalid unfinished audio length; saved file retained" }
+          val bytes = (payload / 2 * 2).toInt()
+          if (bytes < 32) { check(part.delete()); continue }
+          val wav = File(dir, "$index.wav")
+          check(!wav.exists()) { "Conflicting saved audio; files retained" }
+          RandomAccessFile(part, "rw").use { output ->
+            output.setLength(44L + bytes); output.seek(0); output.write(wavHeader(bytes)); output.fd.sync()
+          }
+          check(part.renameTo(wav)) { "Could not recover saved audio" }
+        }
+      } finally { lock.release() }
+    }
+    private fun wavHeader(size: Int): ByteArray = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN).apply {
+      put("RIFF".toByteArray()); putInt(size + 36); put("WAVEfmt ".toByteArray()); putInt(16)
+      putShort(1); putShort(1); putInt(RATE); putInt(RATE * 2); putShort(2); putShort(16)
+      put("data".toByteArray()); putInt(size)
+    }.array()
     const val RATE = 16000
     const val CHUNK_BYTES = RATE * 2 * 30
     fun directory(root: File, owner: String, session: String): File {
@@ -53,6 +92,7 @@ class ClassRecordingService : Service() {
       .setSmallIcon(android.R.drawable.ic_btn_speak_now).setContentIntent(pending).setOngoing(true).build()
     if (Build.VERSION.SDK_INT >= 29) startForeground(4102, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_MICROPHONE)
     else startForeground(4102, notification)
+    check(writer(dir).tryAcquire()) { "Microphone writer is still active" }
     instance = this
     running = true
     thread = Thread({ capture(dir) }, "AcharyaClassCapture").also { it.start() }
@@ -104,13 +144,15 @@ class ClassRecordingService : Service() {
       }
     } catch (error: Throwable) {
       // No class audio/text or credentials in logs. The UI reads this bounded error.
-      File(dir, "error").writeText(error.message?.take(200) ?: "Recording interrupted")
+      runCatching { File(dir, "error").writeText(error.message?.take(200) ?: "Recording interrupted") }
     } finally {
       runCatching { finishChunk() }
-      runCatching { recorder?.stop() }; recorder?.release(); recorder = null
-      if (wake?.isHeld == true) wake?.release(); wake = null
+      runCatching { file?.close() }
+      runCatching { recorder?.stop() }; runCatching { recorder?.release() }; recorder = null
+      runCatching { if (wake?.isHeld == true) wake?.release() }; wake = null
       running = false
-      File(dir, "stopped").writeText("stopped")
+      writer(dir).release()
+      runCatching { File(dir, "stopped").writeText("stopped") }
       stopSelf()
     }
   }
@@ -120,9 +162,4 @@ class ClassRecordingService : Service() {
     if (instance === this) instance = null
     super.onDestroy()
   }
-  private fun wavHeader(size: Int): ByteArray = ByteBuffer.allocate(44).order(ByteOrder.LITTLE_ENDIAN).apply {
-    put("RIFF".toByteArray()); putInt(size + 36); put("WAVEfmt ".toByteArray()); putInt(16)
-    putShort(1); putShort(1); putInt(RATE); putInt(RATE * 2); putShort(2); putShort(16)
-    put("data".toByteArray()); putInt(size)
-  }.array()
 }

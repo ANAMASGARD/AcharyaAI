@@ -1,7 +1,9 @@
-import { usePreviewFeature } from '@/components/preview/preview-provider';
+import { usePreviewFeature, useUiPreferences } from '@/components/preview/preview-provider';
 import { backgroundCaptureAvailable, createNativeCapture } from '@/lib/recording/native-capture';
 import { createId } from '@/lib/id';
-import { createDirectRecordingApi } from '@/lib/recording/direct-api';
+import { createSessionRecordingApi } from '@/lib/recording/session-api';
+import { offlineSttAvailable } from '@/lib/offline-stt/bridge';
+import { sttModel } from '@/lib/offline-stt/models';
 import { setRecorderMicrophoneActive } from '@/lib/recording/audio-focus';
 import { RecorderController, type RecorderView } from '@/lib/recording/controller';
 import { registerRecorder, waitForRecorderCleanup } from '@/lib/recording/lifecycle';
@@ -17,6 +19,7 @@ const INITIAL: RecorderDraft = { topic: '', subject: '', classLevel: '' };
 const EMPTY_VIEW: RecorderView = { snapshot: null, busy: false, error: null, hydrated: false };
 
 export function useRecorder() {
+  const preferences = useUiPreferences();
   const [draft, setDraft] = usePreviewFeature('recorder', INITIAL);
   const { userId } = useAuth();
   const controllerRef = useRef<RecorderController | null>(null);
@@ -39,7 +42,7 @@ export function useRecorder() {
     };
     const nativeCapture = createNativeCapture(userId, () => controller);
     const controller = new RecorderController(userId, recordingRepository,
-      createDirectRecordingApi(userId), backgroundCaptureAvailable ? { ...nativeCapture,
+      createSessionRecordingApi(userId), backgroundCaptureAvailable ? { ...nativeCapture,
         start: async () => {
           const permission = await requestRecordingPermissionsAsync();
           if (!permission.granted) throw new Error('Allow microphone access to record your class.');
@@ -63,7 +66,7 @@ export function useRecorder() {
     const unregister = registerRecorder(userId, controller);
     const unsubscribe = controller.subscribe(() => { if (alive) setView(controller.getSnapshot()); });
     void waitForRecorderCleanup(userId).then(() => { if (alive) return controller.restore(); }).catch(() => {
-      if (alive) setView({ ...EMPTY_VIEW, error: 'Could not remove previous recording data. Sign out and try again.' });
+      if (alive) setView({ ...EMPTY_VIEW, error: 'Could not finish closing the previous recording. Close and reopen Acharya to recover saved audio.' });
     });
     const appState = AppState.addEventListener('change', (state) => {
       if (!backgroundCaptureAvailable && state !== 'active') void controller.stop('Recording stopped when the app left the foreground.');
@@ -97,7 +100,7 @@ export function useRecorder() {
     : chunk.status === 'empty' ? '[inaudible]' : chunk.status === 'failed' ? `[Segment ${chunk.index + 1} failed — retry transcription]` : '')
     .filter(Boolean).join('\n\n');
   const analysis = useRecorderAnalysis(userId, snapshot, view.busy || isRecording || isStarting || isTranscribing);
-  const canStartRecording = !analysis.isAnalyzing && native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
+  const canStartRecording = (!preferences.offlineSttEnabled || (offlineSttAvailable && Boolean(preferences.offlineSttModelId))) && !analysis.isAnalyzing && native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
     !(chunks.length && !session?.serverFinalized) && Boolean(draft.topic.trim() && draft.subject && draft.classLevel);
   let statusMessage = 'Fill topic, subject, and class to start';
   if (!native) statusMessage = 'Class recording is available on Android and iOS.';
@@ -113,6 +116,9 @@ export function useRecorder() {
   return {
     ...draft, isRecording, isStarting, isTranscribing,
     timerLabel: `${String(Math.floor(seconds / 60)).padStart(2, '0')}:${String(seconds % 60).padStart(2, '0')}`,
+    engineLabel: (session?.sttBackend ?? (preferences.offlineSttEnabled ? 'whisper' : 'gnani')) === 'whisper'
+      ? `Offline · ${sttModel(session?.sttModelId ?? preferences.offlineSttModelId)?.label ?? 'Select a model in Run locally'}` : 'Online · Gnani',
+    canNewClassroom: !analysis.isAnalyzing && !view.busy && !isRecording && !isStarting && !isTranscribing && Boolean(session?.serverFinalized) && !failed,
     canStartRecording, canSend: analysis.canSend, statusMessage, mergedTranscript,
     report: analysis.report, classNotes: analysis.classNotes,
     isAnalyzing: analysis.isAnalyzing, reportProgress: analysis.reportProgress, reportError: analysis.reportError, cancelAnalysis: analysis.cancel,
@@ -123,10 +129,12 @@ export function useRecorder() {
     setClassLevel: (classLevel: string) => patch({ classLevel }),
     toggleRecording: () => {
       if (isRecording) void controllerRef.current?.stop();
-      else if (canStartRecording) void controllerRef.current?.start({ title: draft.topic.trim(), subject: draft.subject, grade: draft.classLevel });
+      else if (canStartRecording) void controllerRef.current?.start({ title: draft.topic.trim(), subject: draft.subject, grade: draft.classLevel }, preferences.offlineSttEnabled
+        ? { sttBackend: 'whisper', sttModelId: preferences.offlineSttModelId, sttLanguage: 'auto' }
+        : { sttBackend: 'gnani', sttModelId: null, sttLanguage: 'en-IN' });
     },
     newClassroom: () => {
-      if (!analysis.report || analysis.isAnalyzing || !controllerRef.current?.prepareNewSession()) return false;
+      if (analysis.isAnalyzing || !controllerRef.current?.prepareNewSession()) return false;
       setDraft(INITIAL);
       return true;
     },

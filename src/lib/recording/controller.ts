@@ -14,6 +14,10 @@ export class RecorderController {
   private request: AbortController | null = null;
   private retryTimer: ReturnType<typeof setTimeout> | null = null;
   private worker = false;
+  private workTask: Promise<void> | null = null;
+  private pumpRequested = false;
+  private startTask: Promise<void> | null = null;
+  private closeTask: Promise<void> | null = null;
   private accepting = false;
   private closed = false;
   private closing = false;
@@ -75,6 +79,13 @@ export class RecorderController {
           }
         }
         for (const chunk of saved.chunks) {
+          if ((chunk.status === 'done' || chunk.status === 'empty') && chunk.localUri) {
+            try {
+              await this.repository.deleteAudio(this.owner, chunk.localUri);
+              const cleaned = { ...chunk, localUri: '' };
+              await this.repository.saveChunk(this.owner, cleaned); this.updateChunk(cleaned);
+            } catch { /* Keep the durable transcript; retry cleanup on next restore. */ }
+          }
           if (chunk.status === 'processing') {
             const pending: RecordingChunk = { ...chunk, status: 'pending' };
             await this.repository.saveChunk(this.owner, pending); this.updateChunk(pending);
@@ -102,14 +113,20 @@ export class RecorderController {
     return true;
   }
 
-  async start(metadata: { title: string; subject: string; grade: string }): Promise<void> {
+  start(metadata: { title: string; subject: string; grade: string }, engine: Pick<RecordingSession, 'sttBackend' | 'sttModelId' | 'sttLanguage'> = { sttBackend: 'gnani', sttModelId: null, sttLanguage: 'en-IN' }): Promise<void> {
+    if (this.startTask) return this.startTask;
+    const task = this.startSession(metadata, engine).finally(() => { this.startTask = null; });
+    this.startTask = task;
+    return task;
+  }
+  private async startSession(metadata: { title: string; subject: string; grade: string }, engine: Pick<RecordingSession, 'sttBackend' | 'sttModelId' | 'sttLanguage'>): Promise<void> {
     if (this.closed || this.closing || !this.view.hydrated || this.view.busy || this.accepting || this.worker ||
       this.view.snapshot?.chunks.some((chunk) => !terminal(chunk) || chunk.status === 'failed') ||
       (this.view.snapshot?.chunks.length && !this.view.snapshot.session.serverFinalized)) return;
     const generation = ++this.generation;
     this.captureError = null; this.nextIndex = 0; this.chunker = null;
     const now = new Date().toISOString();
-    const session: RecordingSession = { ...metadata, id: this.id(), ownerClerkId: this.owner,
+    const session: RecordingSession = { ...metadata, ...engine, id: this.id(), ownerClerkId: this.owner,
       startedAt: now, updatedAt: now, durationMs: 0, expectedChunkCount: 0,
       status: 'starting', serverCreated: false, serverFinalized: false, error: null };
     this.publish({ session, chunks: [] }, null, true);
@@ -221,7 +238,20 @@ export class RecorderController {
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.retryTimer = setTimeout(() => { this.retryTimer = null; void this.pump(); }, delay);
   }
-  private async pump(): Promise<void> {
+  private pump(): Promise<void> {
+    if (this.workTask) { this.pumpRequested = true; return this.workTask; }
+    const task = this.runPump().finally(() => {
+      this.workTask = null;
+      // Stop or a final native chunk can arrive while the previous context is releasing.
+      if (this.pumpRequested) {
+        this.pumpRequested = false;
+        if (!this.closed && !this.closing) void this.pump();
+      }
+    });
+    this.workTask = task;
+    return task;
+  }
+  private async runPump(): Promise<void> {
     if (this.closed || this.closing || this.worker || !this.view.snapshot) return;
     this.worker = true;
     try {
@@ -246,10 +276,10 @@ export class RecorderController {
             await this.persistSession({ serverCreated: true });
           }
           if (this.closed || this.closing) return;
-          const result = await this.api.transcribe(processing, request.signal);
+          const result = await this.api.transcribe(snapshot.session, processing, request.signal);
           if (this.closed || this.closing) return;
           if (result.chunkId !== chunk.id || result.chunkIndex !== chunk.index) throw new RecordingApiError('Transcription response did not match this segment.', false);
-          processing = { ...processing, status: result.status, transcript: result.transcript, error: null };
+          processing = { ...processing, status: result.status, transcript: result.transcript, detectedLanguage: result.detectedLanguage ?? null, error: null };
           await this.enqueueWrite(() => this.repository.saveChunk(this.owner, processing));
           if (this.closed || this.closing) return;
           this.updateChunk(processing);
@@ -283,7 +313,10 @@ export class RecorderController {
         if (this.accepting) void this.stop(message(error));
         else this.updateSession({ status: 'partial' });
       }
-    } finally { this.worker = false; }
+    } finally {
+      this.worker = false;
+      if (!this.accepting) await this.api.dispose?.();
+    }
   }
 
   private async finalize(): Promise<void> {
@@ -324,7 +357,11 @@ export class RecorderController {
   }
 
   /** Invalidate callbacks before account cleanup; unfinished files remain recoverable on ordinary unmount. */
-  async close(): Promise<void> {
+  close(): Promise<void> {
+    if (!this.closeTask) this.closeTask = this.closeController();
+    return this.closeTask;
+  }
+  private async closeController(): Promise<void> {
     if (this.closed) return;
     this.closing = true;
     this.request?.abort();
@@ -334,7 +371,9 @@ export class RecorderController {
     if (this.watchdog) clearInterval(this.watchdog);
     if (this.retryTimer) clearTimeout(this.retryTimer);
     this.listeners.clear();
+    await Promise.allSettled([this.startTask, this.workTask]);
     await this.writes;
+    await this.api.dispose?.();
   }
 }
 function message(error: unknown): string { return error instanceof Error ? error.message : 'Recording failed. Please try again.'; }

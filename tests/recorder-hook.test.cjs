@@ -26,10 +26,12 @@ function hookHarness(platform = 'android', backgroundCapture = false) {
   }
   let streamOptions;
   const mocks = {
+    '@/lib/offline-stt/bridge': { offlineSttAvailable: true },
+    '@/lib/offline-stt/models': { sttModel: () => undefined },
     '@/lib/recording/native-capture': { backgroundCaptureAvailable: backgroundCapture, createNativeCapture: () => ({ start: async () => events.push('service-start'), stop: async () => events.push('service-stop'), durable: true }) },
     '@/hooks/use-recorder-analysis': { useRecorderAnalysis: () => ({ canSend: false, isAnalyzing: false, report: null, classNotes: null, send: async () => {}, cancel: () => {} }) },
-    '@/components/preview/preview-provider': { usePreviewFeature: () => [draft, () => {}] },
-    '@/lib/id': { createId: () => 'id' }, '@/lib/recording/direct-api': { createDirectRecordingApi: () => ({}) },
+    '@/components/preview/preview-provider': { usePreviewFeature: () => [draft, () => {}], useUiPreferences: () => ({ offlineSttEnabled: false, offlineSttModelId: null }) },
+    '@/lib/id': { createId: () => 'id' }, '@/lib/recording/session-api': { createSessionRecordingApi: () => ({}) },
     '@/lib/recording/audio-focus': { setRecorderMicrophoneActive: () => {} },
     '@/lib/recording/controller': { RecorderController: Controller },
     '@/lib/recording/lifecycle': { registerRecorder: () => () => events.push('unregister'), waitForRecorderCleanup: async () => {} },

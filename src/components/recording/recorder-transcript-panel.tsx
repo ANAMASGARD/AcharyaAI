@@ -15,6 +15,7 @@ type Props = Readonly<{
   progress?: string | null;
   error?: string | null;
   reportReady?: boolean;
+  canNewClassroom?: boolean;
   onCancel?: () => void;
   onSend?: () => void;
   onNewClassroom?: () => void;
@@ -25,7 +26,7 @@ export function RecorderTranscriptPanel({
   isTranscribing = false,
   disabled = false,
   onSend,
-  isAnalyzing = false, progress, error, reportReady = false, onCancel, onNewClassroom,
+  isAnalyzing = false, progress, error, reportReady = false, canNewClassroom = false, onCancel, onNewClassroom,
 }: Props): React.ReactElement {
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
@@ -95,7 +96,7 @@ export function RecorderTranscriptPanel({
         />
         <Text style={[styles.sendLabel, { color: colors.onAccent }]}>{isAnalyzing ? 'Generating…' : reportReady ? 'Report ready' : 'Send'}</Text>
       </Pressable>
-      {reportReady ? <Pressable
+      {canNewClassroom ? <Pressable
         accessibilityRole="button"
         accessibilityLabel="Start a new classroom"
         accessibilityHint="Clears the recorder form so you can record another class"

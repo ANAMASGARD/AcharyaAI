@@ -43,6 +43,13 @@
       "when": 1792003991261,
       "tag": "0005_white_leader",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "6",
+      "when": 1793474462001,
+      "tag": "0006_tiresome_silver_sable",
+      "breakpoints": true
     }
   ]
 }

@@ -34,7 +34,7 @@ if (process.env.EXPO_PUBLIC_APP_VARIANT === 'production' && !['staging', 'produc
 const config: ExpoConfig = {
   name: 'Acharya AI',
   slug: 'acharya-app',
-  version: '1.0.13',
+  version: '1.0.14',
   // Native changes require a new app version and store build before OTA publication.
   runtimeVersion: { policy: 'appVersion' },
   updates: {
@@ -56,7 +56,7 @@ const config: ExpoConfig = {
   },
   android: {
     package: 'com.acharya.app',
-    versionCode: 14,
+    versionCode: 15,
     adaptiveIcon: {
       backgroundColor: '#FFF8E7',
       foregroundImage: './assets/images/android-icon-foreground.png',
@@ -95,6 +95,7 @@ const config: ExpoConfig = {
     './plugins/with-android-build-compatibility.cjs',
     './plugins/with-compact-android-release.cjs',
     './plugins/with-native-embedding-gate.cjs',
+    './plugins/with-offline-stt-gate.cjs',
   ],
   experiments: {
     typedRoutes: true,

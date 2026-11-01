@@ -70,7 +70,7 @@ export function createRecordingApi(getToken: GetToken): RecordingApi {
         id: session.id, durationMs: session.durationMs, expectedChunkCount: session.expectedChunkCount, status: session.status,
       }), signal, true);
     },
-    async transcribe(chunk, signal): Promise<SttChunkResponse> {
+    async transcribe(_session, chunk, signal): Promise<SttChunkResponse> {
       if (!chunk.localUri) throw new RecordingApiError('Saved audio is missing for this segment', false);
       const file = new File(chunk.localUri);
       if (!file.exists) throw new RecordingApiError('Saved audio is missing for this segment', false);

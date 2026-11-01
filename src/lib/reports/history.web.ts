@@ -2,3 +2,6 @@ import type { saveReportHistory as Save, listReportHistory as List, readReportHi
 export const saveReportHistory: typeof Save = async () => { throw new Error('Report storage is available in the mobile app.'); };
 export const listReportHistory: typeof List = async () => [];
 export const readReportHistory: typeof Read = async () => null;
+export const listClassHistory: typeof import('./history').listClassHistory = async () => [];
+export const readClassHistory: typeof import('./history').readClassHistory = async () => null;
+export const readSavedReportResult: typeof import('./history').readSavedReportResult = async () => null;

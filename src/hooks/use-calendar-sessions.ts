@@ -2,7 +2,7 @@ import { useAuth } from '@clerk/expo';
 import { useFocusEffect } from 'expo-router';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { isSameDay, toDateKey } from '@/lib/calendar/date-utils';
-import { listReportHistory, readReportHistory } from '@/lib/reports/history';
+import { listClassHistory, readClassHistory } from '@/lib/reports/history';
 import type { CalendarSession, SessionDetail } from '@/types/calendar';
 
 export function useCalendarSessions() {
@@ -21,7 +21,7 @@ export function useCalendarSessions() {
     const version = ++generation.current;
     if (!userId) return;
     try {
-      const sessions = await listReportHistory(userId);
+      const sessions = await listClassHistory(userId);
       if (version !== generation.current) return;
       setHistory({ owner: userId, sessions }); setError(null);
     } catch { if (version === generation.current) setError('Could not load saved classes. Pull down to retry.'); }
@@ -36,9 +36,9 @@ export function useCalendarSessions() {
     const version = ++detailRequest.current;
     setDetailSessionId(id); setDetail(null); setDetailError(null); setDetailLoading(true);
     try {
-      const value = await readReportHistory(userId, id);
+      const value = await readClassHistory(userId, id);
       if (version !== detailRequest.current) return;
-      if (!value) throw new Error('Missing report');
+      if (!value) throw new Error('Missing class');
       setDetail({ owner: userId, value });
     } catch { if (version === detailRequest.current) setDetailError('Could not open this class. Close and try again.'); }
     finally { if (version === detailRequest.current) setDetailLoading(false); }

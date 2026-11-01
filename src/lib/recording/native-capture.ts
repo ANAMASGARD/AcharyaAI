@@ -40,7 +40,15 @@ export function createNativeCapture(owner: string, getController: () => Recorder
   };
   return {
     durable: true,
-    recover: drain,
+    recover: async () => {
+      const session = getController().getSnapshot().snapshot?.session;
+      // A recreated JS controller may find the old foreground service still writing.
+      // Stop and flush it before declaring that saved session interrupted/finalized.
+      if (native && session && ['starting', 'recording', 'stopping'].includes(session.status)) {
+        await native.stopClassRecording(owner, session.id);
+      }
+      await drain();
+    },
     start: async () => {
       if (!native) throw new Error('Background recording needs the Android app build.');
       if (Number(Platform.Version) >= 33) {

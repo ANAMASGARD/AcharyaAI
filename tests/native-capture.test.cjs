@@ -15,3 +15,18 @@ test('closing the session during notification permission cannot start microphone
   const starting=capture.start();session={...session,status:'failed'};resolve('granted');
   await assert.rejects(starting,/cancelled/);assert.equal(starts,0);
 });
+
+test('recovery flushes a surviving native writer before reading or finalizing its chunks', async () => {
+  const events = []; const exports = {};
+  const session = { id: 'a'.repeat(21), ownerClerkId: 'alice', status: 'recording' };
+  const native = { recordingAvailable: true,
+    stopClassRecording: async (owner, id) => { assert.equal(owner, 'alice'); assert.equal(id, session.id); events.push('stop-and-flush'); },
+    classRecordingStatus: async () => { events.push('read-files'); return { active: false, error: null, chunks: [] }; },
+  };
+  const mocks = { expo: { isRunningInExpoGo: () => false, requireOptionalNativeModule: () => native }, 'expo-file-system': { File: class {} },
+    'react-native': { Platform: { OS: 'android' }, PermissionsAndroid: {} } };
+  vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/lib/recording/native-capture.ts', 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText,
+    { exports, require: name => mocks[name], setInterval, clearInterval, setTimeout: () => {} });
+  await exports.createNativeCapture('alice', () => ({ getSnapshot: () => ({ snapshot: { session } }) })).recover();
+  assert.deepEqual(events, ['stop-and-flush', 'read-files']);
+});

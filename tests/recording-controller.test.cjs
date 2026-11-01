@@ -32,7 +32,7 @@ function harness(options = {}) {
   const api = {
     create: async (session) => { events.push(['create', session.id]); },
     finalize: async (session) => { events.push(['finalize', clone(session)]); },
-    transcribe: async (chunk) => { events.push(['upload', chunk.id]); return { chunkId: chunk.id, chunkIndex: chunk.index, status: 'done', transcript: 'repeat' }; }, ...options.api,
+    transcribe: async (_session, chunk) => { events.push(['upload', chunk.id]); return { chunkId: chunk.id, chunkIndex: chunk.index, status: 'done', transcript: 'repeat' }; }, ...options.api,
   };
   const capture = { start: async () => { captureStarts++; if (options.captureStart) await options.captureStart(); }, stop: () => events.push(['stop']), ...options.capture };
   const controller = new RecorderController('teacher', repository, api, capture, () => `id${++id}`);
@@ -68,7 +68,7 @@ test('65-second recording persists then uploads chunks and saves text before del
 });
 
 test('silence is retained as an empty successful segment and immediate Stop sends no audio', async () => {
-  const h = harness({ api: { transcribe: async (c) => ({ chunkId: c.id, chunkIndex: c.index, status: 'empty', transcript: '' }) } });
+  const h = harness({ api: { transcribe: async (_session, c) => ({ chunkId: c.id, chunkIndex: c.index, status: 'empty', transcript: '' }) } });
   await begin(h); push(h.controller, 1); await h.controller.stop(); await settle();
   assert.equal(h.controller.getSnapshot().snapshot.chunks[0].status, 'empty');
   assert.equal(h.controller.getSnapshot().snapshot.session.status, 'complete'); await h.controller.close();
@@ -85,7 +85,7 @@ test('transient failures retry at 1, 4, 16 seconds and manual retry replaces the
   assert.equal(h.controller.getSnapshot().snapshot.chunks[0].attempts, 4);
   assert.equal(h.controller.getSnapshot().snapshot.chunks[0].status, 'failed');
   assert.equal(h.events.filter((e) => e[0] === 'delete').length, 0);
-  h.api.transcribe = async (c) => ({ chunkId: c.id, chunkIndex: c.index, status: 'done', transcript: 'Recovered' });
+  h.api.transcribe = async (_session, c) => ({ chunkId: c.id, chunkIndex: c.index, status: 'done', transcript: 'Recovered' });
   await h.controller.retry(); await settle();
   assert.equal(h.controller.getSnapshot().snapshot.chunks.length, 1);
   assert.equal(h.controller.getSnapshot().snapshot.chunks[0].transcript, 'Recovered');
@@ -116,9 +116,9 @@ test('permission rejection never starts uploads and late provider results after 
   await begin(denied); assert.equal(denied.controller.getSnapshot().snapshot.session.status, 'failed');
   assert.match(denied.controller.getSnapshot().error, /Permission/); await denied.controller.close();
   const pending = deferred(); const h = harness({ api: { transcribe: () => pending.promise } });
-  await begin(h); push(h.controller, 30); await settle(); await h.controller.close();
+  await begin(h); push(h.controller, 30); await settle(); const closing = h.controller.close(); await settle();
   const before = h.events.length; const chunk = h.controller.getSnapshot().snapshot.chunks[0];
-  pending.resolve({ chunkId: chunk.id, chunkIndex: 0, status: 'done', transcript: 'late' }); await settle();
+  pending.resolve({ chunkId: chunk.id, chunkIndex: 0, status: 'done', transcript: 'late' }); await closing; await settle();
   assert.equal(h.events.length, before); assert.notEqual(h.controller.getSnapshot().snapshot.chunks[0].transcript, 'late');
 });
 
@@ -261,4 +261,43 @@ test('native file ingestion is idempotent and refuses a gap without acknowledgin
   await h.controller.ingestNativeChunk(0, wav, 30000);
   assert.equal(h.events.filter(event => event[0] === 'write').length, 1);
   await h.controller.stop(); await settle(); await h.controller.close();
+});
+
+test('offline session engine stays pinned through restore and retry without create being called again', async () => {
+  const engine = { sttBackend: 'whisper', sttModelId: 'whisper-small-q5_1-v1', sttLanguage: 'auto' };
+  const seed = harness(); await seed.controller.restore(); await seed.controller.start(metadata, engine);
+  push(seed.controller, 1); await seed.controller.stop(); await settle();
+  const saved = JSON.parse(JSON.stringify(seed.controller.getSnapshot().snapshot)); await seed.controller.close();
+  saved.session.serverFinalized = false; saved.chunks[0].status = 'processing'; saved.chunks[0].localUri = 'file://saved';
+  const dispatched = [];
+  const h = harness({ saved, api: { create: async () => assert.fail('restored session already created'),
+    transcribe: async (session, c) => { dispatched.push(session.sttModelId); return { chunkId: c.id, chunkIndex: c.index, status: 'done', transcript: 'local' }; } } });
+  await h.controller.restore(); await settle();
+  assert.deepEqual(dispatched, [engine.sttModelId]); assert.equal(h.starts(), 0); await h.controller.close();
+});
+
+test('native dispose waits for inference settlement during close and never deletes cancelled audio', async () => {
+  const inference = deferred(); const events = [];
+  const h = harness({ api: { transcribe: async () => { await inference.promise; events.push('settled'); return { chunkId: 'invalid', chunkIndex: 0, status: 'done', transcript: 'late' }; },
+    dispose: async () => events.push('released') } });
+  await begin(h); push(h.controller, 30); await settle(); const closing = h.controller.close(); await settle();
+  assert.deepEqual(events, []); inference.resolve(); await closing;
+  assert.equal(events[0], 'settled'); assert.equal(events.at(-1), 'released');
+  assert.equal(h.events.filter(e => e[0] === 'delete').length, 0);
+});
+
+test('Stop still finalizes when the prior chunk worker is awaiting native release', async () => {
+  const release = deferred(); let releasing = false; let stopped = false; let h;
+  h = harness({ api: { dispose: async () => { releasing = true; await release.promise; } },
+    capture: { durable: true, stop: async () => {
+      if (stopped) return; stopped = true;
+      await h.controller.ingestNativeChunk(0, new Uint8Array(44 + 32000), 1000);
+      await settle();
+    } } });
+  await begin(h); await h.controller.stop(); await settle();
+  assert.equal(releasing, true);
+  assert.equal(h.controller.getSnapshot().snapshot.session.serverFinalized, false);
+  release.resolve(); await settle();
+  assert.equal(h.controller.getSnapshot().snapshot.session.serverFinalized, true);
+  await h.controller.close();
 });

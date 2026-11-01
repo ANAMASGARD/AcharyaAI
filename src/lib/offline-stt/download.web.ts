@@ -1,0 +1,10 @@
+import { STT_MODELS, type SttModelId } from './models';
+import type { DownloadState } from './download';
+const states = Object.fromEntries(STT_MODELS.map(model => [model.id, { status: 'missing', progress: 0, error: null }])) as Record<SttModelId, DownloadState>;
+export const getSttDownloads = () => states;
+export const subscribeSttDownloads = (_listener: () => void) => () => {};
+export const checkSttDownloads = async (): Promise<void> => {};
+export const downloadSttModel = async (_id: SttModelId): Promise<void> => {};
+export const pauseSttDownload = async (_id: SttModelId): Promise<void> => {};
+export const cancelSttDownload = async (_id: SttModelId): Promise<void> => {};
+export const removeSttModel = async (_id: SttModelId): Promise<boolean> => false;

@@ -23,7 +23,7 @@ const success = { chunkId: chunk.id, chunkIndex: 0, transcript: 'hello hello', s
 test('mobile adapter sends fresh auth and multipart metadata, preserving repeated speech', async () => {
   const calls = [];
   const api = adapter(async (url, options) => { calls.push({ url, options }); return Response.json(success); }).createRecordingApi(async () => 'fresh-token');
-  const result = await api.transcribe(chunk, new AbortController().signal);
+  const result = await api.transcribe({}, chunk, new AbortController().signal);
   assert.equal(result.transcript, 'hello hello');
   assert.equal(calls[0].options.headers.Authorization, 'Bearer fresh-token');
   assert.equal(calls[0].options.body.get('durationMs'), '30000');
@@ -32,23 +32,23 @@ test('mobile adapter sends fresh auth and multipart metadata, preserving repeate
 test('adapter rejects response for a different chunk and malformed status', async () => {
   for (const response of [{ ...success, chunkId: 'wrong' }, { ...success, status: 'pending' }, { ...success, transcript: '' }]) {
     const api = adapter(async () => Response.json(response)).createRecordingApi(async () => 'token');
-    await assert.rejects(api.transcribe(chunk, new AbortController().signal), /invalid segment/);
+    await assert.rejects(api.transcribe({}, chunk, new AbortController().signal), /invalid segment/);
   }
 });
 test('adapter retains structured retry errors; missing file and signed-out calls do not send', async () => {
   const api = adapter(async () => Response.json({ error: { code: 'busy', message: 'Busy', retryable: true, retryAfterMs: 4000 } }, { status: 429 })).createRecordingApi(async () => 'token');
-  await assert.rejects(api.transcribe(chunk, new AbortController().signal), error => error.retryable && error.retryAfterMs === 4000);
+  await assert.rejects(api.transcribe({}, chunk, new AbortController().signal), error => error.retryable && error.retryAfterMs === 4000);
   let calls = 0;
   const fetcher = async () => { calls++; return Response.json(success); };
-  await assert.rejects(adapter(fetcher, false).createRecordingApi(async () => 'token').transcribe(chunk, new AbortController().signal), /missing/);
-  await assert.rejects(adapter(fetcher).createRecordingApi(async () => null).transcribe(chunk, new AbortController().signal), /Sign in/);
+  await assert.rejects(adapter(fetcher, false).createRecordingApi(async () => 'token').transcribe({}, chunk, new AbortController().signal), /missing/);
+  await assert.rejects(adapter(fetcher).createRecordingApi(async () => null).transcribe({}, chunk, new AbortController().signal), /Sign in/);
   assert.equal(calls, 0);
 });
 test('already canceled adapter request never uploads', async () => {
   let calls = 0;
   const controller = new AbortController(); controller.abort();
   const api = adapter(async () => { calls++; return Response.json(success); }).createRecordingApi(async () => 'token');
-  await assert.rejects(api.transcribe(chunk, controller.signal), /interrupted/);
+  await assert.rejects(api.transcribe({}, chunk, controller.signal), /interrupted/);
   assert.equal(calls, 0);
 });
 test('SQLite recording migrations enforce ordered unique chunks and cascading deletion', () => {
@@ -56,8 +56,8 @@ test('SQLite recording migrations enforce ordered unique chunks and cascading de
   const db = new DatabaseSync(':memory:');
   db.exec('PRAGMA foreign_keys = ON');
   for (const file of fs.readdirSync('drizzle/expo').filter(name => name.endsWith('.sql')).sort()) db.exec(fs.readFileSync(`drizzle/expo/${file}`, 'utf8'));
-  db.prepare('INSERT INTO recording_sessions VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run('s', 'owner', 'topic', 'subject', 'grade', 'now', 'now', 30000, 1, 'partial', 0, 0, null);
-  const insert = db.prepare('INSERT INTO recording_chunks VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
+  db.prepare('INSERT INTO recording_sessions (id,owner_clerk_id,title,subject,grade,started_at,updated_at,duration_ms,expected_chunk_count,status,server_created,server_finalized,error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)').run('s', 'owner', 'topic', 'subject', 'grade', 'now', 'now', 30000, 1, 'partial', 0, 0, null);
+  const insert = db.prepare('INSERT INTO recording_chunks (id,session_id,chunk_index,start_ms,duration_ms,local_uri,status,transcript,attempts,next_attempt_at,error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)');
   insert.run('c', 's', 0, 0, 30000, 'uri', 'pending', '', 0, null, null);
   assert.throws(() => insert.run('c2', 's', 0, 0, 30000, 'uri', 'pending', '', 0, null, null), /UNIQUE/);
   assert.throws(() => insert.run('c3', 'missing', 1, 0, 30000, 'uri', 'pending', '', 0, null, null), /FOREIGN KEY/);
@@ -118,13 +118,13 @@ test('token refresh cancellation is bounded and auth rejection is not retried', 
   const fetcher = async () => { calls++; return Response.json(success); };
   const api = adapter(fetcher).createRecordingApi(() => new Promise(() => {}));
   const controller = new AbortController();
-  const upload = api.transcribe(chunk, controller.signal);
+  const upload = api.transcribe({}, chunk, controller.signal);
   controller.abort();
   await assert.rejects(upload, /interrupted/);
   for (const status of [401, 403]) {
-    await assert.rejects(adapter(fetcher).createRecordingApi(async () => { throw { status }; }).transcribe(chunk, new AbortController().signal), error => !error.retryable && /Sign in/.test(error.message));
+    await assert.rejects(adapter(fetcher).createRecordingApi(async () => { throw { status }; }).transcribe({}, chunk, new AbortController().signal), error => !error.retryable && /Sign in/.test(error.message));
   }
-  await assert.rejects(adapter(fetcher).createRecordingApi(async () => { throw new TypeError('Network failed'); }).transcribe(chunk, new AbortController().signal), error => error.retryable);
+  await assert.rejects(adapter(fetcher).createRecordingApi(async () => { throw new TypeError('Network failed'); }).transcribe({}, chunk, new AbortController().signal), error => error.retryable);
   assert.equal(calls, 0);
 });
 

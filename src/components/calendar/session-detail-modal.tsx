@@ -1,3 +1,5 @@
+import { useAuth } from '@clerk/expo';
+import { useRecorderAnalysis } from '@/hooks/use-recorder-analysis';
 import { Pressable } from '@/components/feedback/pressable';
 import { useThemeColors, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -70,12 +72,18 @@ export function SessionDetailModal({
   error,
   onClose,
 }: Props): React.ReactElement | null {
+  const { userId } = useAuth();
+  const analysis = useRecorderAnalysis(userId, visible ? detail?.recording ?? null : null, false);
   const colors = useThemeColors();
   const styles = useThemeStyles(createStyles);
 
   const [activeView, setActiveView] = useState<SessionDetailView>("reflection");
   const [mounted, setMounted] = useState(visible);
   const session = detail?.session;
+  const [viewSession, setViewSession] = useState<string | undefined>(undefined);
+  if (session?.sessionId !== viewSession) {
+    setViewSession(session?.sessionId); setActiveView(detail?.report ? 'reflection' : 'transcript');
+  }
 
   const { height } = useWindowDimensions();
   const slideDistance = Math.min(height * 0.92, 720);
@@ -262,7 +270,13 @@ export function SessionDetailModal({
                   {formatSessionDate(session.recordedAt)}
                 </Text>
 
-                {activeView === "reflection" ? (
+                {activeView === "transcript" ? <View style={styles.transcriptBox}>
+                  <Text style={styles.transcriptTitle}>Saved transcript</Text>
+                  <Text selectable style={styles.transcriptBody}>{detail.transcript || 'No transcribed speech yet. Return to Recorder to retry unfinished segments.'}</Text>
+                  {analysis.reportError ? <Text accessibilityRole="alert" style={styles.transcriptBody}>{analysis.reportError}</Text> : null}
+                  {!detail.report && !analysis.report ? <NeoButton label={analysis.isAnalyzing ? 'Generating report…' : 'Generate report online'} disabled={!analysis.canSend} onPress={() => { void analysis.send(); }} /> : null}
+                  {analysis.isAnalyzing ? <NeoButton label="Cancel report" onPress={analysis.cancel} /> : null}
+                </View> : activeView === "reflection" ? (
                   <>
                     {detail.transcriptPreview ? (
                       <View style={styles.transcriptBox}>
@@ -276,8 +290,8 @@ export function SessionDetailModal({
                       </View>
                     ) : null}
 
-                    {detail.report ? (
-                      <ClassReflectionSections report={detail.report} />
+                    {(detail.report ?? analysis.report) ? (
+                      <ClassReflectionSections report={(detail.report ?? analysis.report)!} />
                     ) : (
                       <View style={styles.emptyReport}>
                         <Text style={styles.emptyReportTitle}>Report</Text>
@@ -289,7 +303,7 @@ export function SessionDetailModal({
                     )}
                   </>
                 ) : (
-                  <ClassNotesSection notes={detail.classNotes} />
+                  <ClassNotesSection notes={detail.classNotes ?? analysis.classNotes} />
                 )}
               </ScrollView>
 
