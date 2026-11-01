@@ -6,7 +6,7 @@ import { AiRequestError, checkAborted, isRecord, providerFetch, readJson, withPr
 
 export const CLASS_REPORT_MODEL = 'gpt-6-luna';
 export type ClassReportInput = { transcript: string; topic: string; subject: string; classLevel: string };
-export type ClassReportResult = { report: TeachingReport; classNotes: string; model: string };
+export type ClassReportResult = { report: TeachingReport; classNotes: string; model: string; backend?: 'online' | 'offline'; sourceHash?: string; promptVersion?: string };
 export type ReportPhase = 'feedback' | 'notes';
 const fields = ['classroomEnvironment', 'whatWentWrong', 'areasToImprove', 'topicSpecificFeedback'] as const;
 

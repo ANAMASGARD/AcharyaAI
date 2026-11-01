@@ -82,3 +82,20 @@ test('two transcript-only classes reopen by owner, then gain one report without 
     assert.equal(h.sqlite.prepare('SELECT count(*) AS n FROM recording_chunks').get().n, 2);
   } finally { h.close(); }
 });
+
+test('offline reports and their index sources save atomically and remain private until owner shares', async () => {
+  const h = setup();
+  try {
+    await h.history.saveReportHistory('alice', h.session, { ...result, backend: 'offline', sourceHash: 'hash', promptVersion: 'classroom-v1' }, new AbortController().signal);
+    assert.equal(await h.history.reportSharingAllowed('alice', h.session.id), false);
+    assert.ok(h.sqlite.prepare('SELECT count(*) AS n FROM report_vectors').get().n > 0);
+    await h.history.allowReportSharing('bob', h.session.id);
+    assert.equal(await h.history.reportSharingAllowed('alice', h.session.id), false);
+    const cancelled = new AbortController(); cancelled.abort();
+    await assert.rejects(h.history.allowReportSharing('alice', h.session.id, cancelled.signal), /cancelled/);
+    await h.history.allowReportSharing('alice', h.session.id);
+    assert.equal(await h.history.reportSharingAllowed('alice', h.session.id), true);
+    const reopened = await h.history.readSavedReportResult('alice', h.session.id);
+    assert.equal(reopened.backend, 'offline'); assert.equal(reopened.sourceHash, 'hash');
+  } finally { h.close(); }
+});

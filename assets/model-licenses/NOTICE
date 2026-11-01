@@ -1,0 +1,8 @@
+Gemma is provided under and subject to the Gemma Terms of Use found at ai.google.dev/gemma/terms
+
+Acharya downloads quantized Gemma 3 270M instruction-tuned model derivatives from
+unsloth/gemma-3-270m-it-GGUF, unsloth/gemma-3-270m-it-qat-GGUF, and
+ggml-org/gemma-3-270m-it-GGUF on Hugging Face. Acharya does not modify their weights.
+The model artifacts and their use remain subject to section 3.2 of the Gemma
+Terms of Use and the Gemma Prohibited Use Policy at
+ai.google.dev/gemma/prohibited_use_policy. See GEMMA_TERMS.md for the agreement.

@@ -141,6 +141,8 @@ export function useUiPreferences() {
   return useMemo(() => ({
     ...preferences,
     hasHydrated: true,
+    setOfflineReportModelId: (id: string) => update({ offlineReportModelId: id }),
+    setOfflineReportsEnabled: (enabled: boolean) => update({ offlineReportsEnabled: enabled }),
     setOfflineStt: (enabled: boolean, id: UiPreferences["offlineSttModelId"]) => update({ offlineSttEnabled: enabled, offlineSttModelId: id }),
     setSoundEffectsEnabled: (enabled: boolean) => update({ soundEffectsEnabled: enabled }),
     setColorMode: (mode: UiPreferences["colorMode"]) => update({ colorMode: mode }),

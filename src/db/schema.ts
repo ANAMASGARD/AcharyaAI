@@ -74,7 +74,11 @@ export const localReports = sqliteTable('local_reports', {
   title: text('title').notNull(), subject: text('subject').notNull(), grade: text('grade').notNull(),
   recordedAt: text('recorded_at').notNull(), durationMs: integer('duration_ms').notNull(),
   reportJson: text('report_json').notNull(), classNotes: text('class_notes').notNull(),
-  model: text('model').notNull(), createdAt: text('created_at').notNull(),
+  model: text('model').notNull(),
+  backend: text('backend').$type<'online' | 'offline'>().notNull().default('online'),
+  cloudShareAllowed: integer('cloud_share_allowed', { mode: 'boolean' }).notNull().default(true),
+  sourceHash: text('source_hash'), promptVersion: text('prompt_version'),
+  createdAt: text('created_at').notNull(),
 }, (table) => [index('local_reports_owner_date_idx').on(table.ownerClerkId, table.recordedAt)]);
 
 // A saved immutable report is its durable queue item until an acknowledgement exists.
@@ -108,3 +112,13 @@ export const reportVectors = sqliteTable('report_vectors', {
   contract: text('contract').notNull(), vector: vectorBytes('vector'),
   synced: integer('synced', { mode: 'boolean' }).notNull().default(false),
 }, table => [uniqueIndex('report_vectors_source_idx').on(table.sessionId, table.kind, table.chunkIndex), index('report_vectors_owner_idx').on(table.owner), uniqueIndex('report_vectors_queue_idx').on(table.owner, table.enqueueSequence)]);
+
+// Validated local generation stages survive interruption; never synced to the server.
+export const reportCheckpoints = sqliteTable('report_checkpoints', {
+  id: text('id').primaryKey(),
+  owner: text('owner').notNull(),
+  sessionId: text('session_id').notNull().references(() => recordingSessions.id, { onDelete: 'cascade' }),
+  fingerprint: text('fingerprint').notNull(),
+  stage: text('stage').notNull(),
+  value: text('value').notNull(),
+}, table => [uniqueIndex('report_checkpoint_stage_idx').on(table.owner, table.sessionId, table.fingerprint, table.stage)]);

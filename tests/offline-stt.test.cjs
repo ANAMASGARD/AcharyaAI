@@ -88,8 +88,7 @@ function downloadsHarness({ paused = false, kill = false, completed = false, ran
     discardSttDownload: async () => { size = 0; events.push(['discard']); },
     removeSttModel: async () => { throw new Error('Saved transcription needs this model'); },
   };
-  const mod = load('src/lib/offline-stt/download.ts', {
-    './models': models, './bridge': { offlineSttAvailable: true, sttNative: native },
+  const manager = load('src/lib/local-models/downloads.ts', {
     'expo-sqlite/kv-store': { getItemAsync: async k => values.get(k) ?? null, setItemAsync: async (k, v) => values.set(k, v), removeItemAsync: async k => values.delete(k) },
     'expo-file-system/legacy': { createDownloadResumable: (_, uri, options, progress, resumeData) => {
       const run = () => { transfer = deferred(); return transfer.promise; };
@@ -99,6 +98,7 @@ function downloadsHarness({ paused = false, kill = false, completed = false, ran
       };
     } },
   });
+  const mod = load('src/lib/offline-stt/download.ts', { './models': models, './bridge': { offlineSttAvailable: true, sttNative: native }, '@/lib/local-models/downloads': manager });
   return { mod, id: model.id, events, values, finish: () => { size = model.bytes; transfer.resolve({ status: paused ? (range ? 206 : 200) : 200, headers: paused ? { 'Content-Range': `bytes 20-${model.bytes - 1}/${model.bytes}` } : {} }); } };
 }
 test('paused model resumes only validated checkpoint and promotes after verification', async () => {

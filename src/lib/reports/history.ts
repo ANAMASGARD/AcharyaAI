@@ -1,7 +1,7 @@
 import { addReportIndexSources, scheduleReportIndexing } from '@/lib/embeddings/indexing';
 import { and, asc, desc, eq, gt, or, isNotNull } from 'drizzle-orm';
 import { readyLocalDb } from '@/db/ready';
-import { localReports, recordingSessions, recordingChunks } from '@/db/schema';
+import { localReports, recordingSessions, recordingChunks, reportCheckpoints } from '@/db/schema';
 import type { ClassReportResult } from '@/lib/ai/class-report';
 import { parseTeachingReport } from '@/lib/ai/class-report';
 import { assertAcharyaId } from '@/lib/validate-id';
@@ -24,9 +24,11 @@ export async function saveReportHistory(owner: string, session: RecordingSession
       title: session.title, subject: session.subject, grade: session.grade,
       recordedAt: session.startedAt, durationMs: session.durationMs,
       reportJson: JSON.stringify(result.report), classNotes: result.classNotes, model: result.model,
+      backend: result.backend ?? 'online', cloudShareAllowed: result.backend !== 'offline', sourceHash: result.sourceHash ?? null, promptVersion: result.promptVersion ?? null,
       createdAt: new Date().toISOString() };
     tx.insert(localReports).values(row).onConflictDoNothing().run();
     if (!existing) addReportIndexSources(tx, row);
+    tx.delete(reportCheckpoints).where(and(eq(reportCheckpoints.owner, owner), eq(reportCheckpoints.sessionId, session.id))).run();
   });
   void scheduleReportIndexing(owner).catch(() => {});
 }
@@ -76,5 +78,15 @@ export async function readClassHistory(owner: string, sessionId: string): Promis
 export async function readSavedReportResult(owner: string, sessionId: string): Promise<ClassReportResult | null> {
   const db = await readyLocalDb();
   const row = db.select().from(localReports).where(and(eq(localReports.ownerClerkId, owner), eq(localReports.sessionId, sessionId))).get();
-  return row ? { report: parseTeachingReport(row.reportJson), classNotes: row.classNotes, model: row.model } : null;
+  return row ? { report: parseTeachingReport(row.reportJson), classNotes: row.classNotes, model: row.model, backend: row.backend, sourceHash: row.sourceHash ?? undefined, promptVersion: row.promptVersion ?? undefined } : null;
+}
+
+export async function reportSharingAllowed(owner: string, sessionId: string): Promise<boolean> {
+  const db = await readyLocalDb();
+  return db.select().from(localReports).where(and(eq(localReports.ownerClerkId, owner), eq(localReports.sessionId, sessionId))).get()?.cloudShareAllowed ?? false;
+}
+export async function allowReportSharing(owner: string, sessionId: string, signal?: AbortSignal): Promise<void> {
+  const db = await readyLocalDb();
+  if (signal?.aborted) throw new Error('Sharing cancelled');
+  db.update(localReports).set({ cloudShareAllowed: true }).where(and(eq(localReports.ownerClerkId, owner), eq(localReports.sessionId, sessionId))).run();
 }

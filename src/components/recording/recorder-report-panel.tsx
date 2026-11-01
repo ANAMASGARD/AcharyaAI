@@ -1,3 +1,4 @@
+import { ReportIndexProgress } from '@/components/calendar/report-index-progress';
 import { ClassNotesSection } from "@/components/calendar/class-notes-section";
 import { ClassReflectionSections } from "@/components/calendar/class-reflection-sections";
 import {
@@ -23,6 +24,7 @@ export function RecorderReportPanel({
 
   return (
     <RecorderNeoCard style={styles.card}>
+      <ReportIndexProgress />
       <SessionDetailViewToggle onChange={setActiveView} value={activeView} />
       {activeView === "reflection" ? (
         <ClassReflectionSections report={report} />

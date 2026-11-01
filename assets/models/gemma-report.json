@@ -1,0 +1,32 @@
+[
+  {
+    "id": "gemma3-unsloth-q8",
+    "label": "Gemma 3 270M \u00b7 Unsloth",
+    "filename": "gemma3-unsloth-q8.gguf",
+    "revision": "c90975dbd40c0c7b275fefaae758c3415c906238",
+    "bytes": 291546144,
+    "sha256": "d156a5159f2f79c1b1d53c7c1cc20f1ff28ab8d00f17a292620aad13399b9698",
+    "url": "https://huggingface.co/unsloth/gemma-3-270m-it-GGUF/resolve/c90975dbd40c0c7b275fefaae758c3415c906238/gemma-3-270m-it-Q8_0.gguf",
+    "distributionApproved": true
+  },
+  {
+    "id": "gemma3-unsloth-qat-q8",
+    "label": "Gemma 3 270M \u00b7 Unsloth QAT",
+    "filename": "gemma3-unsloth-qat-q8.gguf",
+    "revision": "0bf934fbcd99f483e16763156bb3d75699b4fc76",
+    "bytes": 448832608,
+    "sha256": "95595ab89c7261c241545f55ec4d05e99bbe5c2d86b531e99bf8818a6661834f",
+    "url": "https://huggingface.co/unsloth/gemma-3-270m-it-qat-GGUF/resolve/0bf934fbcd99f483e16763156bb3d75699b4fc76/gemma-3-270m-it-qat-Q8_0.gguf",
+    "distributionApproved": true
+  },
+  {
+    "id": "gemma3-ggml-q8",
+    "label": "Gemma 3 270M \u00b7 ggml-org",
+    "filename": "gemma3-ggml-q8.gguf",
+    "revision": "e7647be17ae1108f2f605ed061ca0608b171afff",
+    "bytes": 291545600,
+    "sha256": "0ef57d2c838458a1952664260dcba38e5bdda37494f3af732f06e4add24068e3",
+    "url": "https://huggingface.co/ggml-org/gemma-3-270m-it-GGUF/resolve/e7647be17ae1108f2f605ed061ca0608b171afff/gemma-3-270m-it-Q8_0.gguf",
+    "distributionApproved": true
+  }
+]

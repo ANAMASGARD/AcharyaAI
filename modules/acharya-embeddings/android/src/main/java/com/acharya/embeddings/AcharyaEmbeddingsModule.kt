@@ -5,16 +5,31 @@ import expo.modules.kotlin.modules.ModuleDefinition
 import java.io.File
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 /** Downloads are independent of the inference gate. No user data is sent to the model host. */
 class AcharyaEmbeddingsModule : Module() {
+  @Volatile private var destroyed = false
   private fun directory(): File {
     val context = requireNotNull(appContext.reactContext)
     return File(context.noBackupFilesDir, "embedding-model").apply { check(isDirectory || mkdirs()) }
   }
   override fun definition() = ModuleDefinition {
     Name("AcharyaEmbeddings")
-    Constants("contract" to EmbeddingContract.ID, "available" to true, "downloadsAvailable" to true, "recordingAvailable" to true, "sttAvailable" to true)
+    OnDestroy {
+      destroyed = true
+      val react = appContext.reactContext as? com.facebook.react.bridge.ReactContext
+      CoroutineScope(Dispatchers.IO).launch { LocalReportEngine.shutdown { react?.getNativeModule("RNLlama")?.invalidate() } }
+    }
+    Constants("contract" to EmbeddingContract.ID, "available" to true, "downloadsAvailable" to true, "recordingAvailable" to true, "sttAvailable" to true, "reportsAvailable" to true, "reportRuntime" to "gguf-v1")
+    AsyncFunction("inspectReportModel") { id: String -> ReportModel.inspect(requireNotNull(appContext.reactContext), id) }
+    AsyncFunction("prepareReportDownload") { id: String, restart: Boolean -> ReportModel.prepare(requireNotNull(appContext.reactContext), id, restart) }
+    AsyncFunction("finishReportDownload") { id: String -> ReportModel.finish(requireNotNull(appContext.reactContext), id) }
+    AsyncFunction("discardReportDownload") { id: String -> ReportModel.discard(requireNotNull(appContext.reactContext), id) }
+    AsyncFunction("removeReportModel") { id: String -> ReportModel.remove(requireNotNull(appContext.reactContext), id) }
+    AsyncFunction("openReportEngine") { token: String, modelId: String -> LocalReportEngine.open(requireNotNull(appContext.reactContext), token, modelId) { destroyed } }.runOnQueue(CoroutineScope(Dispatchers.IO))
+    AsyncFunction("cancelReportEngine") { token: String -> LocalReportEngine.cancel(token) }.runOnQueue(CoroutineScope(Dispatchers.IO))
+    AsyncFunction("closeReportEngine") { token: String -> LocalReportEngine.close(token) }.runOnQueue(CoroutineScope(Dispatchers.IO))
     AsyncFunction("inspectSttModel") { id: String ->
       val context = requireNotNull(appContext.reactContext)
       val file = SttModels.file(context, id)
@@ -38,6 +53,7 @@ class AcharyaEmbeddingsModule : Module() {
     AsyncFunction("startClassRecording") { owner: String, session: String ->
       val context = requireNotNull(appContext.reactContext)
       check(appContext.currentActivity?.hasWindowFocus() == true) { "Open Acharya before starting recording" }
+      check(!LocalReportEngine.busy()) { "Cancel the local report before recording" }
       check(ClassRecordingService.instance == null && !ClassRecordingService.anyWriterActive()) { "A class is already recording" }
       val dir = ClassRecordingService.directory(context.noBackupFilesDir, owner, session)
       check(!dir.exists()) { "Capture session already exists" }

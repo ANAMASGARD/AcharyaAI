@@ -1,3 +1,4 @@
+import { stopLocalReports } from '@/lib/offline-reports/engine';
 import { stopReportIndexing } from '@/lib/embeddings/indexing';
 import { clearReportSync, stopReportSync } from '@/lib/reports/cloud';
 import { clearProviderCredentials } from '@/lib/ai-keys/vault';
@@ -10,6 +11,7 @@ export const previewLifecycle = createPreviewLifecycle(previewStorage.clearAccou
 
 export async function clearUiPreviewAccount(owner: string, includePreferences = false): Promise<void> {
   cancelAiRequests(owner);
+  await stopLocalReports(owner);
   stopReportSync(owner);
   await stopReportIndexing(owner);
   if (includePreferences) await clearReportSync(owner);

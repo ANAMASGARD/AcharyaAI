@@ -11,12 +11,18 @@ function harness(saveHistory = async () => {}) {
   let owner = 'alice'; let recording = snapshot(); let busy = false;
   const mocks = {
     '@react-native-community/netinfo': { useNetInfo: () => ({ isConnected: true, isInternetReachable: true }) },
-    '@/components/preview/preview-provider': { usePreviewFeature: () => [saved, (value) => { saved = value; }] },
+    '@/components/preview/preview-provider': { useUiPreferences: () => ({ offlineReportsEnabled: true }), usePreviewFeature: () => [saved, (value) => { saved = value; }] },
     '@/lib/reports/history': { saveReportHistory: saveHistory, readSavedReportResult: async () => null },
-    '@/lib/ai/class-report': { generateClassReport: (account, input, signal, onPhase) => new Promise((resolve, reject) => calls.push({ account, input, signal, onPhase, resolve, reject })) },
+    '@/lib/reports/generate': { generateSavedClassReport: (account, sessionId, backend, input, signal, onPhase) => new Promise((resolve, reject) => calls.push({ account, input, signal, onPhase, resolve, reject })) },
+    '@/lib/offline-reports/download': { reportDownloads: { subscribe: () => () => {}, getState: () => ({ gemma: { status: 'downloaded' } }), check: async () => {} } },
+    '@/lib/offline-reports/model': { reportModel: () => ({ id: 'gemma' }), reportDownloadPublished: true },
+    '@/lib/offline-reports/bridge': { reportRuntimeAvailable: true },
+    '@/lib/offline-reports/engine': { localReportBusy: () => false, subscribeLocalReport: () => () => {} },
+    '@/lib/ai/cancellation': { registerAiRequest: () => () => {} },
     'expo-router': { useFocusEffect: (fn) => { focusCleanups.push(fn()); } },
     'react-native': { AppState: { addEventListener: (_, fn) => { listener = fn; return { remove() {} }; } } },
     react: {
+      useSyncExternalStore: (_subscribe, get) => get(),
       useRef: (value) => slots[cursor++] ??= { current: value },
       useState: (value) => { const index = cursor++; if (!(index in slots)) slots[index] = value; return [slots[index], (next) => { slots[index] = next; }]; },
       useCallback: (fn) => fn,
@@ -37,7 +43,7 @@ test('ready transcript enables Send; double tap generates once and persists note
   const pending = first.send(); await first.send(); assert.equal(h.calls.length, 1);
   assert.equal(h.render().isAnalyzing, true); assert.equal(h.render().canSend, false);
   assert.equal(h.calls[0].input.topic, 'Fractions');
-  h.calls[0].onPhase('notes'); assert.match(h.render().reportProgress, /summary/);
+  h.calls[0].onPhase('Creating class summary…'); assert.match(h.render().reportProgress, /summary/);
   h.calls[0].resolve(generated); await pending;
   assert.equal(h.render().classNotes, generated.classNotes); assert.equal(h.render().canSend, false);
   assert.equal(h.getSaved().sessionId, 'session1');
@@ -67,11 +73,13 @@ test('report errors retain the transcript, re-enable Send and permit manual retr
   h.calls[1].resolve(generated); await retry; assert.equal(h.render().reportError, null);
   assert.equal(h.render().report, report);
 });
-test('cancelled request cannot overwrite a newer attempt or clear its progress', async () => {
+test('cancellation blocks a second Send until the original generation settles', async () => {
   const h = harness(); h.render(); h.flush(); const first = h.render().send(); h.render().cancel();
-  const second = h.render().send(); h.calls[0].resolve(generated); await first;
-  assert.equal(h.getSaved(), null); assert.equal(h.render().isAnalyzing, true);
-  h.calls[1].resolve(generated); await second; assert.equal(h.render().classNotes, generated.classNotes);
+  await h.render().send(); assert.equal(h.calls.length, 1); assert.equal(h.render().isAnalyzing, true);
+  h.calls[0].resolve(generated); await first;
+  assert.equal(h.getSaved(), null); assert.equal(h.render().isAnalyzing, false);
+  const second = h.render().send(); h.calls[1].resolve(generated); await second;
+  assert.equal(h.render().classNotes, generated.classNotes);
 });
 
 test('storage retry retains generated report and never calls the paid model twice', async () => {

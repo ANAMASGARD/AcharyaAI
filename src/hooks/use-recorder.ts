@@ -1,3 +1,4 @@
+import { localReportBusy, subscribeLocalReport } from '@/lib/offline-reports/engine';
 import { usePreviewFeature, useUiPreferences } from '@/components/preview/preview-provider';
 import { backgroundCaptureAvailable, createNativeCapture } from '@/lib/recording/native-capture';
 import { createId } from '@/lib/id';
@@ -11,7 +12,7 @@ import { recordingRepository } from '@/lib/recording/repository';
 import { useRecorderAnalysis } from '@/hooks/use-recorder-analysis';
 import { useAuth } from '@clerk/expo';
 import { requestRecordingPermissionsAsync, setAudioModeAsync, useAudioStream } from 'expo-audio';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { AppState, Platform } from 'react-native';
 
 type RecorderDraft = { topic: string; subject: string; classLevel: string };
@@ -99,8 +100,9 @@ export function useRecorder() {
   const mergedTranscript = chunks.map((chunk) => chunk.status === 'done' ? chunk.transcript.trim()
     : chunk.status === 'empty' ? '[inaudible]' : chunk.status === 'failed' ? `[Segment ${chunk.index + 1} failed — retry transcription]` : '')
     .filter(Boolean).join('\n\n');
+  const reportBusy = useSyncExternalStore(subscribeLocalReport, localReportBusy, () => false);
   const analysis = useRecorderAnalysis(userId, snapshot, view.busy || isRecording || isStarting || isTranscribing);
-  const canStartRecording = (!preferences.offlineSttEnabled || (offlineSttAvailable && Boolean(preferences.offlineSttModelId))) && !analysis.isAnalyzing && native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
+  const canStartRecording = !reportBusy && (!preferences.offlineSttEnabled || (offlineSttAvailable && Boolean(preferences.offlineSttModelId))) && !analysis.isAnalyzing && native && view.hydrated && !view.busy && !isRecording && !isStarting && !isTranscribing && !failed &&
     !(chunks.length && !session?.serverFinalized) && Boolean(draft.topic.trim() && draft.subject && draft.classLevel);
   let statusMessage = 'Fill topic, subject, and class to start';
   if (!native) statusMessage = 'Class recording is available on Android and iOS.';
@@ -119,6 +121,7 @@ export function useRecorder() {
     engineLabel: (session?.sttBackend ?? (preferences.offlineSttEnabled ? 'whisper' : 'gnani')) === 'whisper'
       ? `Offline · ${sttModel(session?.sttModelId ?? preferences.offlineSttModelId)?.label ?? 'Select a model in Run locally'}` : 'Online · Gnani',
     canNewClassroom: !analysis.isAnalyzing && !view.busy && !isRecording && !isStarting && !isTranscribing && Boolean(session?.serverFinalized) && !failed,
+    reportBackend: analysis.backend, setReportBackend: analysis.setBackend, reportBackendLocked: analysis.backendLocked,
     canStartRecording, canSend: analysis.canSend, statusMessage, mergedTranscript,
     report: analysis.report, classNotes: analysis.classNotes,
     isAnalyzing: analysis.isAnalyzing, reportProgress: analysis.reportProgress, reportError: analysis.reportError, cancelAnalysis: analysis.cancel,

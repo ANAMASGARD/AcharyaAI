@@ -2,6 +2,8 @@ import type { SttModelId } from '@/lib/offline-stt/models';
 export type UiPreferences = {
   colorMode: 'light' | 'dark';
   offlineSttEnabled: boolean;
+  offlineReportsEnabled: boolean;
+  offlineReportModelId: string | null;
   offlineSttModelId: SttModelId | null;
   selectedLanguageId: string | null;
   teachingClassIds: string[];
@@ -12,6 +14,8 @@ export type UiPreferences = {
 export const DEFAULT_UI_PREFERENCES: UiPreferences = {
   colorMode: 'light',
   offlineSttEnabled: false,
+  offlineReportsEnabled: false,
+  offlineReportModelId: null,
   offlineSttModelId: null,
   selectedLanguageId: null,
   teachingClassIds: [],
@@ -89,7 +93,10 @@ export function parsePreferences(raw: string | null): UiPreferences {
   const offlineSttModelId = 'offlineSttModelId' in value ? value.offlineSttModelId : null;
   if (typeof offlineSttEnabled !== 'boolean' || (offlineSttModelId !== null &&
       (typeof offlineSttModelId !== 'string' || !['whisper-small-q5_1-v1', 'whisper-medium-q5_0-v1'].includes(offlineSttModelId)))) throw new PreviewDataError('preferences');
-  return { ...value, colorMode: mode, soundEffectsEnabled, offlineSttEnabled, offlineSttModelId } as UiPreferences;
+  const offlineReportsEnabled = 'offlineReportsEnabled' in value ? value.offlineReportsEnabled : false;
+  if (typeof offlineReportsEnabled !== 'boolean') throw new PreviewDataError('preferences');
+  const offlineReportModelId = 'offlineReportModelId' in value && typeof value.offlineReportModelId === 'string' ? value.offlineReportModelId : null;
+  return { ...value, offlineReportModelId, offlineReportsEnabled, colorMode: mode, soundEffectsEnabled, offlineSttEnabled, offlineSttModelId } as UiPreferences;
 }
 
 /** Saved sandbox and blob URLs are temporary. Resolve references from their stable attachment IDs. */

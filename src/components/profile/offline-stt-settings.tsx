@@ -41,7 +41,7 @@ export function OfflineSttSettings(): React.ReactElement {
   const transferring = Object.values(downloads).some(s => ['checking', 'downloading', 'pausing', 'verifying'].includes(s.status));
   return <View style={styles.section}>
     <Text accessibilityRole="header" style={styles.heading}>Recorder transcription</Text>
-    <Text style={styles.body}>Choose Gnani online or a downloaded speech model on this phone. Offline AI reports will be added later.</Text>
+    <Text style={styles.body}>Choose Gnani online or a downloaded speech model on this phone. Download Gemma below to generate reports on this phone too.</Text>
     <NeoButton label={`${!prefs.offlineSttEnabled ? '✓ ' : ''}Online — Gnani`} disabled={locked} onPress={() => { void select(false); }} />
     <NeoButton label={`${prefs.offlineSttEnabled ? '✓ ' : ''}Offline — on device`} disabled={locked || !offlineSttAvailable} onPress={() => { void select(true); }} />
     {locked ? <Text style={styles.caption}>Engine and model stay fixed until the current transcription finishes.</Text> : null}

@@ -124,6 +124,7 @@ test('sign-out/session cleanup retains encrypted keys; account deletion removes 
   const keys = new Set(['alice', 'bob']);
   const calls = [];
   const account = load('src/lib/ui-preview/account.ts', {
+    '@/lib/offline-reports/engine': { stopLocalReports: async owner => calls.push(['stop-local-reports', owner]) },
     '@/lib/embeddings/indexing': { stopReportIndexing: async (owner) => calls.push(['stop-index', owner]) },
     '@/lib/reports/cloud': { stopReportSync: (owner) => calls.push(['stop', owner]), clearReportSync: async (owner) => calls.push(['clear-sync', owner]) },
     '@/lib/ai-keys/vault': { clearProviderCredentials: async (owner) => { keys.delete(owner); calls.push(['erase-keys', owner]); } },

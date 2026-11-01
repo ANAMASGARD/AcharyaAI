@@ -26,6 +26,7 @@ function hookHarness(platform = 'android', backgroundCapture = false) {
   }
   let streamOptions;
   const mocks = {
+    '@/lib/offline-reports/engine': { localReportBusy: () => false, subscribeLocalReport: () => () => {} },
     '@/lib/offline-stt/bridge': { offlineSttAvailable: true },
     '@/lib/offline-stt/models': { sttModel: () => undefined },
     '@/lib/recording/native-capture': { backgroundCaptureAvailable: backgroundCapture, createNativeCapture: () => ({ start: async () => events.push('service-start'), stop: async () => events.push('service-stop'), durable: true }) },
@@ -41,6 +42,7 @@ function hookHarness(platform = 'android', backgroundCapture = false) {
     'expo-router': { useFocusEffect: (callback) => { if (!focusCleanup) focusCleanup = callback(); } },
     'react-native': { Platform: { OS: platform }, AppState: { addEventListener: (name, callback) => { appCallback = callback; return { remove: () => { appCallback = null; } }; } } },
     react: {
+      useSyncExternalStore: (_subscribe, get) => get(),
       useRef: (initial) => { const index = cursor++; return slots[index] ??= { current: initial }; },
       useState: (initial) => { const index = cursor++; if (!(index in slots)) slots[index] = typeof initial === 'function' ? initial() : initial;
         return [slots[index], (value) => { slots[index] = typeof value === 'function' ? value(slots[index]) : value; }]; },

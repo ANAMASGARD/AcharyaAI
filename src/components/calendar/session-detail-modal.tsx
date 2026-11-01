@@ -1,3 +1,6 @@
+import { ReportIndexProgress } from './report-index-progress';
+import { ReportEngineChoice } from '@/components/recording/report-engine-choice';
+import { ReportSharing } from './report-sharing';
 import { useAuth } from '@clerk/expo';
 import { useRecorderAnalysis } from '@/hooks/use-recorder-analysis';
 import { Pressable } from '@/components/feedback/pressable';
@@ -274,7 +277,10 @@ export function SessionDetailModal({
                   <Text style={styles.transcriptTitle}>Saved transcript</Text>
                   <Text selectable style={styles.transcriptBody}>{detail.transcript || 'No transcribed speech yet. Return to Recorder to retry unfinished segments.'}</Text>
                   {analysis.reportError ? <Text accessibilityRole="alert" style={styles.transcriptBody}>{analysis.reportError}</Text> : null}
-                  {!detail.report && !analysis.report ? <NeoButton label={analysis.isAnalyzing ? 'Generating report…' : 'Generate report online'} disabled={!analysis.canSend} onPress={() => { void analysis.send(); }} /> : null}
+                  {!detail.report && !analysis.report ? <ReportEngineChoice backend={analysis.backend} disabled={analysis.backendLocked} onChange={analysis.setBackend} /> : null}
+                  {(detail.report || analysis.report) ? <ReportIndexProgress /> : null}
+                  {(detail.report || analysis.report) && session ? <ReportSharing sessionId={session.sessionId} /> : null}
+                  {!detail.report && !analysis.report ? <NeoButton label={analysis.isAnalyzing ? 'Generating report…' : analysis.backend === 'offline' ? 'Generate report offline' : 'Generate report online'} disabled={!analysis.canSend} onPress={() => { void analysis.send(); }} /> : null}
                   {analysis.isAnalyzing ? <NeoButton label="Cancel report" onPress={analysis.cancel} /> : null}
                 </View> : activeView === "reflection" ? (
                   <>

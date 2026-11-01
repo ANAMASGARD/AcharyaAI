@@ -1,7 +1,7 @@
 {
   "name": "acharyaapp",
   "main": "expo-router/entry",
-  "version": "1.0.14",
+  "version": "1.0.17",
   "dependencies": {
     "@clerk/backend": "^3.23.2",
     "@clerk/expo": "^4.14.5",
@@ -40,6 +40,7 @@
     "expo-updates": "~58.0.20",
     "expo-web-browser": "~58.0.7",
     "js-tiktoken": "1.0.21",
+    "llama.rn": "0.12.9",
     "lottie-react-native": "~7.5.0",
     "nanoid": "^6.0.2",
     "openai": "7.47.0",
@@ -87,7 +88,7 @@
     "db:migrate:pg": "drizzle-kit migrate --config drizzle.config.pg.ts",
     "db:generate:expo": "drizzle-kit generate --config drizzle.config.expo.ts",
     "check": "npm run typecheck && npm run lint && npm test && expo export --platform all --clear",
-    "postinstall": "patch-package --error-on-fail",
+    "postinstall": "node node_modules/llama.rn/install/download-native-artifacts.js && patch-package --error-on-fail",
     "native:gate:prepare": "node scripts/native-gate/prepare.cjs",
     "test:rag": "vitest run --config vitest.rag.config.ts",
     "rag:status": "node scripts/rag-status.cjs"

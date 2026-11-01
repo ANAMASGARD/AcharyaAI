@@ -1,0 +1,31 @@
+diff --git a/node_modules/llama.rn/android/src/main/java/com/rnllama/RNLlamaModule.java b/node_modules/llama.rn/android/src/main/java/com/rnllama/RNLlamaModule.java
+--- a/node_modules/llama.rn/android/src/main/java/com/rnllama/RNLlamaModule.java
++++ b/node_modules/llama.rn/android/src/main/java/com/rnllama/RNLlamaModule.java
+@@ -12,6 +12,7 @@
+   public static final String NAME = RNLlama.NAME;
+ 
+   private ReactApplicationContext context;
++  private boolean invalidated = false;
+ 
+   public RNLlamaModule(ReactApplicationContext reactContext) {
+     super(reactContext);
+@@ -35,7 +36,7 @@
+ 
+       long jsContextPointer = context.getJavaScriptContextHolder().get();
+       CallInvokerHolderImpl holder =
+-        (CallInvokerHolderImpl) context.getCatalystInstance().getJSCallInvokerHolder();
++        (CallInvokerHolderImpl) context.getJSCallInvokerHolder();
+ 
+       if (jsContextPointer == 0 || holder == null) {
+         promise.resolve(false);
+@@ -55,7 +56,9 @@
+   private native void cleanupJSIBindings();
+ 
+   @Override
+-  public void invalidate() {
++  public synchronized void invalidate() {
++    if (invalidated) return;
++    invalidated = true;
+     try {
+       cleanupJSIBindings();
+     } catch (UnsatisfiedLinkError ignored) {

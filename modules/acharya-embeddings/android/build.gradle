@@ -8,6 +8,8 @@ def nativeGate = findProperty('acharyaNativeGate') == 'true'
 android {
   namespace 'com.acharya.embeddings'
   sourceSets.main {
+    assets.srcDir "../../../assets/models"
+    assets.srcDir "../../../assets/model-licenses"
     if (nativeGate) {
       java.srcDir 'src/gate/java'
     }

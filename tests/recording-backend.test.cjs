@@ -40,6 +40,7 @@ test('Gnani adapter sends specified format and preserves intentional repeats', a
   const previous=global.fetch, oldKey=process.env.GNANI_API_KEY; process.env.GNANI_API_KEY='test-key';
   global.fetch=async(url, options)=>{
     assert.equal(url,'https://api.vachana.ai/stt/v3'); assert.equal(options.headers['X-API-Key-ID'],'test-key');
+    assert.equal(options.body.get('model'),'prisma-v3.0');
     assert.equal(options.body.get('language_code'),'en-IN'); assert.equal(options.body.get('format'),'transcribe'); assert.ok(options.body.get('audio_file'));
     return Response.json({success:true,transcript:' repeat repeat '});
   };

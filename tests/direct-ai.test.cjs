@@ -58,6 +58,7 @@ test('direct Gnani STT uses en-IN and audio_file; empty and repeated speech are 
     assert.equal(options.headers['X-API-Key-ID'], 'gnani-private');
     assert.equal(options.body.get('language_code'), 'en-IN');
     assert.equal(options.body.get('format'), 'transcribe');
+    assert.equal(options.body.get('model'), 'prisma-v3.0');
     assert.equal(options.body.get('audio_file').name, 'segment.wav');
     assert.equal(options.body.has('owner'), false);
   }

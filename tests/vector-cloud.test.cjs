@@ -116,3 +116,31 @@ test('cancellation while an upload is in flight cannot acknowledge or remove que
     assert.equal(h.pending(),0);assert.equal(h.sqlite.prepare('SELECT last_error FROM report_sync_accounts').get().last_error,null);
   }finally{h.sqlite.close();}
 });
+
+test('local-only reports and vectors cannot upload even when account sync is enabled', async () => {
+  const h = setup();
+  try {
+    h.sqlite.exec('UPDATE local_reports SET cloud_share_allowed=0; DELETE FROM report_sync_acks;');
+    await h.cloud.syncReports('alice', async () => 'token');
+    assert.equal(h.calls.filter(call => call.method === 'POST').length, 0);
+    assert.equal(h.pending(), 0);
+  } finally { h.sqlite.close(); }
+});
+test('private head does not block a later shareable vector', async () => {
+  const h = setup();
+  try {
+    const first = h.db.select().from(h.schema.localReports).get();
+    const recording = h.db.select().from(h.schema.recordingSessions).get();
+    const vector = h.db.select().from(h.schema.reportVectors).get();
+    h.sqlite.exec('UPDATE local_reports SET cloud_share_allowed=0;');
+    const id = 'z'.repeat(21);
+    h.db.insert(h.schema.recordingSessions).values({ ...recording, id }).run();
+    h.db.insert(h.schema.localReports).values({ ...first, sessionId: id, cloudShareAllowed: true }).run();
+    h.db.insert(h.schema.reportSyncAcks).values({ id, owner: 'alice', revision: '2' }).run();
+    h.db.insert(h.schema.reportVectors).values({ ...vector, id: 'y'.repeat(21), sessionId: id, enqueueSequence: 20 }).run();
+    await h.cloud.syncReports('alice', async () => 'token');
+    const uploads = h.calls.filter(call => call.method === 'POST');
+    assert.equal(uploads.length, 1); assert.equal(JSON.parse(uploads[0].body).reportId, id);
+    assert.equal(h.sqlite.prepare('SELECT synced FROM report_vectors WHERE id=?').get('b'.repeat(21)).synced, 0);
+  } finally { h.sqlite.close(); }
+});

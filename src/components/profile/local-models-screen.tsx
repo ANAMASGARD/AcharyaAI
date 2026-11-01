@@ -1,3 +1,4 @@
+import { OfflineReportSettings } from './offline-report-settings';
 import { Pressable } from '@/components/feedback/pressable';
 import { OfflineSttSettings } from './offline-stt-settings';
 import { NeoButton } from '@/components/ui/neo-button';
@@ -32,6 +33,7 @@ export function LocalModelsScreen(): React.ReactElement {
       <Pressable accessibilityRole="button" onPress={() => router.back()} style={styles.back}><Text style={styles.text}>← Back</Text></Pressable>
       <Text accessibilityRole="header" style={styles.title}>Run locally</Text>
       <OfflineSttSettings />
+      <OfflineReportSettings />
       <View style={styles.card}>
         <Text accessibilityRole="header" style={styles.heading}>EmbeddingGemma 2</Text>
         <Text style={styles.text}>Text only · INT4 · 165 MB</Text>

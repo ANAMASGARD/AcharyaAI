@@ -7,6 +7,7 @@ export async function transcribeAudio(owner: string, audio: Blob, signal: AbortS
     form.append('audio_file', audio, 'segment.wav');
     form.append('language_code', 'en-IN');
     form.append('format', 'transcribe');
+    form.append('model', 'prisma-v3.0');
     const response = await providerFetch('https://api.vachana.ai/stt/v3', {
       method: 'POST', headers: { 'X-API-Key-ID': apiKey }, body: form,
     }, requestSignal);

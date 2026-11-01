@@ -1,0 +1,9 @@
+gradle.afterProject { app ->
+  if (app.path == ':app') {
+    app.android.defaultConfig.applicationId 'com.acharya.app.reportgate'
+    app.android.buildTypes.release.debuggable true
+    app.android.sourceSets.release.manifest.srcFile new File(app.rootDir, '../native-tests/offline-report-manifest.xml')
+    app.extensions.getByName('react').getEntryFile().set(new File(app.rootDir, '../native-tests/offline-report-entry.tsx'))
+    app.extensions.getByName('react').getDebuggableVariants().set([])
+  }
+}

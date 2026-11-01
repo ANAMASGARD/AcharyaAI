@@ -1,3 +1,4 @@
+import { ReportEngineChoice } from './report-engine-choice';
 import { useRouter } from 'expo-router';
 import { useColorMode, useThemeStyles } from '@/theme/use-theme';
 import type { ThemeColors } from '@/theme/colors';
@@ -32,6 +33,7 @@ export function RecorderScreen(): React.ReactElement {
     isStarting,
     isTranscribing,
     isAnalyzing,
+    reportBackend, setReportBackend, reportBackendLocked,
     reportProgress,
     reportError,
     cancelAnalysis,
@@ -96,6 +98,7 @@ export function RecorderScreen(): React.ReactElement {
         </View>
 
         <View style={styles.transcriptGap}>
+          {!report ? <ReportEngineChoice backend={reportBackend} disabled={reportBackendLocked} onChange={setReportBackend} /> : null}
           <RecorderTranscriptPanel
             disabled={!canSend}
             isTranscribing={isTranscribing}

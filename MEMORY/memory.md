@@ -1,8 +1,8 @@
 # AcharyaApp — implementation memory
 
-Updated: 2026-10-11. Repository root: `/home/linux/Desktop/AcharyaApp`.
+Updated: 2026-11-01. Repository root: `/home/linux/Desktop/AcharyaApp`.
 All paths below are relative to that root unless stated otherwise.
-This document describes implemented code and separates automated checks from device verification.
+This document describes implemented code and separates automated checks from device verification. Sections 1–11 are historical snapshots; the latest status below supersedes outdated preview-only descriptions.
 
 ## 1. Stack, configuration, and branding
 
@@ -163,3 +163,23 @@ Together with the five tabs, these are 18 product content screens.
 - Migration and test instructions: `docs/chat-composer.md`, `docs/sound-effects.md`; regression tests: `tests/chat-composer.test.cjs`, `tests/tap-sound.test.cjs`, `tests/microphone-level.test.cjs`. Existing attachment/chat fields and interaction code also changed in `src/hooks/use-chat.ts`, `use-local-chat.ts`, `src/types/chat.ts`, and relevant feature buttons now import the shared feedback Pressable.
 - Latest verified `npm run check` after local microphone visualization and silent backdrop handling: typecheck, lint, **40 tests**, and Android/iOS/web Expo exports passed. No Android device was connected (`adb devices` was empty), so permission prompts, live tap audio latency, volume, and speech visualization remain to be confirmed on a physical phone.
 - Repository commit and remote push status: update this after delivery.
+
+
+## 12. Current release and offline reports (2026-11-01)
+
+- Current app version: **1.0.17 / Android versionCode 18**, Expo ~57.0.28, React Native 0.86.3; package/lockfile and app.config.ts are authoritative.
+- Recording now has real Gnani transcription, durable ordered SQLite chunks/recovery, and an optional on-device Whisper path. Historical preview-only descriptions above no longer describe current recording/chat/community integrations.
+- Both src/lib/ai/speech.ts and src/server/recording/provider.ts explicitly send model=prisma-v3.0 to https://api.vachana.ai/stt/v3. The current official Gnani REST contract defaults to Prisma v2.5 when model is omitted. Language en-IN and format transcribe were retained. Offline transcription still selects Whisper small/medium independently.
+- The existing 1.0.16 APK contains the prisma-v3.0 selection string too. A fresh signed ARM64 1.0.17 APK was built at release/Acharya-AI-1.0.17-prisma-v3-arm64.apk; SHA-256 0d3f7bf486cde6c97f84b81dba85c1df311fdf31b3b4acb161dcf1fa47818998. APKs remain gitignored; verification Markdown is tracked.
+- The 1.0.17 build includes the current offline-report work: llama.rn runtime, explicit report-engine choice, model download/settings, shared native inference coordination, local report/history/cloud indexing changes, SQLite migration 0007, licenses/manifests and native test harnesses. See docs/offline-reports.md, docs/offline-reports-release-1.0.15.md, docs/offline-reports-json-fix-1.0.16.md and docs/offline-model-runtime-research.md for scope and limitations.
+- The 1.0.16 handoff documents a physical isolated offline-report gate reproducing and fixing Gemma turn-marker/Markdown JSON parsing, with English/Hindi synthetic lessons and no network permission. This is recorded evidence from that work, not a new device test during the 1.0.17 release. Small-model teaching-feedback accuracy remains experimental.
+- 1.0.17 validation: TypeScript and 27 focused direct-AI/recording-backend tests passed; signed assembleRelease and Android release lint passed; APK signature, package/version, ARM64-only packaging, bundled Prisma selection and ZIP 16 KB alignment verified. Initial R8 minification failed with a 2 GB Java heap; retry passed using ACHARYA_GRADLE_JVM_ARGS='-Xmx4096m -XX:MaxMetaspaceSize=1024m' and ACHARYA_APK_ONLY=1 node scripts/build-closed-testing.cjs.
+- The new APK was not installed or microphone/Gnani-tested on a physical phone. No backend deployment or Google Play publication occurred. See release/Acharya-AI-1.0.17-verification.md.
+- Before publication, full npm test passed: 270 passing, 6 skipped, no failures; npm run lint passed. The llama.rn patch contains required blank context lines flagged by git diff --check; all other staged files passed whitespace checks.
+- User requested memory update, commit and pushes to main on both origin (ANAMASGARD/Acharya) and upstream (ANAMASGARD/AcharyaAI). Check remote heads before pushing; this entry records authorization, not a claim that pushes already succeeded.
+
+### Upstream Expo 58 port
+
+This checkout preserves upstream Expo 58 / React Native dependency versions and its existing compatibility changes. The 1.0.17 APK and native validation above apply to the Expo 57 build in AcharyaApp. No Expo 58 APK was built for this port. Dependency conflicts were resolved by retaining upstream dependencies and adding only the pinned llama.rn runtime from the release commit.
+
+Upstream port validation before publication: clean npm ci with scripts disabled, all four compatibility patches applied successfully, TypeScript and lint passed, 270 tests passed and 6 skipped. No Expo 58 native build/device test was performed for this port. Origin/main release commit b44d577 was pushed successfully.

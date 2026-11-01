@@ -1,6 +1,6 @@
 import { addReportIndexSources, scheduleReportIndexing } from '@/lib/embeddings/indexing';
 import { validateVectorBatch, decodeStoredVector } from '@/lib/embeddings/sync-contract';
-import { and, eq, isNull, asc, sql } from 'drizzle-orm';
+import { and, eq, isNull, asc, sql, inArray } from 'drizzle-orm';
 import { readyLocalDb } from '@/db/ready';
 import { localReports, recordingSessions, reportSyncAccounts, reportSyncAcks, reportVectors } from '@/db/schema';
 import { validateSyncedReport, type SyncedReport } from './sync-contract';
@@ -79,7 +79,7 @@ export async function syncReports(owner: string, getToken: Token): Promise<void>
     const allowed = () => { if (signal.aborted) throw new Error('Sync cancelled'); if (!db.select().from(reportSyncAccounts).where(eq(reportSyncAccounts.owner, owner)).get()?.enabled) throw new Error('Sync paused'); };
     if (!(await reportSyncStatus(owner))?.enabled) return;
     const pending = db.select({ report: localReports }).from(localReports).leftJoin(reportSyncAcks, and(eq(reportSyncAcks.id, localReports.sessionId), eq(reportSyncAcks.owner, owner)))
-      .where(and(eq(localReports.ownerClerkId, owner), isNull(reportSyncAcks.id))).orderBy(sql`local_reports.rowid`).limit(20).all();
+      .where(and(eq(localReports.ownerClerkId, owner), eq(localReports.cloudShareAllowed, true), isNull(reportSyncAcks.id))).orderBy(sql`local_reports.rowid`).limit(20).all();
     for (const { report: row } of pending) {
       allowed();
       const payload = validateSyncedReport({ id: row.sessionId, title: row.title, subject: row.subject, grade: row.grade,
@@ -94,7 +94,7 @@ export async function syncReports(owner: string, getToken: Token): Promise<void>
     // Persistent sequence makes FIFO explicit, independent of random IDs or row layout.
     // A failed/unready head remains queued; younger vectors cannot overtake it.
     for (let batch = 0; batch < 10; batch++) {
-      const pending = db.select().from(reportVectors).where(and(eq(reportVectors.owner, owner), eq(reportVectors.synced, false)))
+      const pending = db.select().from(reportVectors).where(and(eq(reportVectors.owner, owner), eq(reportVectors.synced, false), inArray(reportVectors.sessionId, db.select({ id: localReports.sessionId }).from(localReports).where(and(eq(localReports.ownerClerkId, owner), eq(localReports.cloudShareAllowed, true))))))
         .orderBy(asc(reportVectors.enqueueSequence)).limit(20).all();
       if (!pending.length || pending[0].vector === null) break;
       const reportId = pending[0].sessionId;
@@ -163,7 +163,7 @@ function restoreReport(tx: Tx, owner: string, report: SyncedReport, rev: string)
       startedAt: report.recordedAt, updatedAt: report.createdAt, durationMs: report.durationMs, expectedChunkCount: 0,
       status: 'complete', serverCreated: true, serverFinalized: true, error: null }).onConflictDoNothing().run();
     const row = { sessionId: report.id, ownerClerkId: owner, title: report.title, subject: report.subject, grade: report.grade,
-      recordedAt: report.recordedAt, durationMs: report.durationMs, reportJson: report.reportJson, classNotes: report.classNotes, model: report.model, createdAt: report.createdAt };
+      recordedAt: report.recordedAt, durationMs: report.durationMs, reportJson: report.reportJson, classNotes: report.classNotes, model: report.model, backend: ['gemma-3-270m-it-q8-v1@', 'gemma3-unsloth-q8@', 'gemma3-unsloth-qat-q8@', 'gemma3-ggml-q8@'].some(prefix => report.model.startsWith(prefix)) ? 'offline' as const : 'online' as const, createdAt: report.createdAt };
     tx.insert(localReports).values(row).run();
     addReportIndexSources(tx, row);
   }

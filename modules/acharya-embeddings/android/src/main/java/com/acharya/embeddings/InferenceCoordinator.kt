@@ -6,10 +6,14 @@ object InferenceCoordinator {
   private var embedding = false
   private var stt: String? = null
   private var waiting = 0
-  fun acquire(token: String) = synchronized(monitor) {
+  fun acquire(token: String, cancelled: () -> Boolean = { false }) = synchronized(monitor) {
     waiting++
     try {
-      while (embedding || stt != null) monitor.wait()
+      while (embedding || stt != null) {
+        if (cancelled()) throw java.util.concurrent.CancellationException("Inference cancelled")
+        monitor.wait(100)
+      }
+      if (cancelled()) throw java.util.concurrent.CancellationException("Inference cancelled")
       stt = token
     } finally { waiting-- }
   }
